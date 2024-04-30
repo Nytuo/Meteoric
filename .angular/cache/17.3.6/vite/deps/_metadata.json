@@ -1,0 +1,70 @@
+{
+  "hash": "8f007091",
+  "configHash": "f6d6c267",
+  "lockfileHash": "8b4337cc",
+  "browserHash": "f7632ba4",
+  "optimized": {
+    "@angular/common": {
+      "src": "../../../../../node_modules/@angular/common/fesm2022/common.mjs",
+      "file": "@angular_common.js",
+      "fileHash": "3cfacb14",
+      "needsInterop": false
+    },
+    "@angular/core": {
+      "src": "../../../../../node_modules/@angular/core/fesm2022/core.mjs",
+      "file": "@angular_core.js",
+      "fileHash": "1bb2e758",
+      "needsInterop": false
+    },
+    "@angular/platform-browser": {
+      "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
+      "file": "@angular_platform-browser.js",
+      "fileHash": "a0f540d7",
+      "needsInterop": false
+    },
+    "@angular/router": {
+      "src": "../../../../../node_modules/@angular/router/fesm2022/router.mjs",
+      "file": "@angular_router.js",
+      "fileHash": "143cc2e1",
+      "needsInterop": false
+    },
+    "@tauri-apps/api/tauri": {
+      "src": "../../../../../node_modules/@tauri-apps/api/tauri.js",
+      "file": "@tauri-apps_api_tauri.js",
+      "fileHash": "d3e1942c",
+      "needsInterop": false
+    },
+    "rxjs": {
+      "src": "../../../../../node_modules/rxjs/dist/esm5/index.js",
+      "file": "rxjs.js",
+      "fileHash": "b3ea1abc",
+      "needsInterop": false
+    },
+    "@tauri-apps/api/path": {
+      "src": "../../../../../node_modules/@tauri-apps/api/path.js",
+      "file": "@tauri-apps_api_path.js",
+      "fileHash": "2075d99e",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-GMXMMATF": {
+      "file": "chunk-GMXMMATF.js"
+    },
+    "chunk-3XQHKDFO": {
+      "file": "chunk-3XQHKDFO.js"
+    },
+    "chunk-2JDBUETV": {
+      "file": "chunk-2JDBUETV.js"
+    },
+    "chunk-CTXW4UYG": {
+      "file": "chunk-CTXW4UYG.js"
+    },
+    "chunk-WSA2QMXP": {
+      "file": "chunk-WSA2QMXP.js"
+    },
+    "chunk-J4B6MK7R": {
+      "file": "chunk-J4B6MK7R.js"
+    }
+  }
+}
