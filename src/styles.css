@@ -1,5 +1,7 @@
 @import 'material-symbols';
-
+@import "primeicons/primeicons.css";
+@import "primeng/resources/themes/md-dark-indigo/theme.css";
+@import "primeng/resources/primeng.css";
 :root {
     font-size: 16px;
     line-height: 24px;
@@ -30,6 +32,7 @@ html {
     background-attachment: fixed;
     background-color: #000000;
     background-repeat: repeat;
+    overflow: hidden;
 }
 body {
     margin: 0;
@@ -38,7 +41,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    backdrop-filter: blur(50px) brightness(40%);
+    backdrop-filter: blur(70px) brightness(70%) saturate(120%) contrast(120%) hue-rotate(180deg) invert(10%);
     background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -54,4 +57,17 @@ overflow-x: hidden;
 @font-face {
     font-family: 'Roboto-Medium';
     src: url('assets/fonts/Roboto-Medium.ttf') format('truetype');
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 10px;
 }

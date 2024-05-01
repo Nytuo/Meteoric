@@ -3,6 +3,7 @@ import {convertFileSrc, invoke} from "@tauri-apps/api/tauri";
 import IGame from "../../interfaces/IGame";
 import {configDir} from "@tauri-apps/api/path";
 import ICategory from "../../interfaces/ICategory";
+import {platform} from "@tauri-apps/api/os";
 
 @Injectable({
     providedIn: 'root'
@@ -12,17 +13,23 @@ export class DBService {
     constructor() {
     }
 
-    JSONParserForGames(games: string) : IGame[] {
+    JSONParserForGames(games: string): IGame[] {
         let gamesArray = JSON.parse(games) as IGame[];
         gamesArray.map(async game => {
             let dashedName = game.nom.replace(/ /g, "_").toLowerCase();
             let configDirPath = await configDir();
-            game.jaquette = convertFileSrc(configDirPath + "universe/universe_extra_content/" + dashedName + "/jaquette.jpg");
-            game.background = convertFileSrc(configDirPath + "universe/universe_extra_content/" + dashedName + "/background.jpg");
-            game.logo = convertFileSrc(configDirPath + "universe/universe_extra_content/" + dashedName + "/logo.png");
-            game.icon = convertFileSrc(configDirPath + "universe/universe_extra_content/" + dashedName + "/icon.png");
-            game.images = convertFileSrc(configDirPath + "universe/universe_extra_content/" + dashedName + "/images");
-            game.videos = convertFileSrc(configDirPath + "universe/universe_extra_content/" + dashedName + "/videos");
+            let dplatform = await platform();
+            if (dplatform === "win32") {
+                configDirPath = configDirPath + "Nytuo\\universe\\config\\universe_extra_content\\";
+            } else if (dplatform === "linux") {
+                configDirPath = configDirPath + "universe/universe_extra_content/";
+            }
+            game.jaquette = convertFileSrc(configDirPath + dashedName + "/jaquette.jpg");
+            game.background = convertFileSrc(configDirPath + dashedName + "/background.jpg");
+            game.logo = convertFileSrc(configDirPath + dashedName + "/logo.png");
+            game.icon = convertFileSrc(configDirPath + dashedName + "/icon.png");
+            game.images = convertFileSrc(configDirPath + dashedName + "/images");
+            game.videos = convertFileSrc(configDirPath + dashedName + "/videos");
             return game;
         });
         return gamesArray;

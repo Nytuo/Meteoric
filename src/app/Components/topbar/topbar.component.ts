@@ -1,10 +1,13 @@
 import {Component} from '@angular/core';
 import {GenericService} from "../../services/generic.service";
+import {ButtonModule} from "primeng/button";
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [],
+    imports: [
+        ButtonModule
+    ],
     templateUrl: './topbar.component.html',
     styleUrl: './topbar.component.css'
 })

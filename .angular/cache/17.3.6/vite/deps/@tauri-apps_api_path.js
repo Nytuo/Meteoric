@@ -1,16 +1,11 @@
 import {
-  invoke
-} from "./chunk-GMXMMATF.js";
+  invokeTauriCommand,
+  isWindows
+} from "./chunk-PKIZ2LPD.js";
+import "./chunk-GMXMMATF.js";
 import {
   __async
 } from "./chunk-J4B6MK7R.js";
-
-// node_modules/@tauri-apps/api/helpers/tauri.js
-function invokeTauriCommand(command) {
-  return __async(this, null, function* () {
-    return invoke("tauri", command);
-  });
-}
 
 // node_modules/@tauri-apps/api/fs.js
 var BaseDirectory;
@@ -41,11 +36,6 @@ var BaseDirectory;
   BaseDirectory2[BaseDirectory2["AppCache"] = 24] = "AppCache";
   BaseDirectory2[BaseDirectory2["AppLog"] = 25] = "AppLog";
 })(BaseDirectory || (BaseDirectory = {}));
-
-// node_modules/@tauri-apps/api/helpers/os-check.js
-function isWindows() {
-  return navigator.appVersion.includes("Win");
-}
 
 // node_modules/@tauri-apps/api/path.js
 function appDir() {
