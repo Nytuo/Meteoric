@@ -1,0 +1,84 @@
+.sidebar {
+    overflow-y: scroll;
+    min-width: 150px;
+    position: fixed;
+    height: 100%;
+    top: 0;
+    left: 0;
+    width: 250px;
+    background-color: rgba(0, 0, 0, 0.56);
+    text-align: center;
+    z-index: 1000;
+    transition: 0.5s;
+}
+
+.accountAndSettings {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.categories > p {
+    color: #b1b1b1;
+    font-size: 1.2rem;
+    margin: 10px;
+}
+
+.category {
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+}
+
+.material-symbols-outlined.fill {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+}
+
+.category > .categoryItem > p {
+    color: #b1b1b1;
+    font-size: 1rem;
+    text-decoration: none;
+    margin: 4px;
+}
+
+.category > .categoryItem {
+    margin-left: 5px;
+}
+
+.categoryItem {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}
+
+.activeIndicator {
+    width: 5px;
+    height: 30px;
+    background-color: #3546e8;
+    position: absolute;
+    left: 0;
+    transition: 0.5s;
+    animation: spreadOut 0.2s;
+    transform-origin: center;
+}
+
+@keyframes spreadOut {
+    0% {
+        transform: scaleY(0);
+    }
+    100% {
+        transform: scaleY(1);
+    }
+}
+
+.stat{
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    padding: 10px;
+    gap: 20px;
+    cursor: pointer;
+}

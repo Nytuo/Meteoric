@@ -1,3 +1,7 @@
 <div class="container">
-    <app-card-list></app-card-list>
+    <app-sidebar/>
+    <app-topbar/>
+    <div class="content" (click)="closeOverlay()">
+        <router-outlet></router-outlet>
+    </div>
 </div>

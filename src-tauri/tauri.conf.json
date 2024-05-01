@@ -32,8 +32,11 @@
     "windows": [
       {
         "title": "universecollector",
-        "width": 800,
-        "height": 600
+        "width": 1280,
+        "height": 720,
+        "resizable": true,
+        "minWidth": 1280,
+        "minHeight": 720
       }
     ],
     "security": {

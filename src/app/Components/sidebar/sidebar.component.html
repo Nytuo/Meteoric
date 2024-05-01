@@ -1,0 +1,30 @@
+<div class="sidebar">
+    <div class="accountAndSettings">
+        <div class="settings">
+                    <span class="material-symbols-outlined" [routerLink]="['/settings']">
+                        settings
+        </span>
+        </div>
+        <div class="account">
+                    <span class="material-symbols-outlined" [routerLink]="['/account']">
+                        account_circle
+        </span></div>
+    </div>
+    <div class="other">
+        <div class="stat">
+            <span class="material-symbols-outlined">monitoring</span>
+            <span [routerLink]="['/stats']">Stats</span>
+        </div>
+    </div>
+    <div class="categories">
+        <p>Categories</p>
+        <div class="category" *ngFor="let category of categories" (click)="setCurrentCategory(category.id)" [routerLink]="['/games']">
+            <span class="activeIndicator" *ngIf="category.id == currentCategory"></span>
+            <div class="categoryItem" >
+                <span class="material-symbols-outlined">bookmark</span>
+                <p>{{category.name}}</p>
+            </div>
+        </div>
+    </div>
+
+</div>

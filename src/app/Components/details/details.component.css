@@ -1,0 +1,16 @@
+.gameInfo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+}
+
+.gameImage {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    opacity: 0.4;
+    transform: translateX(-50%);
+    z-index: 1;
+    mask-image: radial-gradient(ellipse, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0) 70%);
+}

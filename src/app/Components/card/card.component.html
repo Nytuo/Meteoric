@@ -1,6 +1,9 @@
-<div class="game" data-id="{{gameId}}">
-    <div >
+<div class="game" id="{{gameId}}" [style.width]="width" [routerLink]="['/game', gameId]">
+    <div>
         <img src="{{gameImage}}" class="image" alt="{{gameName}}" (error)="changeSourceOnError($event)">
     </div>
-    <p class="text">{{gameName}}</p>
+    <p class="text" *ngIf="gameName">{{ gameName }}</p>
+    <p class="text" *ngIf="gamePlatforms">{{ gamePlatforms }}</p>
+    <p class="text" *ngIf="gameRating">{{ gameRating }}</p>
+    <p class="text" *ngIf="gameTags">{{ gameTags }}</p>
 </div>

@@ -1,0 +1,59 @@
+<div class="topbar">
+    <div class="navAndBookmarks">
+        <span class="material-symbols-outlined">
+            arrow_back_ios_new
+        </span>
+        <span class="material-symbols-outlined">
+            arrow_forward_ios
+        </span>
+        <span class="material-symbols-outlined">
+            bookmark_border
+        </span>
+    </div>
+    <div class="main">
+        <div class="searchBar">
+            <input type="text" placeholder="Search"/>
+            <span class="material-symbols-outlined">
+                search
+            </span>
+        </div>
+        <div class="addGame">
+            <span class="material-symbols-outlined">
+                add
+            </span>
+        </div>
+        <div class="filter">
+            <span class="material-symbols-outlined">
+                filter_list
+            </span>
+        </div>
+        <div class="more" (click)="openOverlay($event.clientX, $event.clientY)">
+            <span class="material-symbols-outlined">
+                more_vert
+            </span>
+        </div>
+    </div>
+    <div class="windowManagement"></div>
+</div>
+<div id="overlay" style="display: none;">
+    <div id="overlayContent">
+        <div id="overlayBody">
+            <div id="overlayBodyContent">
+                <p>Grid</p>
+                <p>List</p>
+                <div>
+                    <div for="zoom">Zoom</div>
+                    <input type="range" name="" id="zoom" min="5" max="50" step="2" [defaultValue]="genericService.getZoomValue()" (change)="changeZoom($event.target)">
+                    <br/>
+                    <div for="gap">Gap</div>
+                    <input type="range" name="" id="gap" min="0" max="50" step="2" [defaultValue]="genericService.getGapValue()" (change)="changeGap($event.target)">
+                    <br/>
+                    <input type="checkbox" name="" id="name">
+                    <input type="checkbox" name="" id="platform">
+                    <input type="checkbox" name="" id="tags">
+                    <input type="checkbox" name="" id="rating">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

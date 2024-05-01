@@ -1,6 +1,6 @@
 <div>
-    <div class="griddy">
-        <app-card class="griddy__item" title="Card 1" *ngFor="let card of games" [gameName]="card.nom" [gameImage]="card.jaquette" [gameId]="card.id">
+    <div class="griddy" [style.gap]="gap">
+        <app-card class="griddy__item" *ngFor="let card of games" [gameName]="card.nom" [gameImage]="card.jaquette" [gameId]="card.id" [gamePlatforms]="card.platforms" [gameTags]="card.tags" [gameRating]="card.rating">
         </app-card>
     </div>
 </div>

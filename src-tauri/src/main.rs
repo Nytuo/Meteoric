@@ -24,6 +24,47 @@ fn get_all_games() -> String {
     format!("[{}]", games)
 }
 
+#[tauri::command]
+fn get_all_categories() -> String {
+    let conn = establish_connection().unwrap();
+    let category = query_all_data(&conn, "universe").unwrap()
+        .iter()
+        .map(|row| {
+            format!("{:?}", row)
+        })
+        .collect::<Vec<String>>()
+        .join(",");
+    format!("[{}]", category)
+}
+
+#[tauri::command]
+fn get_games_by_category(category: String) -> String {
+    let conn = establish_connection().unwrap();
+    let game_ids_from_cat = query_data(&conn, vec!["universe"], vec!["DISTINCT games"], vec![("name", &*("'".to_string() + &category + "'"))], false).unwrap();
+    let games = query_data(&conn, vec!["games"], vec!["*"], vec![("id", &game_ids_from_cat[0]["games"])],true).unwrap()
+        .iter()
+        .map(|row| {
+            format!("{:?}", row)
+        })
+        .collect::<Vec<String>>()
+        .join(",");
+    format!("[{}]", games)
+}
+
+#[tauri::command]
+fn get_games_by_id(id: String) -> String {
+    let conn = establish_connection().unwrap();
+    let game = query_data(&conn, vec!["games"], vec!["*"], vec![("id", &id)],false).unwrap()
+        .iter()
+        .map(|row| {
+            format!("{:?}", row)
+        })
+        .collect::<Vec<String>>()
+        .join(",");
+    format!("[{}]", game)
+}
+
+
 fn initialize() {
     if let Some(proj_dirs) = ProjectDirs::from("fr", "Nytuo", "universe") {
         proj_dirs.config_dir();
@@ -81,7 +122,11 @@ fn create_default_tables(conn: &Connection) -> Result<()> {
         "CREATE TABLE IF NOT EXISTS universe (
                   id              INTEGER PRIMARY KEY,
                   name            TEXT NOT NULL,
-                  games           TEXT NOT NULL
+                  games           TEXT NOT NULL,
+                  icon            TEXT,
+                     background      TEXT,
+                  filters         TEXT,
+                  views           TEXT
                   )",
         [],
     )?;
@@ -98,13 +143,21 @@ fn insert_data(conn: &Connection, id: i32, name: &str) -> Result<()> {
 
 fn query_all_data(conn: &Connection, table: &str) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
     let mut stmt = conn.prepare(&format!("SELECT * FROM {}", table))?;
+    let json = make_a_json_from_db(&mut stmt)?;
+    Ok(json)
+}
+
+fn make_a_json_from_db(stmt: &mut rusqlite::Statement) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
     let col_count = stmt.column_count();
     let col_names = stmt.column_names().into_iter().map(|s| s.to_string()).collect::<Vec<String>>();
-
     let rows = stmt.query_map([], |row| {
         let mut map = HashMap::new();
         for i in 0..col_count {
-            let value: String = row.get(i).unwrap_or_default();
+            let value = match row.get_ref(i).unwrap() {
+                rusqlite::types::ValueRef::Integer(int) => int.to_string(),
+                rusqlite::types::ValueRef::Text(text) => std::str::from_utf8(text).unwrap_or_default().to_string(),
+                _ => String::new(),
+            };
             let name = col_names[i].clone();
             map.insert(name, value);
         }
@@ -118,11 +171,25 @@ fn query_all_data(conn: &Connection, table: &str) -> std::result::Result<Vec<Has
     Ok(result)
 }
 
+fn query_data(conn: &Connection, tables: Vec<&str>, fields: Vec<&str>, conditions: Vec<(&str, &str)>, is_list: bool ) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
+    let sql;
+    if is_list {
+        sql = format!("SELECT {} FROM {} WHERE {}", fields.join(","), tables.join(","), conditions.iter().map(|(field, value)| format!("{} IN ({})", field, value)).collect::<Vec<String>>().join(" AND "));
+    } else {
+        sql = format!("SELECT {} FROM {} WHERE {}", fields.join(","), tables.join(","), conditions.iter().map(|(field, value)| format!("{} = {}", field, value)).collect::<Vec<String>>().join(" AND "));
+    }
+    let mut stmt = conn.prepare(&sql)?;
+    let col_count = stmt.column_count();
+    let col_names = stmt.column_names().into_iter().map(|s| s.to_string()).collect::<Vec<String>>();
+    let json = make_a_json_from_db(&mut stmt)?;
+    Ok(json)
+}
+
 fn main() {
     initialize();
     let conn = establish_connection().unwrap();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_all_games])
+        .invoke_handler(tauri::generate_handler![get_all_games,get_all_categories,get_games_by_category])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
