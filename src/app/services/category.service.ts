@@ -3,6 +3,7 @@ import {BehaviorSubject, Observable} from "rxjs";
 import {GameService} from "./game.service";
 import {DBService} from "./db.service";
 import ICategory from "../../interfaces/ICategory";
+import {GenericService} from "./generic.service";
 
 @Injectable({
     providedIn: 'root'
@@ -11,7 +12,7 @@ export class CategoryService {
 
     private catSubject = new BehaviorSubject<ICategory[]>([]);
 
-    constructor(private gameService: GameService, private db: DBService) {
+    constructor(private gameService: GameService, private db: DBService, private genericService: GenericService) {
     }
 
     private categories_static: ICategory[] = [
@@ -39,6 +40,12 @@ export class CategoryService {
 
     private currentCategory = 0;
 
+    private autorizedToBookmark = false;
+
+    getAutorizedToBookmark() {
+        return this.autorizedToBookmark;
+    }
+
     refreshCategories() {
         this.getCategoriesFromDB();
     }
@@ -58,9 +65,13 @@ export class CategoryService {
         this.currentCategory = id;
         if (id === 0 || id === -1) {
             this.gameService.getGames();
+            this.genericService.isAuthorizedToBookmark = true;
+            this.genericService.changeDisplayBookmark(false);
             return;
         }
         this.gameService.loadGamesOfACategory(this.categories[this.categories.findIndex(cat => cat.id === id)].name);
+        this.genericService.isAuthorizedToBookmark = false;
+        this.genericService.changeDisplayBookmark(true);
     }
 
     getCategories() {

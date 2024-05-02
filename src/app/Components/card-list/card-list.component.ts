@@ -25,7 +25,7 @@ export class CardListComponent implements OnInit {
 
     ngOnInit() {
         this.genericService.getGap().subscribe(gap => {
-            this.gap = gap + "px";
+            this.gap = gap + "rem";
         });
         this.gameService.getGamesObservable().subscribe((games) => {
             console.log(games);

@@ -1,7 +1,9 @@
 import {
-  invokeTauriCommand,
   isWindows
-} from "./chunk-PKIZ2LPD.js";
+} from "./chunk-QBSGILZH.js";
+import {
+  invokeTauriCommand
+} from "./chunk-7QE4GPM5.js";
 import "./chunk-GMXMMATF.js";
 import {
   __async

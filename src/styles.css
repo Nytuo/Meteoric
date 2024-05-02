@@ -1,7 +1,5 @@
 @import 'material-symbols';
 @import "primeicons/primeicons.css";
-@import "primeng/resources/themes/md-dark-indigo/theme.css";
-@import "primeng/resources/primeng.css";
 :root {
     font-size: 16px;
     line-height: 24px;

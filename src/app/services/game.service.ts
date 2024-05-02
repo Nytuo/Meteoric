@@ -3,13 +3,14 @@ import IGame from "../../interfaces/IGame";
 import {BehaviorSubject, Observable} from "rxjs";
 import {configDir} from "@tauri-apps/api/path";
 import {DBService} from "./db.service";
+import {GenericService} from "./generic.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class GameService {
 
-    constructor(private db: DBService) {
+    constructor(private db: DBService, private genericService: GenericService) {
     }
 
     private gamesObservable = new BehaviorSubject<IGame[]>([]);
@@ -23,7 +24,6 @@ export class GameService {
     }
 
     getGames() {
-        console.log("getGames");
         this.db.getGames().then(games => {
             if (games === undefined) {
                 console.log("getGames: no games found");
@@ -46,6 +46,7 @@ export class GameService {
     }
 
     getGame(id: string) {
+        this.genericService.changeDisplayBookmark(true);
         return this.games.find(game => game.id === id);
     }
 

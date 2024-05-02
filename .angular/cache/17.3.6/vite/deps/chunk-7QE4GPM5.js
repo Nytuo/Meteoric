@@ -5,11 +5,6 @@ import {
   __async
 } from "./chunk-J4B6MK7R.js";
 
-// node_modules/@tauri-apps/api/helpers/os-check.js
-function isWindows() {
-  return navigator.appVersion.includes("Win");
-}
-
 // node_modules/@tauri-apps/api/helpers/tauri.js
 function invokeTauriCommand(command) {
   return __async(this, null, function* () {
@@ -18,7 +13,6 @@ function invokeTauriCommand(command) {
 }
 
 export {
-  isWindows,
   invokeTauriCommand
 };
-//# sourceMappingURL=chunk-PKIZ2LPD.js.map
+//# sourceMappingURL=chunk-7QE4GPM5.js.map

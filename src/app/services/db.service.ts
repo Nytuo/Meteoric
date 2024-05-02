@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {convertFileSrc, invoke} from "@tauri-apps/api/tauri";
+import { Injectable } from '@angular/core';
+import { convertFileSrc, invoke } from "@tauri-apps/api/tauri";
 import IGame from "../../interfaces/IGame";
-import {configDir} from "@tauri-apps/api/path";
+import { configDir } from "@tauri-apps/api/path";
 import ICategory from "../../interfaces/ICategory";
-import {platform} from "@tauri-apps/api/os";
+import { platform } from "@tauri-apps/api/os";
 
 @Injectable({
     providedIn: 'root'
@@ -30,6 +30,7 @@ export class DBService {
             game.icon = convertFileSrc(configDirPath + dashedName + "/icon.png");
             game.images = convertFileSrc(configDirPath + dashedName + "/images");
             game.videos = convertFileSrc(configDirPath + dashedName + "/videos");
+            game.backgroundMusic = convertFileSrc(configDirPath + dashedName + "/musics/theme.mp3");
             return game;
         });
         return gamesArray;
@@ -50,7 +51,7 @@ export class DBService {
 
     async getGamesByCategory(category: string) {
         return new Promise<void | IGame[]>((resolve, reject) => {
-            invoke<string>("get_games_by_category", {category}).then(games => {
+            invoke<string>("get_games_by_category", { category }).then(games => {
                 resolve(this.JSONParserForGames(games));
             });
         });

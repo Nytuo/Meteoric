@@ -1,9 +1,19 @@
 <div class="game" id="{{gameId}}" [style.width]="width" [routerLink]="['/game', gameId]">
-    <div>
-        <img src="{{gameImage}}" class="image" alt="{{gameName}}" (error)="changeSourceOnError($event)">
+    <p-skeleton width="12rem" height="18rem"
+
+                *ngIf="loading"></p-skeleton>
+    <img src="{{gameImage}}" [style.visibility]="loading ? 'hidden' : 'visible'"
+         class="image" alt="{{gameName}}" (error)="changeSourceOnError($event)" (load)="loading = false">
+    <div style="margin-top: 10px;"
+         *ngIf="!loading">
+        <p class="text" *ngIf="displayInfo == 'name'">{{ gameName }}</p>
+        <p class="italic" *ngIf="displayInfo == 'platforms'">{{ gamePlatforms }}</p>
+        <div *ngIf="displayInfo == 'rating'">
+            <p-rating readonly [(ngModel)]="gameRating" [cancel]="false" [style]="{'margin-right': '10px'}"></p-rating>
+        </div>
+        <div *ngIf="displayInfo == 'tags'">
+            <p-tag icon="pi pi-tag" *ngFor="let tag of parsedTags" [value]="tag" [style]="{'margin-right': '10px'}"></p-tag>
+        </div>
     </div>
-    <p class="text" *ngIf="gameName">{{ gameName }}</p>
-    <p class="text" *ngIf="gamePlatforms">{{ gamePlatforms }}</p>
-    <p class="text" *ngIf="gameRating">{{ gameRating }}</p>
-    <p class="text" *ngIf="gameTags">{{ gameTags }}</p>
+
 </div>

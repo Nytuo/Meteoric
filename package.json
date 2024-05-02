@@ -18,12 +18,13 @@
     "@angular/platform-browser": "^17.0.0",
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
+    "@cloudfour/simple-svg-placeholder": "^1.1.0",
     "@tauri-apps/api": "^1",
     "material-symbols": "^0.17.4",
     "primeicons": "^7.0.0",
     "primeng": "^17.15.0",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
+    "tslib": "^2.6.2",
     "zone.js": "~0.14.2"
   },
   "devDependencies": {
@@ -31,6 +32,7 @@
     "@angular/cli": "^17.0.0",
     "@angular/compiler-cli": "^17.0.0",
     "@tauri-apps/cli": "^1",
+    "@types/cloudfour__simple-svg-placeholder": "^1.1.2",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",

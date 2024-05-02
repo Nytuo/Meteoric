@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../node_modules/@tauri-apps/api/helpers/os-check.js"],
+  "sourcesContent": ["// Copyright 2019-2023 Tauri Programme within The Commons Conservancy\n// SPDX-License-Identifier: Apache-2.0\n// SPDX-License-Identifier: MIT\n/** @ignore */\nfunction isWindows() {\n    return navigator.appVersion.includes('Win');\n}\n\nexport { isWindows };\n"],
+  "mappings": ";AAIA,SAAS,YAAY;AACjB,SAAO,UAAU,WAAW,SAAS,KAAK;AAC9C;",
+  "names": []
+}

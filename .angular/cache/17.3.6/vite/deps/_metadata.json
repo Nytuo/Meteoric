@@ -1,100 +1,190 @@
 {
-  "hash": "5c5cf733",
-  "configHash": "ee056e5b",
-  "lockfileHash": "645e156a",
-  "browserHash": "50bb218f",
+  "hash": "4095f36c",
+  "configHash": "840dd655",
+  "lockfileHash": "46e2313b",
+  "browserHash": "3a978f21",
   "optimized": {
     "@angular/common": {
       "src": "../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "26fd0b4c",
+      "fileHash": "5e281ed8",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "fd536640",
-      "needsInterop": false
-    },
-    "@angular/platform-browser": {
-      "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
-      "file": "@angular_platform-browser.js",
-      "fileHash": "0d6e2c94",
-      "needsInterop": false
-    },
-    "@angular/router": {
-      "src": "../../../../../node_modules/@angular/router/fesm2022/router.mjs",
-      "file": "@angular_router.js",
-      "fileHash": "b8b862df",
-      "needsInterop": false
-    },
-    "@tauri-apps/api/os": {
-      "src": "../../../../../node_modules/@tauri-apps/api/os.js",
-      "file": "@tauri-apps_api_os.js",
-      "fileHash": "2963821d",
-      "needsInterop": false
-    },
-    "@tauri-apps/api/path": {
-      "src": "../../../../../node_modules/@tauri-apps/api/path.js",
-      "file": "@tauri-apps_api_path.js",
-      "fileHash": "3c3b9986",
-      "needsInterop": false
-    },
-    "@tauri-apps/api/tauri": {
-      "src": "../../../../../node_modules/@tauri-apps/api/tauri.js",
-      "file": "@tauri-apps_api_tauri.js",
-      "fileHash": "fb80839f",
-      "needsInterop": false
-    },
-    "primeng/button": {
-      "src": "../../../../../node_modules/primeng/fesm2022/primeng-button.mjs",
-      "file": "primeng_button.js",
-      "fileHash": "a7cece73",
-      "needsInterop": false
-    },
-    "rxjs": {
-      "src": "../../../../../node_modules/rxjs/dist/esm5/index.js",
-      "file": "rxjs.js",
-      "fileHash": "63e0c810",
-      "needsInterop": false
-    },
-    "primeng/rating": {
-      "src": "../../../../../node_modules/primeng/fesm2022/primeng-rating.mjs",
-      "file": "primeng_rating.js",
-      "fileHash": "d8e8461b",
+      "fileHash": "e1aab3c4",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
-      "fileHash": "09fdb03a",
+      "fileHash": "2799098b",
+      "needsInterop": false
+    },
+    "@angular/platform-browser": {
+      "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
+      "file": "@angular_platform-browser.js",
+      "fileHash": "56366369",
+      "needsInterop": false
+    },
+    "@angular/router": {
+      "src": "../../../../../node_modules/@angular/router/fesm2022/router.mjs",
+      "file": "@angular_router.js",
+      "fileHash": "20b6be99",
+      "needsInterop": false
+    },
+    "@cloudfour/simple-svg-placeholder": {
+      "src": "../../../../../node_modules/@cloudfour/simple-svg-placeholder/mjs/index.js",
+      "file": "@cloudfour_simple-svg-placeholder.js",
+      "fileHash": "7090ddc1",
+      "needsInterop": false
+    },
+    "@tauri-apps/api/os": {
+      "src": "../../../../../node_modules/@tauri-apps/api/os.js",
+      "file": "@tauri-apps_api_os.js",
+      "fileHash": "8a46c915",
+      "needsInterop": false
+    },
+    "@tauri-apps/api/path": {
+      "src": "../../../../../node_modules/@tauri-apps/api/path.js",
+      "file": "@tauri-apps_api_path.js",
+      "fileHash": "34d14a9f",
+      "needsInterop": false
+    },
+    "@tauri-apps/api/tauri": {
+      "src": "../../../../../node_modules/@tauri-apps/api/tauri.js",
+      "file": "@tauri-apps_api_tauri.js",
+      "fileHash": "b6187fa6",
+      "needsInterop": false
+    },
+    "primeng/button": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-button.mjs",
+      "file": "primeng_button.js",
+      "fileHash": "18894bd5",
+      "needsInterop": false
+    },
+    "primeng/rating": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-rating.mjs",
+      "file": "primeng_rating.js",
+      "fileHash": "5c94493b",
       "needsInterop": false
     },
     "primeng/tag": {
       "src": "../../../../../node_modules/primeng/fesm2022/primeng-tag.mjs",
       "file": "primeng_tag.js",
-      "fileHash": "79d90d5a",
+      "fileHash": "af829147",
+      "needsInterop": false
+    },
+    "rxjs": {
+      "src": "../../../../../node_modules/rxjs/dist/esm5/index.js",
+      "file": "rxjs.js",
+      "fileHash": "f2d5667b",
+      "needsInterop": false
+    },
+    "primeng/radiobutton": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-radiobutton.mjs",
+      "file": "primeng_radiobutton.js",
+      "fileHash": "36e48f59",
+      "needsInterop": false
+    },
+    "primeng/slider": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-slider.mjs",
+      "file": "primeng_slider.js",
+      "fileHash": "69734274",
+      "needsInterop": false
+    },
+    "primeng/selectbutton": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-selectbutton.mjs",
+      "file": "primeng_selectbutton.js",
+      "fileHash": "31225961",
+      "needsInterop": false
+    },
+    "primeng/dialog": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-dialog.mjs",
+      "file": "primeng_dialog.js",
+      "fileHash": "5a7f8f00",
+      "needsInterop": false
+    },
+    "primeng/api": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-api.mjs",
+      "file": "primeng_api.js",
+      "fileHash": "153dff88",
+      "needsInterop": false
+    },
+    "@angular/platform-browser/animations": {
+      "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/animations.mjs",
+      "file": "@angular_platform-browser_animations.js",
+      "fileHash": "a91e8b5c",
+      "needsInterop": false
+    },
+    "primeng/skeleton": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-skeleton.mjs",
+      "file": "primeng_skeleton.js",
+      "fileHash": "3e62a9f3",
+      "needsInterop": false
+    },
+    "primeng/toolbar": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-toolbar.mjs",
+      "file": "primeng_toolbar.js",
+      "fileHash": "710932d8",
+      "needsInterop": false
+    },
+    "primeng/splitbutton": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-splitbutton.mjs",
+      "file": "primeng_splitbutton.js",
+      "fileHash": "409de59d",
+      "needsInterop": false
+    },
+    "@tauri-apps/api/window": {
+      "src": "../../../../../node_modules/@tauri-apps/api/window.js",
+      "file": "@tauri-apps_api_window.js",
+      "fileHash": "964b696c",
+      "needsInterop": false
+    },
+    "primeng/splitter": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-splitter.mjs",
+      "file": "primeng_splitter.js",
+      "fileHash": "efc906b3",
+      "needsInterop": false
+    },
+    "primeng/divider": {
+      "src": "../../../../../node_modules/primeng/fesm2022/primeng-divider.mjs",
+      "file": "primeng_divider.js",
+      "fileHash": "24192fef",
       "needsInterop": false
     }
   },
   "chunks": {
+    "chunk-WTE5GSVR": {
+      "file": "chunk-WTE5GSVR.js"
+    },
+    "chunk-NIXBPPMU": {
+      "file": "chunk-NIXBPPMU.js"
+    },
+    "chunk-ES2WXWOB": {
+      "file": "chunk-ES2WXWOB.js"
+    },
+    "chunk-HBVI3RAY": {
+      "file": "chunk-HBVI3RAY.js"
+    },
+    "chunk-WQXH3QF5": {
+      "file": "chunk-WQXH3QF5.js"
+    },
+    "chunk-7JUGW2LI": {
+      "file": "chunk-7JUGW2LI.js"
+    },
+    "chunk-LZMSIMQG": {
+      "file": "chunk-LZMSIMQG.js"
+    },
     "chunk-2KW7VPYM": {
       "file": "chunk-2KW7VPYM.js"
     },
+    "chunk-HMQWZDLT": {
+      "file": "chunk-HMQWZDLT.js"
+    },
     "chunk-3XQHKDFO": {
       "file": "chunk-3XQHKDFO.js"
-    },
-    "chunk-PKIZ2LPD": {
-      "file": "chunk-PKIZ2LPD.js"
-    },
-    "chunk-GMXMMATF": {
-      "file": "chunk-GMXMMATF.js"
-    },
-    "chunk-WBLW45CV": {
-      "file": "chunk-WBLW45CV.js"
-    },
-    "chunk-OYHZ4FL6": {
-      "file": "chunk-OYHZ4FL6.js"
     },
     "chunk-2JDBUETV": {
       "file": "chunk-2JDBUETV.js"
@@ -104,6 +194,15 @@
     },
     "chunk-WSA2QMXP": {
       "file": "chunk-WSA2QMXP.js"
+    },
+    "chunk-QBSGILZH": {
+      "file": "chunk-QBSGILZH.js"
+    },
+    "chunk-7QE4GPM5": {
+      "file": "chunk-7QE4GPM5.js"
+    },
+    "chunk-GMXMMATF": {
+      "file": "chunk-GMXMMATF.js"
     },
     "chunk-J4B6MK7R": {
       "file": "chunk-J4B6MK7R.js"

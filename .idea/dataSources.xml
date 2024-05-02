@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="universe" uuid="563ac680-5c05-4e8b-9c9e-d0a925c68d73">
+    <data-source source="LOCAL" name="universe [2]" uuid="d7bd4397-6c8d-48db-a964-44fdb8062499">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\Arnaud\AppData\Roaming\Nytuo\universe\config\universe.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:C:\Users\nono5\AppData\Roaming\Nytuo\universe\config\universe.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
       <libraries>
         <library>

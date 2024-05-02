@@ -20,4 +20,5 @@ export default interface IGame {
     game_dir: string;
     exec_file: string;
     tags: string;
+    backgroundMusic: string;
 }

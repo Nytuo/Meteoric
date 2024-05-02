@@ -1,7 +1,12 @@
-import {Component, Input, OnChanges, OnDestroy, OnInit} from '@angular/core';
-import {NgIf, NgStyle} from "@angular/common";
-import {GenericService} from "../../services/generic.service";
-import {RouterLink} from "@angular/router";
+import { Component, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
+import {NgForOf, NgIf, NgStyle} from "@angular/common";
+import { GenericService } from "../../services/generic.service";
+import { RouterLink } from "@angular/router";
+import simpleSvgPlaceholder from "@cloudfour/simple-svg-placeholder";
+import {SkeletonModule} from "primeng/skeleton";
+import {TagModule} from "primeng/tag";
+import {RatingModule} from "primeng/rating";
+import {FormsModule} from "@angular/forms";
 
 @Component({
     selector: 'app-card',
@@ -9,7 +14,12 @@ import {RouterLink} from "@angular/router";
     imports: [
         NgIf,
         NgStyle,
-        RouterLink
+        RouterLink,
+        SkeletonModule,
+        NgForOf,
+        TagModule,
+        RatingModule,
+        FormsModule
     ],
     templateUrl: './card.component.html',
     styleUrl: './card.component.css'
@@ -18,14 +28,19 @@ export class CardComponent implements OnInit {
     @Input() gameName: string | undefined;
     @Input() gameImage: string | undefined;
     @Input() gameId: string | undefined;
-    @Input() gameTags: string | undefined;
-    @Input() gameRating: string | undefined;
+    @Input() gameTags: string = "No tags";
+    @Input() gameRating: string = "0";
     @Input() gamePlatforms: string | undefined;
+
+    protected parsedTags: string[] = [];
 
     constructor(private genericService: GenericService) {
     }
 
     width: string = "1rem";
+    displayInfo: any = null;
+    loading: boolean = true
+    height: string = "auto";
 
     ngOnInit(): void {
         if (this.gameName === undefined) {
@@ -36,11 +51,30 @@ export class CardComponent implements OnInit {
             this.width = (zoom) + "rem";
         });
 
+        this.genericService.getDisplayInfo().subscribe(displayInfo => {
+            console.log(displayInfo);
+
+            this.displayInfo = displayInfo;
+        });
+
+        this.parsedTags = this.gameTags.split(',') || ["No tags"];
+        if (this.gameTags === "") {
+            this.parsedTags = ["No tags"];
+        }
     }
 
     changeSourceOnError(event: any) {
-        event.target.src = "https://placehold.co/400x600/4B1AE5/white?text=" + this.gameName;
+        event.target.src = simpleSvgPlaceholder({
+            text: this.gameName,
+            textColor: "#ffffff",
+            bgColor: "#3a2dac",
+            width: 200,
+            height: 300
+        }
+        );
     }
+
+
 
 
 }

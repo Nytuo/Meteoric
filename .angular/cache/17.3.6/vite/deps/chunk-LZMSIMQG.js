@@ -1,31 +1,3 @@
-import {
-  ObjectUtils
-} from "./chunk-OYHZ4FL6.js";
-import {
-  CommonModule
-} from "./chunk-2JDBUETV.js";
-import {
-  ChangeDetectionStrategy,
-  Component,
-  Directive,
-  ElementRef,
-  Input,
-  InputFlags,
-  NgModule,
-  ViewEncapsulation$1,
-  booleanAttribute,
-  setClassMetadata,
-  ɵɵInputTransformsFeature,
-  ɵɵStandaloneFeature,
-  ɵɵdefineComponent,
-  ɵɵdefineDirective,
-  ɵɵdefineInjector,
-  ɵɵdefineNgModule,
-  ɵɵdirectiveInject,
-  ɵɵprojection,
-  ɵɵprojectionDef
-} from "./chunk-CTXW4UYG.js";
-
 // node_modules/primeng/fesm2022/primeng-dom.mjs
 var DomHandler = class _DomHandler {
   static zindex = 1e3;
@@ -645,178 +617,38 @@ var DomHandler = class _DomHandler {
     this.removeClass(document.body, className);
   }
 };
-
-// node_modules/primeng/fesm2022/primeng-autofocus.mjs
-var AutoFocus = class _AutoFocus {
-  host;
-  constructor(host) {
-    this.host = host;
+var ConnectedOverlayScrollHandler = class {
+  element;
+  listener;
+  scrollableParents;
+  constructor(element, listener = () => {
+  }) {
+    this.element = element;
+    this.listener = listener;
   }
-  /**
-   * When present, it specifies that the component should automatically get focus on load.
-   * @group Props
-   */
-  autofocus = false;
-  focused = false;
-  ngAfterContentChecked() {
-    if (this.autofocus === false) {
-      this.host.nativeElement.removeAttribute("autofocus");
-    } else {
-      this.host.nativeElement.setAttribute("autofocus", true);
+  bindScrollListener() {
+    this.scrollableParents = DomHandler.getScrollableParents(this.element);
+    for (let i = 0; i < this.scrollableParents.length; i++) {
+      this.scrollableParents[i].addEventListener("scroll", this.listener);
     }
-    if (!this.focused) {
-      if (this.autofocus) {
-        setTimeout(() => {
-          const focusableElements = DomHandler.getFocusableElements(this.host.nativeElement);
-          if (focusableElements.length === 0) {
-            this.host.nativeElement.focus();
-          }
-          if (focusableElements.length > 0) {
-            focusableElements[0].focus();
-          }
-          this.focused = true;
-        });
+  }
+  unbindScrollListener() {
+    if (this.scrollableParents) {
+      for (let i = 0; i < this.scrollableParents.length; i++) {
+        this.scrollableParents[i].removeEventListener("scroll", this.listener);
       }
     }
   }
-  static ɵfac = function AutoFocus_Factory(t) {
-    return new (t || _AutoFocus)(ɵɵdirectiveInject(ElementRef));
-  };
-  static ɵdir = ɵɵdefineDirective({
-    type: _AutoFocus,
-    selectors: [["", "pAutoFocus", ""]],
-    hostAttrs: [1, "p-element"],
-    inputs: {
-      autofocus: [InputFlags.HasDecoratorInputTransform, "autofocus", "autofocus", booleanAttribute]
-    },
-    features: [ɵɵInputTransformsFeature]
-  });
-};
-(() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(AutoFocus, [{
-    type: Directive,
-    args: [{
-      selector: "[pAutoFocus]",
-      host: {
-        class: "p-element"
-      }
-    }]
-  }], () => [{
-    type: ElementRef
-  }], {
-    autofocus: [{
-      type: Input,
-      args: [{
-        transform: booleanAttribute
-      }]
-    }]
-  });
-})();
-var AutoFocusModule = class _AutoFocusModule {
-  static ɵfac = function AutoFocusModule_Factory(t) {
-    return new (t || _AutoFocusModule)();
-  };
-  static ɵmod = ɵɵdefineNgModule({
-    type: _AutoFocusModule,
-    declarations: [AutoFocus],
-    imports: [CommonModule],
-    exports: [AutoFocus]
-  });
-  static ɵinj = ɵɵdefineInjector({
-    imports: [CommonModule]
-  });
-};
-(() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(AutoFocusModule, [{
-    type: NgModule,
-    args: [{
-      imports: [CommonModule],
-      exports: [AutoFocus],
-      declarations: [AutoFocus]
-    }]
-  }], null, null);
-})();
-
-// node_modules/primeng/fesm2022/primeng-baseicon.mjs
-var _c0 = ["*"];
-var BaseIcon = class _BaseIcon {
-  label;
-  spin = false;
-  styleClass;
-  role;
-  ariaLabel;
-  ariaHidden;
-  ngOnInit() {
-    this.getAttributes();
+  destroy() {
+    this.unbindScrollListener();
+    this.element = null;
+    this.listener = null;
+    this.scrollableParents = null;
   }
-  getAttributes() {
-    const isLabelEmpty = ObjectUtils.isEmpty(this.label);
-    this.role = !isLabelEmpty ? "img" : void 0;
-    this.ariaLabel = !isLabelEmpty ? this.label : void 0;
-    this.ariaHidden = isLabelEmpty;
-  }
-  getClassNames() {
-    return `p-icon ${this.styleClass ? this.styleClass + " " : ""}${this.spin ? "p-icon-spin" : ""}`;
-  }
-  static ɵfac = function BaseIcon_Factory(t) {
-    return new (t || _BaseIcon)();
-  };
-  static ɵcmp = ɵɵdefineComponent({
-    type: _BaseIcon,
-    selectors: [["ng-component"]],
-    hostAttrs: [1, "p-element", "p-icon-wrapper"],
-    inputs: {
-      label: "label",
-      spin: [InputFlags.HasDecoratorInputTransform, "spin", "spin", booleanAttribute],
-      styleClass: "styleClass"
-    },
-    standalone: true,
-    features: [ɵɵInputTransformsFeature, ɵɵStandaloneFeature],
-    ngContentSelectors: _c0,
-    decls: 1,
-    vars: 0,
-    template: function BaseIcon_Template(rf, ctx) {
-      if (rf & 1) {
-        ɵɵprojectionDef();
-        ɵɵprojection(0);
-      }
-    },
-    encapsulation: 2,
-    changeDetection: 0
-  });
 };
-(() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(BaseIcon, [{
-    type: Component,
-    args: [{
-      template: ` <ng-content></ng-content> `,
-      standalone: true,
-      changeDetection: ChangeDetectionStrategy.OnPush,
-      encapsulation: ViewEncapsulation$1.None,
-      host: {
-        class: "p-element p-icon-wrapper"
-      }
-    }]
-  }], null, {
-    label: [{
-      type: Input
-    }],
-    spin: [{
-      type: Input,
-      args: [{
-        transform: booleanAttribute
-      }]
-    }],
-    styleClass: [{
-      type: Input
-    }]
-  });
-})();
 
 export {
   DomHandler,
-  BaseIcon,
-  AutoFocus,
-  AutoFocusModule
+  ConnectedOverlayScrollHandler
 };
-//# sourceMappingURL=chunk-WBLW45CV.js.map
+//# sourceMappingURL=chunk-LZMSIMQG.js.map

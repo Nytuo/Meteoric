@@ -1,16 +1,27 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from "rxjs";
+import {NavigationEnd, Router} from "@angular/router";
+import {CategoryService} from "./category.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class GenericService {
 
-    constructor() {
+    constructor(protected router: Router) {
+        this.router.events.subscribe((event) => {
+            if (event instanceof NavigationEnd && this.isAuthorizedToBookmark) {
+                this.changeDisplayBookmark(false);
+            }
+        });
     }
 
+    isAuthorizedToBookmark = false;
+
     private zoom: BehaviorSubject<number> = new BehaviorSubject<number>(12);
-    private gap: BehaviorSubject<number> = new BehaviorSubject<number>(20);
+    private gap: BehaviorSubject<number> = new BehaviorSubject<number>(1);
+    private displayInfo: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+    private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     changeZoom(zoom: number) {
         this.zoom.next(zoom);
@@ -34,5 +45,21 @@ export class GenericService {
 
     getGapValue() {
         return this.gap.value;
+    }
+
+    changeDisplayInfo(displayInfo: any) {
+        this.displayInfo.next(displayInfo);
+    }
+
+    getDisplayInfo() {
+        return this.displayInfo.asObservable();
+    }
+
+    changeDisplayBookmark(displayBookmark: boolean) {
+        this.displayBookmark.next(displayBookmark);
+    }
+
+    getDisplayBookmark() {
+        return this.displayBookmark.asObservable();
     }
 }

@@ -1,5 +1,5 @@
 <img id="bg" alt="" class="gameImage" src=""/>
-<div class="gameInfo">
+<div class="gameInfo" >
     <img id="logo" alt="" class="gameLogo" [src]="game?.logo"/>
     <h1 id="title" class="gameTitle">{{game?.nom}}</h1>
     <div class="gameTopHeader">
@@ -7,27 +7,43 @@
         <p-tag icon="pi pi-tag" *ngFor="let tag of gameTags" [value]="tag" [style]="{'margin-right': '10px'}"></p-tag>
     </div>
 
-    <p id="description" class="gameDescription">{{game?.description}}</p>
-    <div class="gameDetails">
-        <div class="gameDetail">
-            <h2>Genre</h2>
-            <p id="genre" class="gameGenre"></p>
+    <div style="display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: space-between;align-items: center; width: 100%;">
+        <div>
+            <div class="friends" style="display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: space-between;align-items: center; height: 100px;">
+
+            </div>
+            <p id="description" class="gameDescription">{{game?.description}}</p>
+            <div class="gameDetails">
+                <div class="gameDetail">
+                    <h2>Genre</h2>
+                    <p id="genre" class="gameGenre"></p>
+                </div>
+                <div class="gameDetail">
+                    <h2>Plateforme</h2>
+                    <p id="plateforme" class="gamePlateforme"></p>
+                </div>
+                <div class="gameDetail">
+                    <h2>Editeur</h2>
+                    <p id="editeur" class="gameEditeur"></p>
+                </div>
+                <div class="gameDetail">
+                    <h2>Developpeur</h2>
+                    <p id="developpeur" class="gameDeveloppeur"></p>
+                </div>
+                <div class="gameDetail">
+                    <h2>Date de sortie</h2>
+                    <p id="date" class="gameDate"></p>
+                </div>
+            </div>
         </div>
-        <div class="gameDetail">
-            <h2>Plateforme</h2>
-            <p id="plateforme" class="gamePlateforme"></p>
-        </div>
-        <div class="gameDetail">
-            <h2>Editeur</h2>
-            <p id="editeur" class="gameEditeur"></p>
-        </div>
-        <div class="gameDetail">
-            <h2>Developpeur</h2>
-            <p id="developpeur" class="gameDeveloppeur"></p>
-        </div>
-        <div class="gameDetail">
-            <h2>Date de sortie</h2>
-            <p id="date" class="gameDate"></p>
+
+        <p-divider layout="vertical"></p-divider>
+        <div class="activity">
+
         </div>
     </div>
+
+
+
+
 </div>
