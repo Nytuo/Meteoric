@@ -499,7 +499,7 @@
     </routine>
     <schema id="191" parent="1" name="main">
       <Current>1</Current>
-      <LastIntrospectionLocalTimestamp>2024-05-02.15:10:28</LastIntrospectionLocalTimestamp>
+      <LastIntrospectionLocalTimestamp>2024-05-03.16:37:06</LastIntrospectionLocalTimestamp>
     </schema>
     <argument id="192" parent="16">
       <ArgumentDirection>R</ArgumentDirection>
@@ -1674,28 +1674,29 @@
       <NotNull>1</NotNull>
       <Position>16</Position>
     </column>
-    <column id="574" parent="555" name="videos">
+    <column id="574" parent="555" name="images">
       <DasType>TEXT|0s</DasType>
       <NotNull>1</NotNull>
       <Position>17</Position>
     </column>
-    <column id="575" parent="555" name="images">
+    <column id="575" parent="555" name="game_dir">
       <DasType>TEXT|0s</DasType>
       <NotNull>1</NotNull>
       <Position>18</Position>
     </column>
-    <column id="576" parent="555" name="game_dir">
+    <column id="576" parent="555" name="exec_file">
       <DasType>TEXT|0s</DasType>
       <NotNull>1</NotNull>
       <Position>19</Position>
     </column>
-    <column id="577" parent="555" name="exec_file">
+    <column id="577" parent="555" name="tags">
       <DasType>TEXT|0s</DasType>
       <NotNull>1</NotNull>
       <Position>20</Position>
     </column>
-    <column id="578" parent="555" name="tags">
-      <DasType>TEXT|0s</DasType>
+    <column id="578" parent="555" name="status">
+      <DasType>text|0s</DasType>
+      <DefaultExpression>&apos;TODO&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>21</Position>
     </column>

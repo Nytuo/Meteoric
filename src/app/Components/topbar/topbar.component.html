@@ -4,7 +4,7 @@
         <p-button icon="pi pi-chevron-right" (click)="location.forward()"></p-button>
         <p-button icon="pi pi-bookmark" [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"></p-button>
     </div>
-    <div class="main">
+    <div class="main" *ngIf="!gameMode">
         <div class="searchBar">
             <input type="text" placeholder="Search"/>
             <span class="material-symbols-outlined">
@@ -21,6 +21,19 @@
             <p-button icon="pi pi-ellipsis-v"></p-button>
         </div>
     </div>
+    <div class="main" *ngIf="gameMode">
+        <p-selectButton
+                [options]="gameOptions"
+                [(ngModel)]="gameOpt"
+                optionLabel="label"
+                optionValue="value" />
+        <div class="launchGame">
+            <p-button icon="pi pi-play" label="JOUER"></p-button>
+        </div>
+        <div class="more" (click)="showOverlay()">
+            <p-button icon="pi pi-ellipsis-v"></p-button>
+        </div>
+    </div>
     <div class="windowManagement" [style.visibility]="'hidden'">
         <p-button icon="pi pi-window-minimize" (click)="toggleMinimize()"></p-button>
         <p-button icon="pi pi-window-maximize" (click)="toggleMaximize()"></p-button>
@@ -28,7 +41,7 @@
     </div>
 </div>
 
-<p-dialog [(visible)]="overlayVisible" [style]="{ width: '250px' }">
+<p-dialog *ngIf="!gameMode" [(visible)]="overlayVisible" [style]="{ width: '250px' }">
 <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
     <p-selectButton [options]="stateOptions" [(ngModel)]="viewState" optionLabel="label"
                     optionValue="value"></p-selectButton>
@@ -69,5 +82,12 @@
         </div>
     </div>
 </div>
+
+</p-dialog>
+
+<p-dialog *ngIf="gameMode" [(visible)]="overlayVisible" [style]="{ width: '250px' }">
+    <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
+
+    </div>
 
 </p-dialog>

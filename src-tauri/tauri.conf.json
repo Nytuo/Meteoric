@@ -12,6 +12,10 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "window": {
+        "all": false,
+        "setFullscreen": true
+      },
       "os": {
         "all": true
       },

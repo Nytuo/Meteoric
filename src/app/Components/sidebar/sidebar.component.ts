@@ -2,6 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {RouterLink} from "@angular/router";
 import {NgForOf, NgIf} from "@angular/common";
 import {CategoryService} from "../../services/category.service";
+import {appWindow} from "@tauri-apps/api/window";
 
 @Component({
     selector: 'app-sidebar',
@@ -43,4 +44,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
 
+    protected readonly appWindow = appWindow;
+
+    async toogleFullscreen() {
+        if (await this.appWindow.isFullscreen()) {
+            await this.appWindow.setFullscreen(false);
+        } else {
+            await this.appWindow.setFullscreen(true);
+        }
+    }
 }

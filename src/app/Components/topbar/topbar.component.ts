@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { GenericService } from "../../services/generic.service";
-import { ButtonModule } from "primeng/button";
-import {Location, NgFor} from '@angular/common';
+import {Component, ElementRef, HostListener} from '@angular/core';
+import {GenericService} from "../../services/generic.service";
+import {ButtonModule} from "primeng/button";
+import {Location, NgFor, NgIf} from '@angular/common';
 import {RadioButtonModule} from "primeng/radiobutton";
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {SliderModule} from "primeng/slider";
@@ -13,6 +13,7 @@ import {MenuItem} from "primeng/api";
 import {appWindow} from "@tauri-apps/api/window";
 import {routes} from "../../app.routes";
 import {ActivatedRoute, NavigationEnd, Router, RouterLink} from "@angular/router";
+import {FloatLabelModule} from "primeng/floatlabel";
 
 @Component({
     selector: 'app-topbar',
@@ -28,6 +29,8 @@ import {ActivatedRoute, NavigationEnd, Router, RouterLink} from "@angular/router
         DialogModule,
         ToolbarModule,
         SplitButtonModule,
+        NgIf,
+        FloatLabelModule,
     ],
     templateUrl: './topbar.component.html',
     styleUrl: './topbar.component.css'
@@ -50,13 +53,20 @@ export class TopbarComponent {
 
     overlayVisible: boolean = false;
 
+    gameMode: boolean = false;
+
     showOverlay() {
         this.overlayVisible = !this.overlayVisible;
     }
 
-    constructor(protected genericService: GenericService, protected location: Location) {
+    constructor(protected genericService: GenericService, protected location: Location, protected router: Router, private elementRef: ElementRef) {
         this.genericService.getDisplayBookmark().subscribe((value) => {
             this.isBookmarkAllowed = value;
+        });
+        this.router.events.subscribe((val) => {
+            if (val instanceof NavigationEnd) {
+                this.gameMode = val.url.includes('game') && !val.url.includes('games');
+            }
         });
     }
 
@@ -76,6 +86,10 @@ export class TopbarComponent {
     stateOptions: any[] | undefined = [
         {label: 'List', value: 'list'},
         {label: 'Grid', value: 'grid'},
+    ];
+    gameOptions: any[] | undefined = [
+        {label: 'Game', value: true},
+        {label: 'Achievements', value: false},
     ];
     items: MenuItem[] | undefined = [
         {label: 'Save', icon: 'pi pi-save'},
@@ -98,7 +112,7 @@ export class TopbarComponent {
     async toggleMinimize() {
         if (await this.appWindow.isMinimized()) {
             await this.appWindow.unminimize();
-        }else {
+        } else {
             await this.appWindow.minimize();
         }
     }
@@ -112,4 +126,5 @@ export class TopbarComponent {
     }
 
     protected readonly routes = routes;
+    gameOpt: any = true;
 }

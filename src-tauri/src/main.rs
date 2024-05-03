@@ -38,6 +38,46 @@ fn get_all_categories() -> String {
 }
 
 #[tauri::command]
+fn get_all_images_location(game_name: String) -> String {
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
+    let extra_content_dir = proj_dirs.config_dir().join("universe_extra_content");
+    let game_dir = extra_content_dir.join(game_name).join("screenshots");
+    let images = match std::fs::read_dir(&game_dir) {
+        Ok(entries) => {
+            dbg!(entries
+                .filter_map(|entry| entry.ok())
+                .map(|entry| format!("\"{}\"", entry.path().to_str().unwrap()).replace(extra_content_dir.to_str().unwrap(), "").replace("\\", "/")))
+                .collect::<Vec<String>>().join(",")
+        },
+        Err(_) => {
+            eprintln!("Directory not found: {:?}", game_dir);
+            String::new()
+        },
+    };
+    format!("[{}]", images)
+}
+
+#[tauri::command]
+fn get_all_videos_location(game_name: String) -> String {
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
+    let extra_content_dir = proj_dirs.config_dir().join("universe_extra_content");
+    let game_dir = extra_content_dir.join(game_name).join("videos");
+    let videos = match std::fs::read_dir(&game_dir) {
+        Ok(entries) => {
+            dbg!(entries
+                .filter_map(|entry| entry.ok())
+                .map(|entry| format!("\"{}\"", entry.path().to_str().unwrap()).replace(extra_content_dir.to_str().unwrap(), "").replace("\\", "/")))
+                .collect::<Vec<String>>().join(",")
+        },
+        Err(_) => {
+            eprintln!("Directory not found: {:?}", game_dir);
+            String::new()
+        },
+    };
+    format!("[{}]", videos)
+}
+
+#[tauri::command]
 fn get_games_by_category(category: String) -> String {
     let conn = establish_connection().unwrap();
     let game_ids_from_cat = query_data(&conn, vec!["universe"], vec!["DISTINCT games"], vec![("name", &*("'".to_string() + &category + "'"))], false).unwrap();
@@ -189,7 +229,7 @@ fn main() {
     initialize();
     let conn = establish_connection().unwrap();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_all_games,get_all_categories,get_games_by_category])
+        .invoke_handler(tauri::generate_handler![get_all_videos_location,get_all_games,get_all_categories,get_games_by_category,get_all_images_location])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

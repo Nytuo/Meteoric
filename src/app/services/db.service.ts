@@ -28,8 +28,18 @@ export class DBService {
             game.background = convertFileSrc(configDirPath + dashedName + "/background.jpg");
             game.logo = convertFileSrc(configDirPath + dashedName + "/logo.png");
             game.icon = convertFileSrc(configDirPath + dashedName + "/icon.png");
-            game.images = convertFileSrc(configDirPath + dashedName + "/images");
-            game.videos = convertFileSrc(configDirPath + dashedName + "/videos");
+            let allImagesLocation = await invoke<string>("get_all_images_location", { gameName: dashedName });
+            let allImagesLocationParsed = JSON.parse(allImagesLocation);
+            game.screenshots = [];
+            for (let i = 0; i < allImagesLocationParsed.length; i++) {
+                game.screenshots[i] = convertFileSrc(configDirPath + allImagesLocationParsed[i]);
+            }
+            game.videos = [];
+            let allVideosLocation = await invoke<string>("get_all_videos_location", { gameName: dashedName });
+            allVideosLocation = JSON.parse(allVideosLocation);
+            for (let i = 0; i < allVideosLocation.length; i++) {
+                game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
+            }
             game.backgroundMusic = convertFileSrc(configDirPath + dashedName + "/musics/theme.mp3");
             return game;
         });

@@ -1,3 +1,7 @@
+class ITrophy {
+
+}
+
 export default interface IGame {
     id: string;
     nom: string;
@@ -15,10 +19,16 @@ export default interface IGame {
     release_date: string;
     developers: string;
     editors: string;
-    videos: string;
+    videos: string[];
     images: string;
+    screenshots: string[];
     game_dir: string;
     exec_file: string;
     tags: string;
     backgroundMusic: string;
+    status: string;
+    time_played: string;
+    trophies: ITrophy[];
+    trophies_count: string;
+    last_time_played: string;
 }
