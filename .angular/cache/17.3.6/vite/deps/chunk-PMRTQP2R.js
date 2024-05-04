@@ -5,15 +5,15 @@ import {
 import {
   Ripple,
   RippleModule
-} from "./chunk-SHG4VVST.js";
-import {
-  NG_VALUE_ACCESSOR
-} from "./chunk-2KW7VPYM.js";
+} from "./chunk-HBVI3RAY.js";
 import {
   ObjectUtils,
   PrimeTemplate,
   SharedModule
 } from "./chunk-WQXH3QF5.js";
+import {
+  NG_VALUE_ACCESSOR
+} from "./chunk-2KW7VPYM.js";
 import {
   CommonModule,
   NgClass,
@@ -631,4 +631,4 @@ export {
   SelectButton,
   SelectButtonModule
 };
-//# sourceMappingURL=chunk-GQQ6CBNQ.js.map
+//# sourceMappingURL=chunk-PMRTQP2R.js.map

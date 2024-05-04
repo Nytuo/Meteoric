@@ -2,11 +2,11 @@ import {
   BaseIcon
 } from "./chunk-ES2WXWOB.js";
 import {
-  DomHandler
-} from "./chunk-LZMSIMQG.js";
-import {
   UniqueComponentId
 } from "./chunk-WQXH3QF5.js";
+import {
+  DomHandler
+} from "./chunk-LZMSIMQG.js";
 import {
   CommonModule
 } from "./chunk-2JDBUETV.js";
@@ -276,4 +276,4 @@ export {
   WindowMaximizeIcon,
   WindowMinimizeIcon
 };
-//# sourceMappingURL=chunk-HGM2ZXXA.js.map
+//# sourceMappingURL=chunk-R42BKZUC.js.map

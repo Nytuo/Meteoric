@@ -1,9 +1,9 @@
 import {
-  DomHandler
-} from "./chunk-LZMSIMQG.js";
-import {
   PrimeNGConfig
 } from "./chunk-WQXH3QF5.js";
+import {
+  DomHandler
+} from "./chunk-LZMSIMQG.js";
 import {
   CommonModule,
   DOCUMENT,
@@ -196,4 +196,4 @@ export {
   Ripple,
   RippleModule
 };
-//# sourceMappingURL=chunk-SHG4VVST.js.map
+//# sourceMappingURL=chunk-HBVI3RAY.js.map

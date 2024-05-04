@@ -6,17 +6,17 @@ import {
   BaseIcon
 } from "./chunk-ES2WXWOB.js";
 import {
-  DomHandler
-} from "./chunk-LZMSIMQG.js";
-import {
-  NG_VALUE_ACCESSOR
-} from "./chunk-2KW7VPYM.js";
-import {
   PrimeNGConfig,
   PrimeTemplate,
   SharedModule,
   UniqueComponentId
 } from "./chunk-WQXH3QF5.js";
+import {
+  DomHandler
+} from "./chunk-LZMSIMQG.js";
+import {
+  NG_VALUE_ACCESSOR
+} from "./chunk-2KW7VPYM.js";
 import {
   CommonModule,
   NgClass,

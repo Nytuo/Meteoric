@@ -13,6 +13,7 @@ import {CarouselModule, CarouselResponsiveOptions} from "primeng/carousel";
 import {ButtonModule} from "primeng/button";
 import {appWindow} from "@tauri-apps/api/window";
 import {GalleriaModule} from "primeng/galleria";
+import {GenericService} from "../../services/generic.service";
 
 @Component({
     selector: 'app-details',
@@ -37,7 +38,6 @@ import {GalleriaModule} from "primeng/galleria";
 export class DetailsComponent implements OnInit, OnDestroy {
 
     private id: number = 0;
-    private audio: HTMLAudioElement | null = null;
     protected friends: {
         player: string;
         trophies: number;
@@ -56,7 +56,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
     allPlayersTrophyAvg: number = 0;
     allPlayersTimePlayedAvg: number = 0;
 
-    constructor(private route: ActivatedRoute, private gameService: GameService) {
+    constructor(private route: ActivatedRoute, private gameService: GameService, private genericService: GenericService) {
 
     }
 
@@ -122,50 +122,12 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 return;
             }
             image.src = this.game.background;
-            this.playBackgroundMusic();
+            this.genericService.playBackgroundMusic(this.game.backgroundMusic);
         });
     }
 
-    playBackgroundMusic() {
-        if (!this.game?.backgroundMusic) return;
-
-        if (this.audio) {
-            this.audio.pause();
-        }
-
-        this.audio = new Audio(this.game.backgroundMusic);
-        this.audio.loop = true;
-        this.audio.volume = 0;
-        this.audio.play();
-
-        let volume = 0;
-        const interval = setInterval(() => {
-            if (volume < 1) {
-                volume += 0.1;
-                if (this.audio) this.audio.volume = volume;
-            } else {
-                clearInterval(interval);
-            }
-        }, 100);
-    }
-
-    stopBackgroundMusic() {
-        if (!this.audio) return;
-
-        let volume = this.audio.volume;
-        const interval = setInterval(() => {
-            if (volume > 0) {
-                volume -= 0.1;
-                if (this.audio) this.audio.volume = volume;
-            } else {
-                clearInterval(interval);
-                if (this.audio) this.audio.pause();
-            }
-        }, 100);
-    }
-
     ngOnDestroy() {
-        this.stopBackgroundMusic();
+        this.genericService.stopBackgroundMusic();
     }
 
     onScroll(event: any) {
@@ -191,7 +153,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
             logoTop.style.opacity = "0";
         }
 
-        console.log(event.target.scrollTop);
         if (event.target.scrollTop > 250) {
             document.querySelector('.navAndBookmarks')?.classList.add('backgroundTopbar');
             document.querySelector('.main')?.classList.add('backgroundTopbar');

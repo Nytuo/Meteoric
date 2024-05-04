@@ -4,14 +4,14 @@
     <div class="gameHeader">
         <img id="logo" alt="" class="gameLogo" [src]="game?.logo"/>
         <img id="logo-top" alt="" class="gameLogo absTopRight" [src]="game?.logo"/>
-        <h1 id="title" class="gameTitle">{{ game?.nom }}</h1>
+        <h1 id="title" class="gameTitle">{{ game?.name }}</h1>
         <div class="gameTopHeader">
             <p-rating [(ngModel)]="gameRating" [cancel]="false" [style]="{'margin-right': '10px'}"></p-rating>
             <p-tag icon="pi pi-tag" *ngFor="let tag of gameTags" [value]="tag"
                    [style]="{'margin-right': '10px'}"></p-tag>
         </div>
         <p-tag icon="pi pi-clock" [value]="game?.time_played" [style]="{'margin-right': '10px'}"></p-tag>
-        <p-tag icon="pi pi-trophy" [value]="game?.trophies_count" [style]="{'margin-right': '10px'}"></p-tag>
+        <p-tag icon="pi pi-trophy" [value]="game?.trophies_unlocked" [style]="{'margin-right': '10px'}"></p-tag>
         <p-tag icon="pi pi-calendar" [value]="game?.last_time_played" [style]="{'margin-right': '10px'}"></p-tag>
     </div>
 
@@ -77,8 +77,6 @@
                 </tr>
             </p-table>
         </div>
-
-
     </div>
     <div>
         <p class="fadedText">Overview</p>
@@ -86,23 +84,23 @@
 
         <p-galleria [value]="media.images" [showItemNavigators]="true" [responsiveOptions]="responsiveOptions"
                     [circular]="true" [numVisible]="5" [containerStyle]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto' }">
-            <ng-template pTemplate="item" let-item>
-                <img [src]="item" style="width: 500px; display: block; height: 400px; object-fit: contain"/>
+            <ng-template pTemplate="item" ngFor let-item [ngForOf]="media.images">
+                <img [src]="item" height="400" width="500" style="display: block; object-fit: contain"/>
             </ng-template>
-            <ng-template pTemplate="thumbnail" let-item>
+            <ng-template pTemplate="thumbnail" ngFor let-item [ngForOf]="media.images">
                 <div class="grid grid-nogutter justify-content-center">
-                    <img [src]="item" style="display: block; width: 45px"/>
+                    <img [src]="item" style="display: block" height="auto" width="45px"/>
                 </div>
             </ng-template>
         </p-galleria>
-        <p-galleria [value]="media.videos" [showItemNavigators]="true" [showThumbnails]="false"
-                    [responsiveOptions]="responsiveOptions" [containerStyle]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto'  }">
+        <p-carousel [value]="media.videos" [numVisible]="1" [numScroll]="1" [circular]="false"
+                    [responsiveOptions]="responsiveOptions" [style]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto'  }">
             <ng-template pTemplate="item" let-item>
                 <video controls style="width: 500px; display: block; height: 400px; object-fit: contain">
                     <source [src]="item" type="video/mp4">
                 </video>
             </ng-template>
-        </p-galleria>
+        </p-carousel>
         <p id="description" class="gameDescription">{{ game?.description }}</p>
         <div class="gameDetails">
             <div class="gameDetail">

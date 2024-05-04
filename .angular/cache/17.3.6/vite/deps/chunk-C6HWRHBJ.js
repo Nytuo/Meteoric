@@ -8,16 +8,16 @@ import {
 import {
   Ripple,
   RippleModule
-} from "./chunk-SHG4VVST.js";
-import {
-  DomHandler
-} from "./chunk-LZMSIMQG.js";
+} from "./chunk-HBVI3RAY.js";
 import {
   ObjectUtils,
   PrimeTemplate,
   SharedModule,
   UniqueComponentId
 } from "./chunk-WQXH3QF5.js";
+import {
+  DomHandler
+} from "./chunk-LZMSIMQG.js";
 import {
   CommonModule,
   DOCUMENT,
@@ -1117,4 +1117,4 @@ export {
   Button,
   ButtonModule
 };
-//# sourceMappingURL=chunk-SI6KJVMC.js.map
+//# sourceMappingURL=chunk-C6HWRHBJ.js.map

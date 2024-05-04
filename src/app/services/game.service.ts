@@ -4,6 +4,7 @@ import {BehaviorSubject, Observable} from "rxjs";
 import {configDir} from "@tauri-apps/api/path";
 import {DBService} from "./db.service";
 import {GenericService} from "./generic.service";
+import {FormGroup} from "@angular/forms";
 
 @Injectable({
     providedIn: 'root'
@@ -58,5 +59,13 @@ export class GameService {
         return this.games.filter(game => game.genres.includes(genre));
     }
 
-
+    setGame(id: string, game: IGame) {
+        this.games = this.games.map(g => {
+            if (g.id === id) {
+                return game;
+            }
+            return g;
+        });
+        this.gamesObservable.next(this.games);
+    }
 }

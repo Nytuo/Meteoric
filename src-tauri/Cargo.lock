@@ -3218,6 +3218,7 @@ dependencies = [
  "directories",
  "rusqlite",
  "serde",
+ "serde_derive",
  "serde_json",
  "tauri",
  "tauri-build",

@@ -7,6 +7,7 @@ import {CategoryService} from "./category.service";
     providedIn: 'root'
 })
 export class GenericService {
+    private audio: HTMLAudioElement | null = null;
 
     constructor(protected router: Router) {
         this.router.events.subscribe((event) => {
@@ -61,5 +62,47 @@ export class GenericService {
 
     getDisplayBookmark() {
         return this.displayBookmark.asObservable();
+    }
+
+    playBackgroundMusic(backgroundMusic: string) {
+        if (!backgroundMusic) return;
+
+        if (this.audio) {
+            this.audio.pause();
+        }
+
+        this.audio = new Audio(backgroundMusic);
+        this.audio.loop = true;
+        this.audio.volume = 0;
+        this.audio.play();
+
+        let volume = 0;
+        const interval = setInterval(() => {
+            if (volume < 1) {
+                volume += 0.1;
+                if (this.audio) this.audio.volume = volume;
+            } else {
+                clearInterval(interval);
+            }
+        }, 100);
+    }
+
+    stopBackgroundMusic() {
+        if (!this.audio) return;
+
+        let volume = this.audio.volume;
+        const interval = setInterval(() => {
+            if (volume > 0) {
+                volume -= 0.1;
+                if (this.audio) this.audio.volume = volume;
+            } else {
+                clearInterval(interval);
+                if (this.audio) this.audio.pause();
+            }
+        }, 100);
+    }
+
+    stopAllAudio() {
+        this.stopBackgroundMusic();
     }
 }

@@ -1,24 +1,21 @@
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon
-} from "./chunk-WIZ6WIP2.js";
-import {
   FocusTrap,
   FocusTrapModule,
   WindowMaximizeIcon,
   WindowMinimizeIcon
-} from "./chunk-HGM2ZXXA.js";
+} from "./chunk-R42BKZUC.js";
 import {
   TimesIcon
 } from "./chunk-6TUOIFV7.js";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon
+} from "./chunk-WIZ6WIP2.js";
 import "./chunk-ES2WXWOB.js";
 import {
   Ripple,
   RippleModule
-} from "./chunk-SHG4VVST.js";
-import {
-  DomHandler
-} from "./chunk-LZMSIMQG.js";
+} from "./chunk-HBVI3RAY.js";
 import {
   PrimeNGConfig,
   PrimeTemplate,
@@ -26,6 +23,9 @@ import {
   UniqueComponentId,
   zindexutils
 } from "./chunk-WQXH3QF5.js";
+import {
+  DomHandler
+} from "./chunk-LZMSIMQG.js";
 import {
   animate,
   style,

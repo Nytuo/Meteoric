@@ -1,10 +1,10 @@
 import {
-  DomHandler
-} from "./chunk-LZMSIMQG.js";
-import {
   PrimeTemplate,
   SharedModule
 } from "./chunk-WQXH3QF5.js";
+import {
+  DomHandler
+} from "./chunk-LZMSIMQG.js";
 import {
   CommonModule,
   DOCUMENT,
