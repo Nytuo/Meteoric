@@ -12,7 +12,7 @@
             </span>
         </div>
         <div class="addGame">
-            <p-button icon="pi pi-plus-circle"></p-button>
+            <p-button icon="pi pi-plus-circle" (click)="creationMode = true; showOverlay()"></p-button>
         </div>
         <div class="filter">
             <p-button icon="pi pi-filter"></p-button>
@@ -41,7 +41,7 @@
     </div>
 </div>
 
-<p-dialog *ngIf="!gameMode" [(visible)]="overlayVisible" [style]="{ width: '250px' }">
+<p-dialog *ngIf="!gameMode && !creationMode" [(visible)]="overlayVisible" [style]="{ width: '250px' }">
     <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
         <p-selectButton [options]="stateOptions" [(ngModel)]="viewState" optionLabel="label"
                         optionValue="value"></p-selectButton>
@@ -86,10 +86,9 @@
             </div>
         </div>
     </div>
-
 </p-dialog>
 
-<p-dialog header="Edit Game" *ngIf="gameMode" [(visible)]="overlayVisible" [style]="{ width: '80%', height: '80%' }">
+<p-dialog header="Edit Game" *ngIf="gameMode || creationMode" [(visible)]="overlayVisible" [style]="{ width: '50%', height: '80%' }" resizable="true" maximizable="true" (onHide)="creationMode = false; closeOverlay()">
     <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
         <p-tabView>
             <p-tabPanel header="General">
@@ -122,8 +121,9 @@
                     <p-button label="Save" type="submit"></p-button>
                 </form>
             </p-tabPanel>
-            <p-tabPanel header="Media" class="formDisplayAlt">
+            <p-tabPanel header="Media" class="formDisplayAlt" [cache]="false">
                     <ng-container  *ngIf="currentGame">
+                        <ng-template pTemplate="content">
                         <div class="formDisplay">
                             <p>Background</p>
                             <div>
@@ -179,6 +179,7 @@
                             </div>
                             <input type="file" id="vide-input" (change)="onFileSelected($event, 'video')">
                         </div>
+                        </ng-template>
                     </ng-container>
             </p-tabPanel>
             <p-tabPanel header="Execution">

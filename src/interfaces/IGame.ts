@@ -35,7 +35,7 @@ export default interface IGame {
     backgroundMusic: string;
     status: string;
     time_played: string;
-    trophies: ITrophy[];
+    trophies: string;
     trophies_unlocked: string;
     last_time_played: string;
 }

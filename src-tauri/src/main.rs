@@ -255,11 +255,17 @@ struct IGame {
 fn post_game(game: String) -> Result<(), String> {
     let conn = establish_connection().unwrap();
     let game: IGame = serde_json::from_str(&game).map_err(|e| e.to_string())?;
-    println!("Game: {:?}", game);
     let sql_check_exist = format!("SELECT * FROM games WHERE id = {}", game.id);
     let mut stmt = conn.prepare(&sql_check_exist).map_err(|e| e.to_string())?;
     let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
-    // escape single quotes
+    let mut id_exist = false;
+    while let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let name: String = row.get(1).map_err(|e| e.to_string())?;
+        if name == "id" {
+            id_exist = true;
+            break;
+        }
+    }
     let game = IGame {
         id: game.id,
         name: game.name.replace("'", "''"),
@@ -282,14 +288,18 @@ fn post_game(game: String) -> Result<(), String> {
         trophies_unlocked: game.trophies_unlocked.replace("'", "''"),
         last_time_played: game.last_time_played.replace("'", "''"),
     };
-    if rows.next().is_ok() {
+
+    println!("Game: {:?}", game);
+
+    if id_exist {
         let sql_update = format!("UPDATE games SET name = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', tags = '{}', status = '{}', time_played = '{}', trophies_unlocked = '{}', last_time_played = '{}' WHERE id = '{}';", game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.tags, game.status, game.time_played, game.trophies_unlocked, game.last_time_played, game.id);
         conn.execute(&sql_update, []).map_err(|e| e.to_string())?;
         println!("Game updated");
     } else {
-        let all_fields = vec![game.id, game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.tags, game.status, game.time_played, game.trophies_unlocked, game.last_time_played];
+        let all_fields = vec![game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.tags, game.status, game.time_played, game.trophies_unlocked, game.last_time_played];
         let all_fields = all_fields.iter().map(|field| field.to_string()).collect::<Vec<String>>().join("', '");
-        let sql_insert = format!("INSERT INTO games (id, name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, tags, status, time_played, trophies_unlocked, last_time_played) VALUES ('{}')", all_fields);
+        let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, tags, status, time_played, trophies_unlocked, last_time_played) VALUES ('{}')", all_fields);
+        println!("SQL: {}", sql_insert);
         conn.execute(&sql_insert, []).map_err(|e| e.to_string())?;
         println!("Game inserted");
     }

@@ -20,6 +20,7 @@ import {GameService} from "../../services/game.service";
 import {InputTextModule} from "primeng/inputtext";
 import {DBService} from "../../services/db.service";
 import {window} from "rxjs";
+import simpleSvgPlaceholder from "@cloudfour/simple-svg-placeholder";
 
 @Component({
     selector: 'app-topbar',
@@ -69,6 +70,64 @@ export class TopbarComponent {
     currentGameID: string | undefined;
 
     showOverlay() {
+        if (this.creationMode && this.overlayVisible) {
+            this.creationMode = false;
+        }
+        if (this.creationMode) {
+            this.currentGame = {
+                id: "-1",
+                trophies: '',
+                name: '',
+                sort_name: '',
+                rating: '',
+                platforms: '',
+                tags: '',
+                description: '',
+                critic_score: '',
+                genres: '',
+                styles: '',
+                release_date: '',
+                developers: '',
+                editors: '',
+                status: '',
+                time_played: '',
+                trophies_unlocked: '',
+                last_time_played: '',
+                jaquette: simpleSvgPlaceholder({
+                    text: "Placeholder",
+                    textColor: "#ffffff",
+                    bgColor: "#7a7a7a",
+                    width: 200,
+                    height: 300
+                }),
+                background: simpleSvgPlaceholder({
+                    text: "Placeholder",
+                    textColor: "#ffffff",
+                    bgColor: "#7a7a7a",
+                    width: 300,
+                    height: 200
+                }),
+                logo: simpleSvgPlaceholder({
+                    text: "Placeholder",
+                    textColor: "#ffffff",
+                    bgColor: "#7a7a7a",
+                    width: 200,
+                    height: 200
+                }),
+                icon: simpleSvgPlaceholder({
+                    text: "Placeholder",
+                    textColor: "#ffffff",
+                    bgColor: "#7a7a7a",
+                    width: 200,
+                    height: 200
+                }),
+                backgroundMusic: '',
+                exec_file: '',
+                game_dir: '',
+                screenshots: [],
+                videos: [],
+            };
+        }
         this.overlayVisible = !this.overlayVisible;
         this.genericService.stopAllAudio();
     }
@@ -112,20 +171,38 @@ export class TopbarComponent {
                             trophies_unlocked: new FormControl(game.trophies_unlocked),
                             last_time_played: new FormControl(game.last_time_played),
                         });
-                        this.media = new FormGroup({
-                            jaquette: new FormControl(game.jaquette),
-                            background: new FormControl(game.background),
-                            logo: new FormControl(game.logo),
-                            icon: new FormControl(game.icon),
-                            backgroundMusic: new FormControl(game.backgroundMusic),
-                        });
                         this.exec = new FormGroup({
                             exec_file: new FormControl(game.exec_file),
                             game_dir: new FormControl(game.game_dir),
                         });
                     }
-                }else {
+                } else {
                     this.gameMode = false;
+                    this.info = new FormGroup({
+                        name: new FormControl(''),
+                        sort_name: new FormControl(''),
+                        rating: new FormControl(''),
+                        platforms: new FormControl(''),
+                        tags: new FormControl(''),
+                        description: new FormControl(''),
+                        critic_score: new FormControl(''),
+                        genres: new FormControl(''),
+                        styles: new FormControl(''),
+                        release_date: new FormControl(''),
+                        developers: new FormControl(''),
+                        editors: new FormControl(''),
+                    });
+                    this.stat = new FormGroup({
+                        status: new FormControl(''),
+                        time_played: new FormControl(''),
+                        trophies_unlocked: new FormControl(''),
+                        last_time_played: new FormControl(''),
+                    });
+
+                    this.exec = new FormGroup({
+                        exec_file: new FormControl(''),
+                        game_dir: new FormControl(''),
+                    });
                 }
             }
         });
@@ -210,14 +287,6 @@ export class TopbarComponent {
         last_time_played: new FormControl(''),
     });
 
-    media: FormGroup = new FormGroup({
-        jaquette: new FormControl(''),
-        background: new FormControl(''),
-        logo: new FormControl(''),
-        icon: new FormControl(''),
-        backgroundMusic: new FormControl(''),
-    });
-
     exec: FormGroup = new FormGroup({
         exec_file: new FormControl(''),
         game_dir: new FormControl(''),
@@ -231,14 +300,22 @@ export class TopbarComponent {
         return Object.keys(this.stat.controls);
     }
 
-    get mediaKeys() {
-        return Object.keys(this.media.controls);
-    }
-
     get execKeys() {
         return Object.keys(this.exec.controls);
     }
+
     saveGameInfo() {
+        if (this.currentGameID === undefined && this.currentGame === undefined) {
+            return;
+        }
+        if (this.currentGameID === undefined && this.currentGame !== undefined) {
+            let game = this.currentGame;
+            for (let key of this.generalKeys) {
+                game[key] = this.info.get(key)?.value;
+            }
+            this.db.postGame(game).then(r =>  this.gameService.getGames());
+            return;
+        }
         if (this.currentGameID === undefined) {
             return;
         }
@@ -252,10 +329,22 @@ export class TopbarComponent {
         }
 
         this.db.postGame(game);
+
         this.gameService.setGame(this.currentGameID, game);
     }
 
     saveGameStat() {
+        if (this.currentGameID === undefined && this.currentGame === undefined) {
+            return;
+        }
+        if (this.currentGameID === undefined && this.currentGame !== undefined) {
+            let game = this.currentGame;
+            for (let key of this.statKeys) {
+                game[key] = this.stat.get(key)?.value;
+            }
+            this.db.postGame(game).then(r =>  this.gameService.getGames());
+            return;
+        }
         if (this.currentGameID === undefined) {
             return;
         }
@@ -273,6 +362,17 @@ export class TopbarComponent {
     }
 
     saveGameExec() {
+        if (this.currentGameID === undefined && this.currentGame === undefined) {
+            return;
+        }
+        if (this.currentGameID === undefined && this.currentGame !== undefined) {
+            let game = this.currentGame;
+            for (let key of this.execKeys) {
+                game[key] = this.exec.get(key)?.value;
+            }
+            this.db.postGame(game).then(r =>  this.gameService.getGames());
+            return;
+        }
         if (this.currentGameID === undefined) {
             return;
         }
@@ -289,6 +389,7 @@ export class TopbarComponent {
     }
 
     protected readonly isSecureContext = isSecureContext;
+    creationMode: boolean = false;
 
     onFileSelected(event: any, type: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette") {
         const file = event.target.files[0];
@@ -329,8 +430,8 @@ export class TopbarComponent {
         if (this.currentGame === undefined) {
             return;
         }
+        this.currentGame.videos = this.currentGame.videos.filter((_, i) => i !== key);
         this.db.deleteElement("video", this.currentGame.name, key);
-
     }
 
     deleteBackgroundMusic() {
@@ -339,11 +440,75 @@ export class TopbarComponent {
         }
         this.db.deleteElement("audio", this.currentGame.name);
     }
+
     deleteScreenshot(key: any) {
         console.log(key);
         if (this.currentGame === undefined) {
             return;
         }
+        this.currentGame.screenshots = this.currentGame.screenshots.filter((_, i) => i !== key);
         this.db.deleteElement("screenshot", this.currentGame.name, key);
+    }
+
+    closeOverlay() {
+        if (this.creationMode && this.overlayVisible) {
+            this.creationMode = false;
+        }
+        if (this.creationMode) {
+            this.currentGame = {
+                id: "-1",
+                trophies: '',
+                name: '',
+                sort_name: '',
+                rating: '',
+                platforms: '',
+                tags: '',
+                description: '',
+                critic_score: '',
+                genres: '',
+                styles: '',
+                release_date: '',
+                developers: '',
+                editors: '',
+                status: '',
+                time_played: '',
+                trophies_unlocked: '',
+                last_time_played: '',
+                jaquette: simpleSvgPlaceholder({
+                    text: "Placeholder",
+                    textColor: "#ffffff",
+                    bgColor: "#7a7a7a",
+                    width: 200,
+                    height: 300
+                }),
+                background: simpleSvgPlaceholder({
+                    text: "Placeholder",
+                    textColor: "#ffffff",
+                    bgColor: "#7a7a7a",
+                    width: 300,
+                    height: 200
+                }),
+                logo: simpleSvgPlaceholder({
+                    text: "Placeholder",
+                    textColor: "#ffffff",
+                    bgColor: "#7a7a7a",
+                    width: 200,
+                    height: 200
+                }),
+                icon: simpleSvgPlaceholder({
+                    text: "Placeholder",
+                    textColor: "#ffffff",
+                    bgColor: "#7a7a7a",
+                    width: 200,
+                    height: 200
+                }),
+                backgroundMusic: '',
+                exec_file: '',
+                game_dir: '',
+                screenshots: [],
+                videos: [],
+            };
+        }
+        this.genericService.stopAllAudio();
     }
 }
