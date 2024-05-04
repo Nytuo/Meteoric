@@ -78,7 +78,7 @@ export class GenericService {
 
         let volume = 0;
         const interval = setInterval(() => {
-            if (volume < 1) {
+            if (volume < 0.9) {
                 volume += 0.1;
                 if (this.audio) this.audio.volume = volume;
             } else {
@@ -92,7 +92,7 @@ export class GenericService {
 
         let volume = this.audio.volume;
         const interval = setInterval(() => {
-            if (volume > 0) {
+            if (volume > 0.1) {
                 volume -= 0.1;
                 if (this.audio) this.audio.volume = volume;
             } else {

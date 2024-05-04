@@ -1,0 +1,9 @@
+[package]
+name = "UAC-steam"
+version = "0.0.1"
+description = "Steam Extension for UC"
+authors = ["Nytuo"]
+edition = "2021"
+
+[dependencies]
+steamr = "0.4.0"

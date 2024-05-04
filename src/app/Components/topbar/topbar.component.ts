@@ -143,6 +143,7 @@ export class TopbarComponent {
                     let gameID = val.url.split('/')[2];
                     this.currentGameID = gameID;
                     let game = this.gameService.getGame(gameID);
+                    this.gameService.setGameObservable(game);
                     if (game !== undefined) {
                         this.currentGame = game;
                         this.displayInfo = new FormGroup({
@@ -427,10 +428,11 @@ export class TopbarComponent {
     }
 
     deleteVideo(key: any) {
-        if (this.currentGame === undefined) {
+        if (this.currentGame === undefined || this.currentGameID === undefined) {
             return;
         }
-        this.currentGame.videos = this.currentGame.videos.filter((_, i) => i !== key);
+        delete this.currentGame.videos[this.currentGame.videos.indexOf(key)];
+        this.gameService.setGame(this.currentGameID, this.currentGame);
         this.db.deleteElement("video", this.currentGame.name, key);
     }
 
@@ -441,13 +443,14 @@ export class TopbarComponent {
         this.db.deleteElement("audio", this.currentGame.name);
     }
 
-    deleteScreenshot(key: any) {
-        console.log(key);
-        if (this.currentGame === undefined) {
+    deleteScreenshot(path: any) {
+        console.log(path);
+        if (this.currentGame === undefined || this.currentGameID === undefined) {
             return;
         }
-        this.currentGame.screenshots = this.currentGame.screenshots.filter((_, i) => i !== key);
-        this.db.deleteElement("screenshot", this.currentGame.name, key);
+        delete this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
+        this.gameService.setGame(this.currentGameID, this.currentGame);
+        this.db.deleteElement("screenshot", this.currentGame.name, path);
     }
 
     closeOverlay() {

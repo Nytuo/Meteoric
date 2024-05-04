@@ -1,4 +1,4 @@
-<div>
+<div class="gameList">
     <div class="griddy" [style.gap]="gap">
         <app-card class="griddy__item" *ngFor="let card of games" [gameName]="card.name" [gameImage]="card.jaquette" [gameId]="card.id" [gamePlatforms]="card.platforms" [gameTags]="card.tags" [gameRating]="card.rating">
         </app-card>

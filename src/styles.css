@@ -40,7 +40,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    backdrop-filter: blur(70px) brightness(70%) saturate(120%) contrast(120%) hue-rotate(180deg) invert(10%);
+    backdrop-filter: blur(70px) brightness(70%) saturate(120%) contrast(120%) invert(10%);
     background-color: rgba(0, 0, 0, 0.5);
 }
 

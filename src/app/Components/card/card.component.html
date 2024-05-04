@@ -2,7 +2,7 @@
     <p-skeleton width="12rem" height="18rem"
 
                 *ngIf="loading"></p-skeleton>
-    <img src="{{gameImage}}" [style.visibility]="loading ? 'hidden' : 'visible'"
+    <img src="{{gameImage}}" [style.display]="loading ? 'none' : 'block'"
          class="image" alt="{{gameName}}" (error)="changeSourceOnError($event)" (load)="loading = false">
     <div style="margin-top: 10px;"
          *ngIf="!loading">

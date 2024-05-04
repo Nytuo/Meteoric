@@ -3,6 +3,19 @@
 version = 3
 
 [[package]]
+name = "UniverseCollector"
+version = "0.0.1"
+dependencies = [
+ "directories",
+ "rusqlite",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3210,19 +3223,6 @@ name = "unicode-segmentation"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
-
-[[package]]
-name = "universecollector"
-version = "0.0.0"
-dependencies = [
- "directories",
- "rusqlite",
- "serde",
- "serde_derive",
- "serde_json",
- "tauri",
- "tauri-build",
-]
 
 [[package]]
 name = "url"

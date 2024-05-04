@@ -124,7 +124,42 @@ export class DetailsComponent implements OnInit, OnDestroy {
             image.src = this.game.background;
             this.genericService.playBackgroundMusic(this.game.backgroundMusic);
         });
+
+        this.gameService.getGameObservable(this.id.toString()).subscribe(game => {
+            if (game === undefined) {
+                return;
+            }
+            this.game = game;
+            this.gameTags = this.game?.tags.split(',');
+            this.gameRating = this.game?.rating;
+            if (this.game.tags === "") this.gameTags = ["No tags"];
+            this.media.images = this.game?.screenshots;
+            this.media.videos = this.game?.videos;
+            console.log(this.media);
+            this.responsiveOptions = [];
+            for (let i = 0; i < this.media.length; i++) {
+                this.responsiveOptions.push({
+                    breakpoint: '1024px',
+                    numVisible: i,
+                    numScroll: i
+                });
+            }
+            let html = document.querySelector('html');
+            if (this.game === undefined || html === null) {
+                return;
+            }
+            html.style.backgroundImage = `url(${this.game?.background})`;
+            let image = document.getElementById("bg") as HTMLImageElement;
+            if (image === null) {
+                return;
+            }
+            image.src = this.game.background;
+            this.genericService.playBackgroundMusic(this.game.backgroundMusic);
+
+        });
     }
+
+
 
     ngOnDestroy() {
         this.genericService.stopBackgroundMusic();

@@ -15,6 +15,7 @@ export class GameService {
     }
 
     private gamesObservable = new BehaviorSubject<IGame[]>([]);
+    private gameObservable = new BehaviorSubject<IGame>({} as IGame);
 
 
     private games: IGame[] = [];
@@ -22,6 +23,17 @@ export class GameService {
 
     getGamesObservable(): Observable<IGame[]> {
         return this.gamesObservable.asObservable();
+    }
+
+    getGameObservable(id: string): Observable<IGame> {
+        return this.gameObservable.asObservable();
+    }
+
+    setGameObservable(game: IGame | undefined) {
+        if (game === undefined) {
+            return;
+        }
+        this.gameObservable.next(game);
     }
 
     getGames() {
@@ -67,5 +79,6 @@ export class GameService {
             return g;
         });
         this.gamesObservable.next(this.games);
+        this.gameObservable.next(game);
     }
 }
