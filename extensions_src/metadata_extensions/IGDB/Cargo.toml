@@ -1,0 +1,17 @@
+[package]
+name = "uc_igdb"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+name = "uc_igdb"
+path = "src/lib.rs"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.12.4", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.116"
+serde_derive = "1.0.198"
+tokio = { version = "1", features = ["full"] }

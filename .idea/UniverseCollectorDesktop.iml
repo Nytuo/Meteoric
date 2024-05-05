@@ -3,11 +3,18 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src-tauri/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/extensions/metadata_extensions/IGDB/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/extensions/metadata_extensions/SGDB/SGDB/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/extensions/metadata_extensions/SGDB/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/extensions_src/metadata_extensions/IGDB/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/extensions_src/metadata_extensions/IGDB/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/src-tauri/target" />
+      <excludeFolder url="file://$MODULE_DIR$/extensions/metadata_extensions/SGDB/target" />
+      <excludeFolder url="file://$MODULE_DIR$/extensions_src/metadata_extensions/IGDB/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

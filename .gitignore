@@ -125,4 +125,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+/extensions_src/metadata_extensions/IGDB/target/
+/.angular
 .idea/
