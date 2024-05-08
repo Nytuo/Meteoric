@@ -18,6 +18,7 @@
     height: auto;
     cursor: pointer;
     animation: fadeIn 0.2s;
+    aspect-ratio: 2/3;
 }
 
 .image:hover{

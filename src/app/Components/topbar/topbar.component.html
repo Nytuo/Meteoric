@@ -82,19 +82,41 @@
                     </div>
                 </div>
                 <p-button label="Reset" (click)="clearDisplayInfo()"></p-button>
-
             </div>
         </div>
     </div>
 </p-dialog>
 
-<p-dialog header="Edit Game" *ngIf="gameMode || creationMode" [(visible)]="overlayVisible" [style]="{ width: '50%', height: '80%' }" resizable="true" maximizable="true" (onHide)="creationMode = false; closeOverlay()">
+<p-dialog header="Edit Game" *ngIf="gameMode || creationMode" [(visible)]="overlayVisible"
+          [style]="{ width: '50%', height: '80%' }" resizable="true" maximizable="true"
+          (onHide)="creationMode = false; closeOverlay()">
     <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
-        <p-tabView>
+        <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center;">
+            <p-dropdown
+                    [(ngModel)]="selectedMetadataProvider"
+                    [options]="metadataProviders"
+                    optionLabel="label"
+                    placeholder="Select An Extension"/>
+            <p-floatLabel>
+                <input pInputText id="searchGame" [(ngModel)]="searchingGame" (keydown.enter)="searchGameInAPI()"/>
+                <label for="searchGame">Search A Game</label>
+            </p-floatLabel>
+            <p-button label="Search" (click)="searchGameInAPI()"></p-button>
+        </div>
+        <div *ngIf="searchMode">
+            <p-button label="Back" (click)="searchMode = false"></p-button>
+            <p *ngIf="message">{{ message }}</p>
+            <div *ngIf="!message">
+                <p-listbox [options]="searchedGames" [(ngModel)]="selectedGame" optionLabel="name"></p-listbox>
+                <p-button label="Select" (click)="selectGame()"></p-button>
+            </div>
+        </div>
+        <p-tabView *ngIf="!searchMode">
             <p-tabPanel header="General">
                 <form [formGroup]="info" (ngSubmit)="saveGameInfo()" class="formDisplay">
                     <ng-container *ngIf="currentGame">
-                        <div *ngFor="let field of currentGame | keyvalue" [style.display]="generalKeys.includes(field.key) ? 'block' : 'none'">
+                        <div *ngFor="let field of currentGame | keyvalue"
+                             [style.display]="generalKeys.includes(field.key) ? 'block' : 'none'">
                             <p-floatLabel *ngIf="generalKeys.includes(field.key)">
                                 <input pInputText [id]="field.key" [formControlName]="field.key"/>
                                 <label [for]="field.key">{{ field.key }}</label>
@@ -111,7 +133,8 @@
             <p-tabPanel header="Personal">
                 <form [formGroup]="stat" (ngSubmit)="saveGameStat()" class="formDisplay">
                     <ng-container *ngIf="currentGame">
-                        <div *ngFor="let field of currentGame | keyvalue" [style.display]="statKeys.includes(field.key) ? 'block' : 'none'">
+                        <div *ngFor="let field of currentGame | keyvalue"
+                             [style.display]="statKeys.includes(field.key) ? 'block' : 'none'">
                             <p-floatLabel *ngIf="statKeys.includes(field.key)">
                                 <input pInputText [id]="field.key" [formControlName]="field.key"/>
                                 <label [for]="field.key">{{ field.key }}</label>
@@ -122,40 +145,46 @@
                 </form>
             </p-tabPanel>
             <p-tabPanel header="Media" class="formDisplayAlt" [cache]="false">
-                    <ng-container  *ngIf="currentGame">
-                        <ng-template pTemplate="content">
+                <ng-container *ngIf="currentGame">
+                    <ng-template pTemplate="content">
                         <div class="formDisplay">
                             <p>Background</p>
                             <div>
-                                <img [src]="currentGame.background" width="150px" (click)="openFileChooser('background-input')" />
-                                <input type="file" id="background-input" style="display: none" (change)="onFileSelected($event, 'background')">
+                                <img [src]="currentGame.background" width="150px"
+                                     (click)="openFileChooser('background-input')"/>
+                                <input type="file" id="background-input" style="display: none"
+                                       (change)="onFileSelected($event, 'background')">
                             </div>
                         </div>
                         <div class="formDisplay">
                             <p>Jaquette</p>
                             <div>
-                                <img [src]="currentGame.jaquette" width="150px" (click)="openFileChooser('jaquette-input')" />
-                                <input type="file" id="jaquette-input" style="display: none" (change)="onFileSelected($event, 'jaquette')">
+                                <img [src]="currentGame.jaquette" width="150px"
+                                     (click)="openFileChooser('jaquette-input')"/>
+                                <input type="file" id="jaquette-input" style="display: none"
+                                       (change)="onFileSelected($event, 'jaquette')">
                             </div>
                         </div>
                         <div class="formDisplay">
                             <p>Logo</p>
                             <div>
-                                <img [src]="currentGame.logo" width="150px" (click)="openFileChooser('logo-input')" />
-                                <input type="file" id="logo-input" style="display: none" (change)="onFileSelected($event, 'logo')">
+                                <img [src]="currentGame.logo" width="150px" (click)="openFileChooser('logo-input')"/>
+                                <input type="file" id="logo-input" style="display: none"
+                                       (change)="onFileSelected($event, 'logo')">
                             </div>
                         </div>
                         <div class="formDisplay">
                             <p>Icon</p>
                             <div>
-                                <img [src]="currentGame.icon" width="150px" (click)="openFileChooser('icon-input')" />
-                                <input type="file" id="icon-input" style="display: none" (change)="onFileSelected($event, 'icon')">
+                                <img [src]="currentGame.icon" width="150px" (click)="openFileChooser('icon-input')"/>
+                                <input type="file" id="icon-input" style="display: none"
+                                       (change)="onFileSelected($event, 'icon')">
                             </div>
                         </div>
                         <div class="formDisplay">
                             <p>Screenshots (Needs page reloading)</p>
                             <div *ngFor="let screenshot of currentGame.screenshots | keyvalue">
-                                <img src="{{screenshot.value}}" width="150px" />
+                                <img src="{{screenshot.value}}" width="150px"/>
                                 <br>
                                 <p-button label="Delete" (click)="deleteScreenshot(screenshot.value)"></p-button>
                             </div>
@@ -179,13 +208,14 @@
                             </div>
                             <input type="file" id="vide-input" (change)="onFileSelected($event, 'video')">
                         </div>
-                        </ng-template>
-                    </ng-container>
+                    </ng-template>
+                </ng-container>
             </p-tabPanel>
             <p-tabPanel header="Execution">
                 <form [formGroup]="exec" (ngSubmit)="saveGameExec()" class="formDisplay">
                     <ng-container *ngIf="currentGame">
-                        <div *ngFor="let field of currentGame | keyvalue" [style.display]="execKeys.includes(field.key) ? 'block' : 'none'">
+                        <div *ngFor="let field of currentGame | keyvalue"
+                             [style.display]="execKeys.includes(field.key) ? 'block' : 'none'">
                             <p-floatLabel *ngIf="execKeys.includes(field.key)">
                                 <input pInputText [id]="field.key" [formControlName]="field.key"/>
                                 <label [for]="field.key">{{ field.key }}</label>

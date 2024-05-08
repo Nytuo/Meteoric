@@ -6,6 +6,7 @@ import {GameService} from "./services/game.service";
 import {SidebarComponent} from "./Components/sidebar/sidebar.component";
 import {TopbarComponent} from "./Components/topbar/topbar.component";
 import {CategoryService} from "./services/category.service";
+import {GenericService} from "./services/generic.service";
 
 @Component({
     selector: 'app-root',
@@ -16,9 +17,12 @@ import {CategoryService} from "./services/category.service";
 })
 export class AppComponent {
 
-    constructor(private gameService: GameService, private categroyService: CategoryService) {
+    constructor(private gameService: GameService, private categroyService: CategoryService, private genericService: GenericService) {
         this.gameService.getGames();
         this.categroyService.refreshCategories();
+        this.genericService.callMetadataApi().then(r =>
+            console.log("Metadata API called")
+        );
     }
 
     closeOverlay() {

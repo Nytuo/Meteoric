@@ -9,7 +9,7 @@ import {SelectButtonModule} from "primeng/selectbutton";
 import {DialogModule} from "primeng/dialog";
 import {ToolbarModule} from "primeng/toolbar";
 import {SplitButtonModule} from "primeng/splitbutton";
-import {MenuItem} from "primeng/api";
+import {MenuItem, ScrollerOptions, SelectItem} from "primeng/api";
 import {appWindow} from "@tauri-apps/api/window";
 import {routes} from "../../app.routes";
 import {ActivatedRoute, NavigationEnd, Router, RouterLink} from "@angular/router";
@@ -21,6 +21,9 @@ import {InputTextModule} from "primeng/inputtext";
 import {DBService} from "../../services/db.service";
 import {window} from "rxjs";
 import simpleSvgPlaceholder from "@cloudfour/simple-svg-placeholder";
+import {DropdownLazyLoadEvent, DropdownModule} from "primeng/dropdown";
+import {invoke} from "@tauri-apps/api/tauri";
+import {ListboxModule} from "primeng/listbox";
 
 @Component({
     selector: 'app-topbar',
@@ -42,6 +45,8 @@ import simpleSvgPlaceholder from "@cloudfour/simple-svg-placeholder";
         KeyValuePipe,
         InputTextModule,
         NgOptimizedImage,
+        DropdownModule,
+        ListboxModule,
     ],
     templateUrl: './topbar.component.html',
     styleUrl: './topbar.component.css'
@@ -135,6 +140,15 @@ export class TopbarComponent {
     constructor(protected genericService: GenericService, protected location: Location, protected router: Router, private elementRef: ElementRef, private gameService: GameService, private db: DBService) {
         this.genericService.getDisplayBookmark().subscribe((value) => {
             this.isBookmarkAllowed = value;
+        });
+
+        this.genericService.getMetadataProviders().subscribe((value) => {
+            value.forEach((provider) => {
+                this.metadataProviders.push({
+                    label: provider.split('_')[1],
+                    provider: provider
+                });
+            });
         });
         this.router.events.subscribe((val) => {
             if (val instanceof NavigationEnd) {
@@ -281,7 +295,7 @@ export class TopbarComponent {
         editors: new FormControl(''),
     });
 
-    stat = new FormGroup({
+    stat: FormGroup = new FormGroup({
         status: new FormControl(''),
         time_played: new FormControl(''),
         trophies_unlocked: new FormControl(''),
@@ -314,7 +328,7 @@ export class TopbarComponent {
             for (let key of this.generalKeys) {
                 game[key] = this.info.get(key)?.value;
             }
-            this.db.postGame(game).then(r =>  this.gameService.getGames());
+            this.db.postGame(game).then(r => this.gameService.getGames());
             return;
         }
         if (this.currentGameID === undefined) {
@@ -343,7 +357,7 @@ export class TopbarComponent {
             for (let key of this.statKeys) {
                 game[key] = this.stat.get(key)?.value;
             }
-            this.db.postGame(game).then(r =>  this.gameService.getGames());
+            this.db.postGame(game).then(r => this.gameService.getGames());
             return;
         }
         if (this.currentGameID === undefined) {
@@ -371,7 +385,7 @@ export class TopbarComponent {
             for (let key of this.execKeys) {
                 game[key] = this.exec.get(key)?.value;
             }
-            this.db.postGame(game).then(r =>  this.gameService.getGames());
+            this.db.postGame(game).then(r => this.gameService.getGames());
             return;
         }
         if (this.currentGameID === undefined) {
@@ -391,6 +405,8 @@ export class TopbarComponent {
 
     protected readonly isSecureContext = isSecureContext;
     creationMode: boolean = false;
+    metadataProviders: { label: string, provider: string }[] = [];
+    selectedMetadataProvider: { label: string, provider: string } = {label: '', provider: ''};
 
     onFileSelected(event: any, type: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette") {
         const file = event.target.files[0];
@@ -513,5 +529,128 @@ export class TopbarComponent {
             };
         }
         this.genericService.stopAllAudio();
+    }
+
+    async searchGameInAPI() {
+        let gameName = this.searchingGame;
+        let provider = this.selectedMetadataProvider.provider;
+        console.log(gameName);
+        console.log(provider);
+        await invoke<string>("search_metadata_api", {gameName: gameName, pluginName: provider}).then((games) => {
+            console.log(games);
+            this.message = "";
+            if (games === undefined) {
+                this.message = "No games found";
+            }
+            if (games === "[]") {
+                this.message = "No games found";
+            }
+            if (games === "No credentials found") {
+                this.message = "No credentials found, please check your configuration";
+            }
+            this.openSearchMode();
+            if (this.message !== "") {
+                return;
+            }
+            let parsedGames: IGame[] = [];
+            this.searchedGames = JSON.parse(games);
+            this.searchedGames.forEach((game) => {
+                game = JSON.parse(game);
+                game = eval(game);
+                console.log(game);
+
+                let newGame = {
+                    id: "-1",
+                    trophies: '',
+                    name: game.name,
+                    sort_name: game.name,
+                    rating: '',
+                    platforms: game.platforms ? game.platforms : '',
+                    tags: '',
+                    description: game.description ? game.description : '',
+                    critic_score: game.rating ? Math.round(game.rating).toString() : '',
+                    genres: game.genres ? game.genres : '',
+                    styles: game.styles ? game.styles : '',
+                    release_date: game.release_date ? game.release_date : '',
+                    developers: game.developers ? game.developers : '',
+                    editors: game.editors ? game.editors : '',
+                    status: '',
+                    time_played: '',
+                    trophies_unlocked: '',
+                    last_time_played: '',
+                    jaquette: game.cover,
+                    background: game.background,
+                    logo: "",
+                    icon: "",
+                    backgroundMusic: '',
+                    exec_file: '',
+                    game_dir: '',
+                    screenshots: game.screenshots,
+                    videos: game.videos,
+                };
+                parsedGames.push(newGame);
+            });
+            this.searchedGames = parsedGames;
+        });
+    }
+
+    protected readonly document = document;
+    searchingGame: string = '';
+
+    searchMode = false;
+    searchedGames: any[] = [];
+    selectedGame: any = undefined;
+    message: string = '';
+
+    openSearchMode() {
+        this.searchMode = !this.searchMode;
+    }
+
+    selectGame() {
+        console.log(this.selectedGame);
+        this.currentGame = this.selectedGame;
+        this.displayInfo = new FormGroup({
+            name: new FormControl(this.currentGame?.name),
+            rating: new FormControl(this.currentGame?.rating),
+            platforms: new FormControl(this.currentGame?.platforms),
+            tags: new FormControl(this.currentGame?.tags),
+        });
+        this.info = new FormGroup({
+            name: new FormControl(this.currentGame?.name),
+            sort_name: new FormControl(this.currentGame?.sort_name),
+            rating: new FormControl(this.currentGame?.rating),
+            platforms: new FormControl(this.currentGame?.platforms),
+            tags: new FormControl(this.currentGame?.tags),
+            description: new FormControl(this.currentGame?.description),
+            critic_score: new FormControl(this.currentGame?.critic_score),
+            genres: new FormControl(this.currentGame?.genres),
+            styles: new FormControl(this.currentGame?.styles),
+            release_date: new FormControl(this.currentGame?.release_date),
+            developers: new FormControl(this.currentGame?.developers),
+            editors: new FormControl(this.currentGame?.editors),
+        });
+        this.stat = new FormGroup({
+            status: new FormControl(this.currentGame?.status),
+            time_played: new FormControl(this.currentGame?.time_played),
+            trophies_unlocked: new FormControl(this.currentGame?.trophies_unlocked),
+            last_time_played: new FormControl(this.currentGame?.last_time_played),
+        });
+        this.exec = new FormGroup({
+            exec_file: new FormControl(this.currentGame?.exec_file),
+            game_dir: new FormControl(this.currentGame?.game_dir),
+        });
+        this.saveMediaToExternalStorage();
+        this.searchMode = false;
+        if (this.currentGame === undefined) {
+            return;
+        }
+        this.saveGameInfo();
+    }
+
+    private saveMediaToExternalStorage() {
+        if (this.currentGame === undefined) {
+            return;
+        }
+        this.db.saveMediaToExternalStorage(this.currentGame);
     }
 }

@@ -1,8 +1,4 @@
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon
-} from "./chunk-WIZ6WIP2.js";
-import {
   FocusTrap,
   FocusTrapModule,
   WindowMaximizeIcon,
@@ -11,6 +7,10 @@ import {
 import {
   TimesIcon
 } from "./chunk-6TUOIFV7.js";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon
+} from "./chunk-WIZ6WIP2.js";
 import "./chunk-ES2WXWOB.js";
 import {
   Ripple,

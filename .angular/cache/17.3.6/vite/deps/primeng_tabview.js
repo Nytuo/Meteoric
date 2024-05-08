@@ -3,12 +3,12 @@ import {
   TooltipModule
 } from "./chunk-3WXVC4JY.js";
 import {
+  TimesIcon
+} from "./chunk-6TUOIFV7.js";
+import {
   ChevronLeftIcon,
   ChevronRightIcon
 } from "./chunk-WIZ6WIP2.js";
-import {
-  TimesIcon
-} from "./chunk-6TUOIFV7.js";
 import "./chunk-ES2WXWOB.js";
 import {
   Ripple,

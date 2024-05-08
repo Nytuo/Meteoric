@@ -24,17 +24,6 @@ pub fn create_extra_dirs(game: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn write_file(file_path: &std::path::PathBuf, content: &Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-    match std::fs::write(file_path, content) {
-        Ok(_) => {
-            Ok(())
-        },
-        Err(e) => {
-            Err(format!("Error writing file: {}", e).into())
-        }
-    }
-}
-
 pub fn remove_file(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     match std::fs::remove_file(file_path) {
         Ok(_) => {

@@ -52,8 +52,6 @@ export class CardComponent implements OnInit {
         });
 
         this.genericService.getDisplayInfo().subscribe(displayInfo => {
-            console.log(displayInfo);
-
             this.displayInfo = displayInfo;
         });
 

@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {BehaviorSubject} from "rxjs";
 import {NavigationEnd, Router} from "@angular/router";
 import {CategoryService} from "./category.service";
+import {invoke} from "@tauri-apps/api/tauri";
 
 @Injectable({
     providedIn: 'root'
@@ -10,10 +11,17 @@ export class GenericService {
     private audio: HTMLAudioElement | null = null;
 
     constructor(protected router: Router) {
-        this.router.events.subscribe((event) => {
+        this.router.events.subscribe( (event) => {
             if (event instanceof NavigationEnd && this.isAuthorizedToBookmark) {
                 this.changeDisplayBookmark(false);
             }
+
+        });
+    }
+
+    async callMetadataApi() {
+        await invoke<string>("get_available_metadata_api").then((metadataProviders) => {
+            this.changeMetadataProviders(JSON.parse(metadataProviders));
         });
     }
 
@@ -23,6 +31,15 @@ export class GenericService {
     private gap: BehaviorSubject<number> = new BehaviorSubject<number>(1);
     private displayInfo: BehaviorSubject<any> = new BehaviorSubject<any>(null);
     private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private metadataProviders: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+
+    changeMetadataProviders(metadataProviders: string[]) {
+        this.metadataProviders.next(metadataProviders);
+    }
+
+    getMetadataProviders() {
+        return this.metadataProviders.asObservable();
+    }
 
     changeZoom(zoom: number) {
         this.zoom.next(zoom);

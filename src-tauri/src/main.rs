@@ -1,24 +1,23 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+extern crate directories;
+extern crate rusqlite;
+
+use std::ffi::OsStr;
+use std::sync::Mutex;
+
+use directories::ProjectDirs;
+use serde::{Deserialize, Serialize};
+
+use crate::database::establish_connection;
+use crate::metadata_api::Plugin;
+use crate::tauri_commander::{delete_element, get_all_categories, get_all_games, get_all_images_location, get_all_videos_location, get_available_metadata_api, get_games_by_category, insert_creds_by_user, post_game, save_media_to_external_storage, search_metadata_api, upload_file};
+
 mod database;
 mod file_operations;
 mod tauri_commander;
-
-extern crate rusqlite;
-extern crate directories;
-
-use std::collections::HashMap;
-use std::ffi::OsStr;
-use std::sync::Arc;
-use rusqlite::{params, Connection};
-use directories::{BaseDirs, UserDirs, ProjectDirs};
-use libloading::{Library, Symbol};
-use tauri::async_runtime::TokioHandle;
-use serde::{Deserialize, Serialize};
-use crate::database::establish_connection;
-use crate::tauri_commander::{get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game};
-
+mod metadata_api;
 
 #[derive(Serialize, Deserialize)]
 struct ITrophy {
@@ -56,50 +55,10 @@ struct IGame {
     last_time_played: String,
 }
 
-type GetApiVersion = extern "C" fn() -> u8;
-type GetGames = extern "C" fn(&str) -> Result<Vec<String>, Box<dyn std::error::Error>>;
-
-type GetToken = extern "C" fn(&str, &str) -> Result<String, Box<dyn std::error::Error>>;
-
-
-
-struct VTableV0{
-    get_info: Box<GetGames>,
-    get_version: Box<GetApiVersion>,
-    get_token: Box<GetToken>,
-}
-
-impl<'lib> VTableV0 {
-    unsafe fn new(library: &Library) -> VTableV0 {
-        println!("Loading API version 0...");
-        println!("Library: {:?}", library);
-        VTableV0 {
-            get_info: Box::new(**library.get::<Symbol<GetGames>>(b"search_game_sync_wrapper\0").unwrap().into_raw()),
-            get_version: Box::new(**library.get::<Symbol<GetApiVersion>>(b"get_api_version\0").unwrap().into_raw()),
-            get_token: Box::new(**library.get::<Symbol<GetToken>>(b"calculate_igdb_token_sync_wrapper\0").unwrap().into_raw()),
-        }
-    }
-}
-struct Plugin {
-    #[allow(dead_code)]
-    library: Library,
-    vtable: VTableV0,
-}
-
-impl Plugin {
-    unsafe fn new(library_name: &OsStr) -> Plugin {
-        let library = Library::new(library_name).unwrap();
-        let get_api_version: Symbol<GetApiVersion> = library.get(b"get_api_version\0").unwrap();
-        let vtable = match get_api_version() {
-            145 => VTableV0::new(&library),
-            _ => panic!("Unrecognized Rust API version number."),
-        };
-
-        Plugin {
-            library,
-            vtable,
-        }
-    }
+lazy_static::lazy_static! {
+    static ref PLUGINS: Mutex<Vec<Plugin>> = Mutex::new(Vec::new());
+    static ref PLUGINS_NAMES: Mutex<Vec<String>> = Mutex::new(Vec::new());
+    static ref PLUGINS_INFO: Mutex<Vec<String>> = Mutex::new(Vec::new());
 }
 
 
@@ -123,16 +82,28 @@ fn initialize() {
 #[tokio::main]
 async fn main() {
     initialize();
+    load_plugins();
     let conn = establish_connection().unwrap();
-    let library_path: &OsStr = OsStr::new("uc_igdb.dll");
-    println!("Loading plugin: {:?}", library_path);
-    let plugin = unsafe { Plugin::new(library_path) };
-    let games = (plugin.vtable.get_info)("Cyberpunk 2077");
-    println!("Games: {:?}", games);
-    println!("API version: {:?}", (plugin.vtable.get_version)());
-    println!("Token: {:?}", (plugin.vtable.get_token)("ouhbo4ww6pkcmbthrh1y3uzsoghclw", "imuzybhck3fu1phngkggkovpm41ooc"));
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game])
+        .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game,get_available_metadata_api,search_metadata_api,insert_creds_by_user,save_media_to_external_storage])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+fn load_plugins() {
+    let mut plugins = PLUGINS.lock().unwrap();
+    let mut plugins_names = PLUGINS_NAMES.lock().unwrap();
+    let mut plugins_info = PLUGINS_INFO.lock().unwrap();
+    let loaded_plugins = metadata_api::load_all_plugins();
+    for plugin in loaded_plugins {
+        plugins.push(plugin);
+    }
+    for plugin in &*plugins {
+        let cargo = (plugin.vtable.get_cargo)();
+        let name = cargo[0].clone();
+        plugins_names.push(name);
+        plugins_info.push(cargo.join(", "));
+    }
+    println!("Plugins: {:?}", plugins_names);
+    println!("Plugins info: {:?}", plugins_info);
 }

@@ -123,4 +123,20 @@ export class DBService {
             });
         });
     }
+
+    saveMediaToExternalStorage(currentGame: IGame) {
+        let exportGame = {
+            jaquette: currentGame.jaquette,
+            background: currentGame.background,
+            logo: currentGame.logo,
+            icon: currentGame.icon,
+            screenshots: currentGame.screenshots,
+            videos: currentGame.videos,
+            audio: currentGame.backgroundMusic
+        }
+
+        let exportGameString = JSON.stringify(exportGame);
+
+        invoke("save_media_to_external_storage", { gameName: currentGame.name, game: exportGameString });
+    }
 }
