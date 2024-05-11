@@ -1,9 +1,9 @@
 import {
-  RouterModule
-} from "./chunk-HMQWZDLT.js";
-import {
   SharedModule
 } from "./chunk-WQXH3QF5.js";
+import {
+  RouterModule
+} from "./chunk-HMQWZDLT.js";
 import "./chunk-3XQHKDFO.js";
 import {
   CommonModule

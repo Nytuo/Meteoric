@@ -17,7 +17,7 @@ pub fn create_extra_dirs(game: &str) -> Result<(), Box<dyn std::error::Error>> {
         std::fs::create_dir_all(videos_dir).unwrap();
     }
 
-    let music_dir = game_dir.join("music");
+    let music_dir = game_dir.join("musics");
     if !music_dir.exists() {
         std::fs::create_dir_all(music_dir).unwrap();
     }

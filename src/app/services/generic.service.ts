@@ -122,4 +122,10 @@ export class GenericService {
     stopAllAudio() {
         this.stopBackgroundMusic();
     }
+
+    async downloadYTAudio(url: string, gameName: string) {
+        return await invoke<string>("download_yt_audio", {url, gameName}).then((response) => {
+            console.log(response);
+        });
+    }
 }

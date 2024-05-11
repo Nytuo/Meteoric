@@ -84,7 +84,7 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, game_name: String) ->
     let file_path = match type_of.as_str() {
         "screenshot" => game_dir.join("screenshots").join("screenshot-".to_string() + &get_nb_of_screenshots.to_string() + ".jpg"),
         "video" => game_dir.join("videos").join("video-".to_string() + &get_nb_of_videos.to_string() + ".mp4"),
-        "audio" => game_dir.join("music").join("theme.mp3"),
+        "audio" => game_dir.join("musics").join("theme.mp3"),
         "background" => game_dir.join("background.jpg"),
         "jaquette" => game_dir.join("jaquette.jpg"),
         "logo" => game_dir.join("logo.png"),
@@ -121,7 +121,7 @@ pub fn delete_element(type_of: String, game_name: String, element_name: String) 
     let file_path = match type_of.as_str() {
         "screenshot" => game_dir.join("screenshots").join("screenshot-".to_string() + &get_nb_of_screenshots.to_string() + ".jpg"),
         "video" => game_dir.join("videos").join("video-".to_string() + &get_nb_of_videos.to_string() + ".mp4"),
-        "audio" => game_dir.join("music").join("theme.mp3"),
+        "audio" => game_dir.join("musics").join("theme.mp3"),
         _ => game_dir,
     };
 
@@ -183,8 +183,9 @@ pub fn get_available_metadata_api() -> String {
 pub fn search_metadata_api(game_name: String, plugin_name: String) -> String {
     let loaded_plugins = PLUGINS.lock().unwrap();
     let plugins_names = PLUGINS_NAMES.lock().unwrap();
-    let plugin = loaded_plugins.iter().find(|plugin| plugins_names.contains(&plugin_name)).unwrap();
-    println!("Searching for game: {} with plugin: {}", game_name, plugin_name);
+    let index = plugins_names.iter().position(|r| r == &plugin_name).unwrap();
+    let plugin = &loaded_plugins[index];
+    println!("Searching for game: {} with plugin: {:?}", game_name, (plugin.vtable.get_cargo)());
     let need_creds = (plugin.vtable.need_creds)();
     if need_creds {
         let get_creds = get_creds_from_user(&plugin_name);
@@ -297,7 +298,7 @@ pub async fn save_media_to_external_storage(game_name: String, game: String) -> 
                 let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
                 let game_dir_clone = game_dir.clone();
                 let file_path = match key.as_str() {
-                    "audio" => game_dir_clone.join("music").join("theme.mp3"),
+                    "audio" => game_dir_clone.join("musics").join("theme.mp3"),
                     "background" => game_dir_clone.join("background.jpg"),
                     "jaquette" => game_dir_clone.join("jaquette.jpg"),
                     "logo" => game_dir_clone.join("logo.png"),
@@ -313,9 +314,37 @@ pub async fn save_media_to_external_storage(game_name: String, game: String) -> 
     Ok(())
 }
 
+#[tauri::command]
+pub async fn download_yt_audio(url: String, game_name: String) -> Result<(), String> {
+    let mut game_name = parse_game_name(&game_name);
+    if game_name.is_empty() {
+        return Err("Game name is empty".to_string());
+    }
+    if url.is_empty() {
+        return Err("Url is empty".to_string());
+    }
+    if game_name.contains("/") || game_name.contains("\\") {
+        return Err("Game name is not valid".to_string());
+    }
+
+    create_extra_dirs(&game_name).unwrap();
+    let game_dir = get_extra_dirs(&game_name).unwrap().join("musics");
+
+    if let Err(e) = download_youtube_audio(&url, game_dir.to_str().unwrap().to_string(), "theme".to_string()).await {
+        return Err(format!("Error downloading youtube audio: {:?}", e));
+    }
+    Ok(())
+}
+
 
 pub async fn download_youtube_video(url: &str, location: String, name: String) -> Result<(), DownloadError> {
     let downloader = YoutubeDownloader::new(url);
     downloader?.print_dl_status().rename_with_underscores().with_name(name).download_to(&location).await?;
+    Ok(())
+}
+
+pub async fn download_youtube_audio(url: &str, location: String, name: String) -> Result<(), DownloadError> {
+    let downloader = YoutubeDownloader::new(url);
+    downloader?.print_dl_status().rename_with_underscores().with_name(name).only_audio().download_to(&location).await?;
     Ok(())
 }

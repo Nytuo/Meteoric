@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/extensions/metadata_extensions/SGDB/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/extensions_src/metadata_extensions/IGDB/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/extensions_src/metadata_extensions/IGDB/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/extensions_src/metadata_extensions/YT_BG/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />
@@ -15,6 +16,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src-tauri/target" />
       <excludeFolder url="file://$MODULE_DIR$/extensions/metadata_extensions/SGDB/target" />
       <excludeFolder url="file://$MODULE_DIR$/extensions_src/metadata_extensions/IGDB/target" />
+      <excludeFolder url="file://$MODULE_DIR$/extensions_src/metadata_extensions/YT_BG/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

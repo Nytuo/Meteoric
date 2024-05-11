@@ -107,8 +107,8 @@
             <p-button label="Back" (click)="searchMode = false"></p-button>
             <p *ngIf="message">{{ message }}</p>
             <div *ngIf="!message">
-                <p-listbox [options]="searchedGames" [(ngModel)]="selectedGame" optionLabel="name"></p-listbox>
-                <p-button label="Select" (click)="selectGame()"></p-button>
+                <p-listbox [options]="searchedGames" [(ngModel)]="selectedItem" optionLabel="name"></p-listbox>
+                <p-button label="Select" (click)="selectItem()"></p-button>
             </div>
         </div>
         <p-tabView *ngIf="!searchMode">
@@ -195,8 +195,14 @@
                             <div>
                                 <audio src="{{currentGame.backgroundMusic}}" controls></audio>
                                 <br>
-                                <p-button label="Delete" (click)="deleteBackgroundMusic()"></p-button>
                                 <input type="file" id="music-input" (change)="onFileSelected($event, 'audio')">
+                                <p-floatLabel>
+                                    <input pInputText id="music-name" [(ngModel)]="YTURL"/>
+                                    <label for="music-name">Youtube Video URL</label>
+                                </p-floatLabel>
+                                <p-button label="Save" (click)="searchYT4BGMusic()"></p-button>
+
+                                <p-button label="Delete" (click)="deleteBackgroundMusic()"></p-button>
                             </div>
                         </div>
                         <div class="formDisplay">

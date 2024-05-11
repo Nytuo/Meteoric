@@ -537,19 +537,37 @@ export class TopbarComponent {
         console.log(gameName);
         console.log(provider);
         await invoke<string>("search_metadata_api", {gameName: gameName, pluginName: provider}).then((games) => {
+
+
             console.log(games);
             this.message = "";
             if (games === undefined) {
                 this.message = "No games found";
             }
-            if (games === "[]") {
-                this.message = "No games found";
-            }
             if (games === "No credentials found") {
                 this.message = "No credentials found, please check your configuration";
             }
+            let type = JSON.parse(games) && JSON.parse(JSON.parse(games)[0]);
+            type = type.url ? "audio" : "game";
+            console.log(type);
             this.openSearchMode();
             if (this.message !== "") {
+                return;
+            }
+            if (type === "audio") {
+                this.searchedGames = JSON.parse(games);
+                let parsedGames: any[] = [];
+                this.searchedGames.forEach((audio) => {
+                    audio = JSON.parse(audio);
+                    let newAudio = {
+                        name: audio.name ? audio.name : '',
+                        url: audio.url ? audio.url : '',
+                        jaquette: audio.jaquette ? audio.jaquette : '',
+                    };
+                    parsedGames.push(newAudio);
+                });
+                this.searchedGames = parsedGames;
+                this.isAudioMetadata = true;
                 return;
             }
             let parsedGames: IGame[] = [];
@@ -560,13 +578,13 @@ export class TopbarComponent {
                 console.log(game);
 
                 let newGame = {
-                    id: "-1",
-                    trophies: '',
-                    name: game.name,
-                    sort_name: game.name,
-                    rating: '',
+                    id: game.id ? game.id : '-1',
+                    trophies: game.trophies ? game.trophies : '',
+                    name: game.name ? game.name : '',
+                    sort_name: game.name ? game.name : '',
+                    rating: game.rating ? game.rating : '',
                     platforms: game.platforms ? game.platforms : '',
-                    tags: '',
+                    tags: game.tags ? game.tags : '',
                     description: game.description ? game.description : '',
                     critic_score: game.rating ? Math.round(game.rating).toString() : '',
                     genres: game.genres ? game.genres : '',
@@ -574,19 +592,19 @@ export class TopbarComponent {
                     release_date: game.release_date ? game.release_date : '',
                     developers: game.developers ? game.developers : '',
                     editors: game.editors ? game.editors : '',
-                    status: '',
-                    time_played: '',
-                    trophies_unlocked: '',
-                    last_time_played: '',
-                    jaquette: game.cover,
-                    background: game.background,
-                    logo: "",
-                    icon: "",
-                    backgroundMusic: '',
-                    exec_file: '',
-                    game_dir: '',
-                    screenshots: game.screenshots,
-                    videos: game.videos,
+                    status: game.status ? game.status : '',
+                    time_played: game.time_played ? game.time_played : '',
+                    trophies_unlocked: game.trophies_unlocked ? game.trophies_unlocked : '',
+                    last_time_played: game.last_time_played ? game.last_time_played : '',
+                    jaquette: game.cover ? game.cover : '',
+                    background: game.background ? game.background : '',
+                    logo: game.logo ? game.logo : '',
+                    icon: game.icon ? game.icon : '',
+                    backgroundMusic: game.backgroundMusic ? game.backgroundMusic : '',
+                    exec_file: game.exec_file ? game.exec_file : '',
+                    game_dir: game.game_dir ? game.game_dir : '',
+                    screenshots: game.screenshots ? game.screenshots : [],
+                    videos: game.videos ? game.videos : [],
                 };
                 parsedGames.push(newGame);
             });
@@ -599,16 +617,27 @@ export class TopbarComponent {
 
     searchMode = false;
     searchedGames: any[] = [];
-    selectedGame: any = undefined;
+    selectedItem: any = undefined;
     message: string = '';
+    YTURL: string = '';
+    isAudioMetadata: boolean = false;
 
     openSearchMode() {
-        this.searchMode = !this.searchMode;
+        this.searchMode = true;
     }
 
-    selectGame() {
-        console.log(this.selectedGame);
-        this.currentGame = this.selectedGame;
+    selectItem() {
+        if (this.isAudioMetadata) {
+            console.log(this.selectedItem);
+            if (this.selectedItem === undefined) {
+                return;
+            }
+            this.YTURL = this.selectedItem.url;
+            this.searchYT4BGMusic();
+            return;
+        }
+        console.log(this.selectedItem);
+        this.currentGame = this.selectedItem;
         this.displayInfo = new FormGroup({
             name: new FormControl(this.currentGame?.name),
             rating: new FormControl(this.currentGame?.rating),
@@ -652,5 +681,26 @@ export class TopbarComponent {
             return;
         }
         this.db.saveMediaToExternalStorage(this.currentGame);
+    }
+
+    searchYT4BGMusic() {
+        let url = this.YTURL;
+        if (url === '' || this.currentGame === undefined) {
+            return;
+        }
+        this.genericService.downloadYTAudio(url, this.currentGame?.name).then(() => {
+            console.log("Downloaded");
+            if (this.currentGame === undefined) {
+                return;
+            }
+            this.db.refreshGameLinks(this.currentGame).then((game) => {
+                if (this.currentGameID === undefined) {
+                    return;
+                }
+                this.currentGame = game;
+                this.gameService.setGame(this.currentGameID, this.currentGame);
+                this.isAudioMetadata = false;
+            });
+        });
     }
 }

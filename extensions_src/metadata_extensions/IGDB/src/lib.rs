@@ -155,6 +155,14 @@ pub async fn search_game_igdb(game_name: &str) -> Result<Vec<String>, Box<dyn st
                 let release_date = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(first_release_date, 0), Utc);
                 games[i]["release_date"] = serde_json::Value::String(release_date.format("%d/%m/%Y").to_string());
         }
+
+        games[i].as_object_mut().unwrap().remove("id");
+        games[i].as_object_mut().unwrap().remove("release_dates");
+        games[i].as_object_mut().unwrap().remove("external_games");
+        games[i].as_object_mut().unwrap().remove("category");
+        games[i].as_object_mut().unwrap().remove("dlcs");
+        games[i].as_object_mut().unwrap().remove("involved_companies");
+        games[i].as_object_mut().unwrap().remove("player_perspectives");
     }
     Ok(games.iter().map(|game| game.to_string()).collect())
 }

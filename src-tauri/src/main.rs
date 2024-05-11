@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::database::establish_connection;
 use crate::metadata_api::Plugin;
-use crate::tauri_commander::{delete_element, get_all_categories, get_all_games, get_all_images_location, get_all_videos_location, get_available_metadata_api, get_games_by_category, insert_creds_by_user, post_game, save_media_to_external_storage, search_metadata_api, upload_file};
+use crate::tauri_commander::{delete_element, download_yt_audio, get_all_categories, get_all_games, get_all_images_location, get_all_videos_location, get_available_metadata_api, get_games_by_category, insert_creds_by_user, post_game, save_media_to_external_storage, search_metadata_api, upload_file};
 
 mod database;
 mod file_operations;
@@ -85,7 +85,7 @@ async fn main() {
     load_plugins();
     let conn = establish_connection().unwrap();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game,get_available_metadata_api,search_metadata_api,insert_creds_by_user,save_media_to_external_storage])
+        .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game,get_available_metadata_api,search_metadata_api,insert_creds_by_user,save_media_to_external_storage,download_yt_audio])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

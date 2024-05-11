@@ -127,4 +127,5 @@ dist
 .pnp.*
 /extensions_src/metadata_extensions/IGDB/target/
 /.angular
+/extensions_src/metadata_extensions/YT_BG/target
 .idea/
