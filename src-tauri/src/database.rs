@@ -162,3 +162,19 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<(), String> {
     Ok(())
 }
 
+/*pub fn get_game_name_by_id(conn: &Connection, id: &str) -> Result<String, String> {
+    let mut stmt = conn.prepare(&format!("SELECT name FROM games WHERE id = '{}'", id)).map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+    let name = rows.next().unwrap().map_err(|e| e.to_string())?;
+    let name = name.unwrap().get(0).unwrap().to_string();
+    Ok(name)
+}
+
+pub fn get_game_id_by_name(conn: &Connection, name: &str) -> Result<String, String> {
+    let mut stmt = conn.prepare(&format!("SELECT id FROM games WHERE name = '{}'", name)).map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+    let id = rows.next().unwrap().map_err(|e| e.to_string())?;
+    let id = id.unwrap().get(0).unwrap().to_string();
+    Ok(id)
+}*/
+

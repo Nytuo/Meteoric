@@ -18,38 +18,38 @@ export class DBService {
         let gamesArray = JSON.parse(games) as IGame[];
         console.log(gamesArray);
         gamesArray.map(async game => {
-            let dashedName = game.name.replace(/ /g, "_").toLowerCase();
+            let id = game.id;
             let configDirPath = await configDir();
             let dplatform = await platform();
             if (dplatform === "win32") {
                 configDirPath = configDirPath + "Nytuo\\universe\\config\\universe_extra_content\\";
-            } else if (dplatform === "linux") {
+            } else {
                 configDirPath = configDirPath + "universe/universe_extra_content/";
             }
-            game.jaquette = convertFileSrc(configDirPath + dashedName + "/jaquette.jpg");
-            game.background = convertFileSrc(configDirPath + dashedName + "/background.jpg");
-            game.logo = convertFileSrc(configDirPath + dashedName + "/logo.png");
-            game.icon = convertFileSrc(configDirPath + dashedName + "/icon.png");
-            let allImagesLocation = await invoke<string>("get_all_images_location", { gameName: dashedName });
+            game.jaquette = convertFileSrc(configDirPath + id + "/jaquette.jpg");
+            game.background = convertFileSrc(configDirPath + id + "/background.jpg");
+            game.logo = convertFileSrc(configDirPath + id + "/logo.png");
+            game.icon = convertFileSrc(configDirPath + id + "/icon.png");
+            let allImagesLocation = await invoke<string>("get_all_images_location", { id: id });
             let allImagesLocationParsed = JSON.parse(allImagesLocation);
             game.screenshots = [];
             for (let i = 0; i < allImagesLocationParsed.length; i++) {
                 game.screenshots[i] = convertFileSrc(configDirPath + allImagesLocationParsed[i]);
             }
             game.videos = [];
-            let allVideosLocation = await invoke<string>("get_all_videos_location", { gameName: dashedName });
+            let allVideosLocation = await invoke<string>("get_all_videos_location", { id: id });
             allVideosLocation = JSON.parse(allVideosLocation);
             for (let i = 0; i < allVideosLocation.length; i++) {
                 game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
             }
-            game.backgroundMusic = convertFileSrc(configDirPath + dashedName + "/musics/theme.mp3");
+            game.backgroundMusic = convertFileSrc(configDirPath + id + "/musics/theme.mp3");
             return game;
         });
         return gamesArray;
     }
 
     async refreshGameLinks(game: IGame): Promise<IGame> {
-        let dashedName = game.name.replace(/ /g, "_").toLowerCase();
+        let id = game.id;
         let configDirPath = await configDir();
         let dplatform = await platform();
         if (dplatform === "win32") {
@@ -57,23 +57,23 @@ export class DBService {
         } else if (dplatform === "linux") {
             configDirPath = configDirPath + "universe/universe_extra_content/";
         }
-        game.jaquette = convertFileSrc(configDirPath + dashedName + "/jaquette.jpg") + "?" + new Date().getTime();
-        game.background = convertFileSrc(configDirPath + dashedName + "/background.jpg") + "?" + new Date().getTime();
-        game.logo = convertFileSrc(configDirPath + dashedName + "/logo.png") + "?" + new Date().getTime();
-        game.icon = convertFileSrc(configDirPath + dashedName + "/icon.png") + "?" + new Date().getTime();
-        let allImagesLocation = await invoke<string>("get_all_images_location", {gameName: dashedName});
+        game.jaquette = convertFileSrc(configDirPath + id + "/jaquette.jpg") + "?" + new Date().getTime();
+        game.background = convertFileSrc(configDirPath + id + "/background.jpg") + "?" + new Date().getTime();
+        game.logo = convertFileSrc(configDirPath + id + "/logo.png") + "?" + new Date().getTime();
+        game.icon = convertFileSrc(configDirPath + id + "/icon.png") + "?" + new Date().getTime();
+        let allImagesLocation = await invoke<string>("get_all_images_location", {id: id});
         let allImagesLocationParsed = JSON.parse(allImagesLocation);
         game.screenshots = [];
         for (let i = 0; i < allImagesLocationParsed.length; i++) {
             game.screenshots[i] = convertFileSrc(configDirPath + allImagesLocationParsed[i]);
         }
         game.videos = [];
-        let allVideosLocation = await invoke<string>("get_all_videos_location", {gameName: dashedName});
+        let allVideosLocation = await invoke<string>("get_all_videos_location", {id: id});
         allVideosLocation = JSON.parse(allVideosLocation);
         for (let i = 0; i < allVideosLocation.length; i++) {
             game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
         }
-        game.backgroundMusic = convertFileSrc(configDirPath + dashedName + "/musics/theme.mp3");
+        game.backgroundMusic = convertFileSrc(configDirPath + id + "/musics/theme.mp3");
         return game;
     }
 
@@ -137,6 +137,6 @@ export class DBService {
 
         let exportGameString = JSON.stringify(exportGame);
 
-        invoke("save_media_to_external_storage", { gameName: currentGame.name, game: exportGameString });
+        invoke("save_media_to_external_storage", { id: currentGame.id, game: exportGameString });
     }
 }

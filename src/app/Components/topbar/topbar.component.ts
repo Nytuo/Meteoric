@@ -536,9 +536,8 @@ export class TopbarComponent {
         let provider = this.selectedMetadataProvider.provider;
         console.log(gameName);
         console.log(provider);
+
         await invoke<string>("search_metadata_api", {gameName: gameName, pluginName: provider}).then((games) => {
-
-
             console.log(games);
             this.message = "";
             if (games === undefined) {
@@ -572,40 +571,57 @@ export class TopbarComponent {
             }
             let parsedGames: IGame[] = [];
             this.searchedGames = JSON.parse(games);
-            this.searchedGames.forEach((game) => {
-                game = JSON.parse(game);
-                game = eval(game);
-                console.log(game);
+            this.searchedGames.forEach((api_game) => {
+
+                let oldGame: any = this.currentGame;
+                api_game = JSON.parse(api_game);
+                api_game = eval(api_game);
+                //merge the two objects with priority to the new one
+                if (oldGame !== undefined) {
+                    delete oldGame.jaquette;
+                    delete oldGame.background;
+                    delete oldGame.logo;
+                    delete oldGame.icon;
+                    delete oldGame.backgroundMusic;
+                    for (let key in oldGame) {
+                        if (oldGame.hasOwnProperty(key)) {
+                            if (api_game[key] === undefined) {
+                                api_game[key] = oldGame[key];
+                            }
+                        }
+                    }
+                }
 
                 let newGame = {
-                    id: game.id ? game.id : '-1',
-                    trophies: game.trophies ? game.trophies : '',
-                    name: game.name ? game.name : '',
-                    sort_name: game.name ? game.name : '',
-                    rating: game.rating ? game.rating : '',
-                    platforms: game.platforms ? game.platforms : '',
-                    tags: game.tags ? game.tags : '',
-                    description: game.description ? game.description : '',
-                    critic_score: game.rating ? Math.round(game.rating).toString() : '',
-                    genres: game.genres ? game.genres : '',
-                    styles: game.styles ? game.styles : '',
-                    release_date: game.release_date ? game.release_date : '',
-                    developers: game.developers ? game.developers : '',
-                    editors: game.editors ? game.editors : '',
-                    status: game.status ? game.status : '',
-                    time_played: game.time_played ? game.time_played : '',
-                    trophies_unlocked: game.trophies_unlocked ? game.trophies_unlocked : '',
-                    last_time_played: game.last_time_played ? game.last_time_played : '',
-                    jaquette: game.cover ? game.cover : '',
-                    background: game.background ? game.background : '',
-                    logo: game.logo ? game.logo : '',
-                    icon: game.icon ? game.icon : '',
-                    backgroundMusic: game.backgroundMusic ? game.backgroundMusic : '',
-                    exec_file: game.exec_file ? game.exec_file : '',
-                    game_dir: game.game_dir ? game.game_dir : '',
-                    screenshots: game.screenshots ? game.screenshots : [],
-                    videos: game.videos ? game.videos : [],
+                    id: api_game.id ? api_game.id : '-1',
+                    trophies: api_game.trophies ? api_game.trophies : '',
+                    name: api_game.name ? api_game.name : '',
+                    sort_name: api_game.name ? api_game.name : '',
+                    rating: api_game.rating ? api_game.rating : '',
+                    platforms: api_game.platforms ? api_game.platforms : '',
+                    tags: api_game.tags ? api_game.tags : '',
+                    description: api_game.description ? api_game.description : '',
+                    critic_score: api_game.critic_score ? Math.round(api_game.critic_score).toString() : '',
+                    genres: api_game.genres ? api_game.genres : '',
+                    styles: api_game.styles ? api_game.styles : '',
+                    release_date: api_game.release_date ? api_game.release_date : '',
+                    developers: api_game.developers ? api_game.developers : '',
+                    editors: api_game.editors ? api_game.editors : '',
+                    status: api_game.status ? api_game.status : '',
+                    time_played: api_game.time_played ? api_game.time_played : '',
+                    trophies_unlocked: api_game.trophies_unlocked ? api_game.trophies_unlocked : '',
+                    last_time_played: api_game.last_time_played ? api_game.last_time_played : '',
+                    jaquette: api_game.cover ? api_game.cover : '',
+                    background: api_game.background ? api_game.background : '',
+                    logo: api_game.logo ? api_game.logo : '',
+                    icon: api_game.icon ? api_game.icon : '',
+                    backgroundMusic: api_game.backgroundMusic ? api_game.backgroundMusic : '',
+                    exec_file: api_game.exec_file ? api_game.exec_file : '',
+                    game_dir: api_game.game_dir ? api_game.game_dir : '',
+                    screenshots: api_game.screenshots ? api_game.screenshots : [],
+                    videos: api_game.videos ? api_game.videos : [],
                 };
+                console.log(newGame);
                 parsedGames.push(newGame);
             });
             this.searchedGames = parsedGames;
@@ -688,7 +704,7 @@ export class TopbarComponent {
         if (url === '' || this.currentGame === undefined) {
             return;
         }
-        this.genericService.downloadYTAudio(url, this.currentGame?.name).then(() => {
+        this.genericService.downloadYTAudio(url, this.currentGame?.id).then(() => {
             console.log("Downloaded");
             if (this.currentGame === undefined) {
                 return;

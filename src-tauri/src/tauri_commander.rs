@@ -9,7 +9,7 @@ use tauri::utils::html::parse;
 use tokio::io::AsyncBufReadExt;
 use crate::{IGame, PLUGINS, PLUGINS_NAMES};
 use crate::database::{establish_connection, query_all_data, query_data, update_game};
-use crate::file_operations::{create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_base_extra_dir, parse_game_name, get_extra_dirs, read_extra_dirs_for, remove_file};
+use crate::file_operations::{create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_base_extra_dir, get_extra_dirs, read_extra_dirs_for, remove_file};
 use crate::metadata_api::{get_all_metadata_plugins, get_creds_from_user};
 
 #[tauri::command]
@@ -39,25 +39,25 @@ pub fn get_all_categories() -> String {
 }
 
 #[tauri::command]
-pub fn get_all_images_location(game_name: String) -> String {
-    if get_all_files_in_dir_for(&game_name, "screenshots").is_err() {
-        create_extra_dirs(&game_name).unwrap();
+pub fn get_all_images_location(id: String) -> String {
+    if get_all_files_in_dir_for(&id, "screenshots").is_err() {
+        create_extra_dirs(&id).unwrap();
     }
-    get_all_files_in_dir_for_parsed(&game_name, "screenshots")
+    get_all_files_in_dir_for_parsed(&id, "screenshots")
 }
 
 #[tauri::command]
-pub fn get_all_videos_location(game_name: String) -> String {
-    if get_all_files_in_dir_for(&game_name, "videos").is_err() {
-        create_extra_dirs(&game_name).unwrap();
+pub fn get_all_videos_location(id: String) -> String {
+    if get_all_files_in_dir_for(&id, "videos").is_err() {
+        create_extra_dirs(&id).unwrap();
     }
-    get_all_files_in_dir_for_parsed(&game_name, "videos")
+    get_all_files_in_dir_for_parsed(&id, "videos")
 }
 
 #[tauri::command]
-pub fn upload_file(file_content: Vec<u8>, type_of: String, game_name: String) -> Result<(), String> {
-    let mut game_name = parse_game_name(&game_name);
-    if game_name.is_empty() {
+pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result<(), String> {
+    let mut id = (&id);
+    if id.is_empty() {
         return Err("Game name is empty".to_string());
     }
     if type_of.is_empty() {
@@ -72,12 +72,12 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, game_name: String) ->
     if type_of != "screenshot" && type_of != "video" && type_of != "audio" && type_of != "background" && type_of != "jaquette" && type_of != "logo" && type_of != "icon" {
         return Err("Type of is not valid".to_string());
     }
-    if game_name.contains("/") || game_name.contains("\\") {
+    if id.contains("/") || id.contains("\\") {
         return Err("Game name is not valid".to_string());
     }
 
-    create_extra_dirs(&game_name).unwrap();
-    let game_dir = get_extra_dirs(&game_name).unwrap();
+    create_extra_dirs(&id).unwrap();
+    let game_dir = get_extra_dirs(&id).unwrap();
 
     let get_nb_of_screenshots = std::fs::read_dir(&game_dir.join("screenshots")).unwrap().count() + 1;
     let get_nb_of_videos = std::fs::read_dir(&game_dir.join("videos")).unwrap().count() + 1;
@@ -99,9 +99,9 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, game_name: String) ->
 }
 
 #[tauri::command]
-pub fn delete_element(type_of: String, game_name: String, element_name: String) -> Result<(), String> {
-    let mut game_name = parse_game_name(&game_name);
-    if game_name.is_empty() {
+pub fn delete_element(type_of: String, id: String, element_name: String) -> Result<(), String> {
+    let mut id = (&id);
+    if id.is_empty() {
         return Err("Game name is empty".to_string());
     }
     if type_of.is_empty() {
@@ -110,12 +110,12 @@ pub fn delete_element(type_of: String, game_name: String, element_name: String) 
     if type_of != "screenshot" && type_of != "video" && type_of != "audio" && type_of != "background" && type_of != "jaquette" && type_of != "logo" && type_of != "icon" {
         return Err("Type of is not valid".to_string());
     }
-    if game_name.contains("/") || game_name.contains("\\") {
+    if id.contains("/") || id.contains("\\") {
         return Err("Game name is not valid".to_string());
     }
 
-    create_extra_dirs(&game_name).unwrap();
-    let game_dir = get_extra_dirs(&game_name).unwrap();
+    create_extra_dirs(&id).unwrap();
+    let game_dir = get_extra_dirs(&id).unwrap();
     let get_nb_of_screenshots = std::fs::read_dir(&game_dir.join("screenshots")).unwrap().count();
     let get_nb_of_videos = std::fs::read_dir(&game_dir.join("videos")).unwrap().count();
     let file_path = match type_of.as_str() {
@@ -222,21 +222,21 @@ pub fn insert_creds_by_user(plugin_name: String, creds: Vec<String>) -> Result<(
 }
 
 #[tauri::command]
-pub async fn save_media_to_external_storage(game_name: String, game: String) -> Result<(), String> {
+pub async fn save_media_to_external_storage(id: String, game: String) -> Result<(), String> {
     let game: HashMap<String, serde_json::Value> = serde_json::from_str(&game).map_err(|e| e.to_string())?;
-    let mut game_name = parse_game_name(&game_name);
-    if game_name.is_empty() {
+    let mut id = (&id);
+    if id.is_empty() {
         return Err("Game name is empty".to_string());
     }
     if game.is_empty() {
         return Err("Urls are empty".to_string());
     }
-    if game_name.contains("/") || game_name.contains("\\") {
+    if id.contains("/") || id.contains("\\") {
         return Err("Game name is not valid".to_string());
     }
 
-    create_extra_dirs(&game_name).unwrap();
-    let game_dir = get_extra_dirs(&game_name).unwrap();
+    create_extra_dirs(&id).unwrap();
+    let game_dir = get_extra_dirs(&id).unwrap();
 
     let mut get_nb_of_screenshots = std::fs::read_dir(&game_dir.clone().join("screenshots")).unwrap().count();
     let mut get_nb_of_videos = std::fs::read_dir(&game_dir.clone().join("videos")).unwrap().count();
@@ -315,20 +315,20 @@ pub async fn save_media_to_external_storage(game_name: String, game: String) -> 
 }
 
 #[tauri::command]
-pub async fn download_yt_audio(url: String, game_name: String) -> Result<(), String> {
-    let mut game_name = parse_game_name(&game_name);
-    if game_name.is_empty() {
+pub async fn download_yt_audio(url: String, id: String) -> Result<(), String> {
+    let mut id = (&id);
+    if id.is_empty() {
         return Err("Game name is empty".to_string());
     }
     if url.is_empty() {
         return Err("Url is empty".to_string());
     }
-    if game_name.contains("/") || game_name.contains("\\") {
+    if id.contains("/") || id.contains("\\") {
         return Err("Game name is not valid".to_string());
     }
 
-    create_extra_dirs(&game_name).unwrap();
-    let game_dir = get_extra_dirs(&game_name).unwrap().join("musics");
+    create_extra_dirs(&id).unwrap();
+    let game_dir = get_extra_dirs(&id).unwrap().join("musics");
 
     if let Err(e) = download_youtube_audio(&url, game_dir.to_str().unwrap().to_string(), "theme".to_string()).await {
         return Err(format!("Error downloading youtube audio: {:?}", e));

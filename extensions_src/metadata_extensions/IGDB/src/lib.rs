@@ -147,16 +147,15 @@ pub async fn search_game_igdb(game_name: &str) -> Result<Vec<String>, Box<dyn st
             }
         }
 
-        if let Some(rating) = games[i]["rating"].as_i64() {
-            games[i]["rating"] = rating.to_string().parse().unwrap();
-        }
+        games[i]["critic_score"] = games[i]["aggregated_rating"].clone();
 
         if let Some(first_release_date) = games[i]["first_release_date"].as_i64() {
-                let release_date = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(first_release_date, 0), Utc);
-                games[i]["release_date"] = serde_json::Value::String(release_date.format("%d/%m/%Y").to_string());
+            let release_date = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(first_release_date, 0), Utc);
+            games[i]["release_date"] = serde_json::Value::String(release_date.format("%d/%m/%Y").to_string());
         }
 
         games[i].as_object_mut().unwrap().remove("id");
+        games[i].as_object_mut().unwrap().remove("rating");
         games[i].as_object_mut().unwrap().remove("release_dates");
         games[i].as_object_mut().unwrap().remove("external_games");
         games[i].as_object_mut().unwrap().remove("category");
