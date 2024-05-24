@@ -62,14 +62,7 @@ export class CardComponent implements OnInit {
     }
 
     changeSourceOnError(event: any) {
-        event.target.src = simpleSvgPlaceholder({
-            text: this.gameName,
-            textColor: "#ffffff",
-            bgColor: "#3a2dac",
-            width: 200,
-            height: 300
-        }
-        );
+        event.target.src = "assets/logo.gif";
     }
 
 

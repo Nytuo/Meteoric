@@ -528,7 +528,6 @@ export class TopbarComponent {
                 videos: [],
             };
         }
-        this.genericService.stopAllAudio();
     }
 
     async searchGameInAPI() {
