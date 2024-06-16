@@ -3,6 +3,7 @@ use std::error::Error;
 use reqwest::Client;
 use serde_json::Value;
 use serde_json::json;
+use tokio::task;
 
 #[derive(Debug)]
 struct YoutubeSearchResult {
@@ -71,47 +72,10 @@ async fn scrap_youtube_search_results(search: &str) -> Result<Vec<String>, Box<d
     Ok(result)
 }
 
-#[no_mangle]
-pub extern "C" fn set_credentials(creds: Vec<String>) {
-    return;
-}
-
-#[no_mangle]
-pub extern "C" fn search_game(game_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(scrap_youtube_search_results(game_name))
-}
-
-#[no_mangle]
-pub extern "C" fn need_creds() -> bool {
-    return false;
-}
-
-#[no_mangle]
-pub extern "C" fn get_api_version() -> u8 {
-    return 1;
-}
-
-#[no_mangle]
-pub extern "C" fn get_api_cargo() -> Vec<String> {
-    let values = vec![
-        env!("CARGO_PKG_NAME").to_string(),
-        env!("CARGO_PKG_VERSION").to_string(),
-        env!("CARGO_PKG_AUTHORS").to_string(),
-        env!("CARGO_PKG_DESCRIPTION").to_string(),
-        env!("CARGO_PKG_HOMEPAGE").to_string(),
-        "audio".to_string(),
-    ];
-    values
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_scrap_youtube_search_results() {
-        let result = search_game("Alan Wake 2 soundtrack").unwrap();
-        assert_ne!(result.len(), 0);
-    }
+pub fn search_game(game_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let result = task::block_in_place(|| {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(scrap_youtube_search_results(game_name))
+    });
+    result
 }

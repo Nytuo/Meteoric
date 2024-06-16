@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 use std::fs::rename;
 use std::io::{Read, Write};
 use directories::ProjectDirs;
@@ -7,10 +8,11 @@ use rusty_dl::errors::DownloadError;
 use rusty_dl::youtube::YoutubeDownloader;
 use tauri::utils::html::parse;
 use tokio::io::AsyncBufReadExt;
-use crate::{IGame, PLUGINS, PLUGINS_NAMES};
+use std::io::BufRead;
+use crate::{IGame};
 use crate::database::{establish_connection, query_all_data, query_data, update_game};
 use crate::file_operations::{create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_base_extra_dir, get_extra_dirs, read_extra_dirs_for, remove_file};
-use crate::metadata_api::{get_all_metadata_plugins, get_creds_from_user};
+use crate::plugins::{igdb, ytdl};
 
 #[tauri::command]
 pub fn get_all_games() -> String {
@@ -151,6 +153,26 @@ pub fn get_games_by_category(category: String) -> String {
 }
 
 #[tauri::command]
+pub fn search_metadata(game_name: String, plugin_name: String) -> String {
+    match plugin_name.as_str() {
+        "ytdl" => {
+            let result = ytdl::search_game(&game_name).unwrap();
+            format!("{:?}", result)
+        }
+        "igdb" => {
+            let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
+            let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
+            let keys = igdb::set_credentials(Vec::from([client_id, client_secret]));
+            let result = igdb::search_game(&game_name).unwrap();
+            format!("{:?}", result)
+        }
+        _ => {
+            format!("Plugin not found")
+        }
+    }
+}
+
+#[tauri::command]
 pub fn get_games_by_id(id: String) -> String {
     let conn = establish_connection().unwrap();
     let game = query_data(&conn, vec!["games"], vec!["*"], vec![("id", &id)], false).unwrap()
@@ -173,58 +195,21 @@ pub fn post_game(game: String) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-pub fn get_available_metadata_api() -> String {
-    let loaded_plugins = PLUGINS_NAMES.lock().unwrap();
-    format!("{:?}", loaded_plugins)
-}
-
-#[tauri::command]
-pub fn search_metadata_api(game_name: String, plugin_name: String) -> String {
-    let loaded_plugins = PLUGINS.lock().unwrap();
-    let plugins_names = PLUGINS_NAMES.lock().unwrap();
-    let index = plugins_names.iter().position(|r| r == &plugin_name).unwrap();
-    let plugin = &loaded_plugins[index];
-    println!("Searching for game: {} with plugin: {:?}", game_name, (plugin.vtable.get_cargo)());
-    let need_creds = (plugin.vtable.need_creds)();
-    if need_creds {
-        let get_creds = get_creds_from_user(&plugin_name);
-        let get_creds_split: Vec<&str> = get_creds.split(",").collect();
-        if get_creds.is_empty() {
-            return "No credentials found".to_string();
-        }
-        let credsp = get_creds_split.iter().map(|cred| cred.to_string()).collect();
-        println!("Credentials: {:?}", credsp);
-        (plugin.vtable.set_credentials)(credsp);
-    }
-
-    let result = (plugin.vtable.get_games)(&game_name).unwrap();
-    format!("{:?}", result)
-}
-
-#[tauri::command]
-pub fn insert_creds_by_user(plugin_name: String, creds: Vec<String>) -> Result<(), String> {
-    let loaded_plugins = PLUGINS.lock().unwrap();
-    let plugins_names = PLUGINS_NAMES.lock().unwrap();
-    let env_file = ProjectDirs::from("fr", "Nytuo", "universe").unwrap().config_dir().join("universe.env");
-
-    for cred in creds.clone() {
-        let cred = cred.split("=");
-        let cred: Vec<&str> = cred.collect();
-        let key = cred[0];
-        let value = cred[1];
-        let key = key.to_uppercase();
-        let value = value.to_uppercase();
-        std::fs::write(&env_file, &format!("{}={}\n", key, value)).unwrap();
-    }
-    let set_creds = (loaded_plugins.iter().find(|plugin| plugins_names.contains(&plugin_name)).unwrap().vtable.set_credentials)(creds);
-    Ok(())
-}
 
 #[tauri::command]
 pub async fn save_media_to_external_storage(id: String, game: String) -> Result<(), String> {
     let game: HashMap<String, serde_json::Value> = serde_json::from_str(&game).map_err(|e| e.to_string())?;
+    let is_game_id_found = id != "" && id != "undefined" && id != "null" && id != "-1";
     let mut id = (&id);
+    let mut new_game_id;
+    if !is_game_id_found {
+        let latest_game_id = query_all_data(&establish_connection().unwrap(), "games").unwrap().last().unwrap().get("id").unwrap().to_string();
+        println!("{:?}", latest_game_id);
+        let latest_game_id = latest_game_id.replace("\"", "");
+        let latest_game_id = latest_game_id.parse::<i32>().unwrap();
+        new_game_id = (latest_game_id + 1).to_string().parse().unwrap();
+        id = &new_game_id;
+    }
     if id.is_empty() {
         return Err("Game name is empty".to_string());
     }

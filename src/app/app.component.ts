@@ -20,9 +20,6 @@ export class AppComponent {
     constructor(private gameService: GameService, private categroyService: CategoryService, private genericService: GenericService) {
         this.gameService.getGames();
         this.categroyService.refreshCategories();
-        this.genericService.callMetadataApi().then(r =>
-            console.log("Metadata API called")
-        );
     }
 
     closeOverlay() {

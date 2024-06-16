@@ -131,6 +131,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 return;
             }
             this.game = game;
+            console.log(this.game);
             this.gameTags = this.game?.tags.split(',');
             this.gameRating = this.game?.rating;
             if (this.game.tags === "") this.gameTags = ["No tags"];

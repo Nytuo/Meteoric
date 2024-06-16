@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use reqwest::header::HeaderMap;
+use tokio::task;
 
 pub async fn calculate_igdb_token(client_id: String, client_secret: String) -> Result<HashMap<String, serde_json::Value>, Box<dyn std::error::Error>> {
     let url = "https://id.twitch.tv/oauth2/token?client_id=".to_string() + &*client_id + "&client_secret=" + &*client_secret + "&grant_type=client_credentials";
@@ -14,7 +15,7 @@ pub async fn calculate_igdb_token(client_id: String, client_secret: String) -> R
     Ok(json)
 }
 
-pub async fn search_game_igdb(game_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+pub(crate) async fn search_game_igdb(game_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let client_id = CLIENT_ID.lock().unwrap().to_string();
     let client_secret = CLIENT_SECRET.lock().unwrap().to_string();
     let mut access_token = ACCESS_TOKEN.lock().unwrap();
@@ -173,8 +174,7 @@ lazy_static::lazy_static! {
     static ref TOKEN_EXPIRATION: Mutex<String> = Mutex::new("".to_string());
 }
 
-#[no_mangle]
-pub extern "C" fn set_credentials(creds: Vec<String>) {
+pub fn set_credentials(creds: Vec<String>) {
     let client_id = creds[0].to_string();
     let client_secret = creds[1].to_string();
     let mut id = CLIENT_ID.lock().unwrap();
@@ -183,32 +183,10 @@ pub extern "C" fn set_credentials(creds: Vec<String>) {
     *secret = client_secret.to_string();
 }
 
-#[no_mangle]
-pub extern "C" fn search_game(game_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(search_game_igdb(game_name))
-}
-
-#[no_mangle]
-pub extern "C" fn need_creds() -> bool {
-    let id = CLIENT_ID.lock().unwrap();
-    let secret = CLIENT_SECRET.lock().unwrap();
-    id.is_empty() || secret.is_empty()
-}
-
-#[no_mangle]
-pub extern "C" fn get_api_version() -> u8 {
-    return 1;
-}
-
-#[no_mangle]
-pub extern "C" fn get_api_cargo() -> Vec<String> {
-    let values = vec![
-        env!("CARGO_PKG_NAME").to_string(),
-        env!("CARGO_PKG_VERSION").to_string(),
-        env!("CARGO_PKG_AUTHORS").to_string(),
-        env!("CARGO_PKG_DESCRIPTION").to_string(),
-        env!("CARGO_PKG_HOMEPAGE").to_string(),
-    ];
-    values
+pub fn search_game(game_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let result = task::block_in_place(|| {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(search_game_igdb(game_name))
+    });
+    result
 }

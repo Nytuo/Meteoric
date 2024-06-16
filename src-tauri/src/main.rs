@@ -11,13 +11,12 @@ use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 
 use crate::database::establish_connection;
-use crate::metadata_api::Plugin;
-use crate::tauri_commander::{delete_element, download_yt_audio, get_all_categories, get_all_games, get_all_images_location, get_all_videos_location, get_available_metadata_api, get_games_by_category, insert_creds_by_user, post_game, save_media_to_external_storage, search_metadata_api, upload_file};
+use crate::tauri_commander::{delete_element, download_yt_audio, get_all_categories, get_all_games, get_all_images_location, get_all_videos_location, get_games_by_category, post_game, save_media_to_external_storage, search_metadata, upload_file};
 
 mod database;
 mod file_operations;
 mod tauri_commander;
-mod metadata_api;
+mod plugins;
 
 #[derive(Serialize, Deserialize)]
 struct ITrophy {
@@ -55,12 +54,6 @@ struct IGame {
     last_time_played: String,
 }
 
-lazy_static::lazy_static! {
-    static ref PLUGINS: Mutex<Vec<Plugin>> = Mutex::new(Vec::new());
-    static ref PLUGINS_NAMES: Mutex<Vec<String>> = Mutex::new(Vec::new());
-    static ref PLUGINS_INFO: Mutex<Vec<String>> = Mutex::new(Vec::new());
-}
-
 
 fn initialize() {
     if let Some(proj_dirs) = ProjectDirs::from("fr", "Nytuo", "universe") {
@@ -82,28 +75,11 @@ fn initialize() {
 #[tokio::main]
 async fn main() {
     initialize();
-    load_plugins();
+    let dotenv_file = ProjectDirs::from("fr", "Nytuo", "universe").unwrap().config_dir().join("universe.env");
+    dotenv::from_filename(dotenv_file).ok();
     let conn = establish_connection().unwrap();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game,get_available_metadata_api,search_metadata_api,insert_creds_by_user,save_media_to_external_storage,download_yt_audio])
+        .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game,search_metadata,save_media_to_external_storage,download_yt_audio])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-fn load_plugins() {
-    let mut plugins = PLUGINS.lock().unwrap();
-    let mut plugins_names = PLUGINS_NAMES.lock().unwrap();
-    let mut plugins_info = PLUGINS_INFO.lock().unwrap();
-    let loaded_plugins = metadata_api::load_all_plugins();
-    for plugin in loaded_plugins {
-        plugins.push(plugin);
-    }
-    for plugin in &*plugins {
-        let cargo = (plugin.vtable.get_cargo)();
-        let name = cargo[0].clone();
-        plugins_names.push(name);
-        plugins_info.push(cargo.join(", "));
-    }
-    println!("Plugins: {:?}", plugins_names);
-    println!("Plugins info: {:?}", plugins_info);
 }

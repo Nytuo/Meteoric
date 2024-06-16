@@ -97,27 +97,3 @@ span.material-symbols-outlined{
     border: none;
     width: 100px;
 }
-
-.formDisplay{
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    margin-right: 10px;
-}
-
-.formDisplayAlt{
-    margin-top: 20px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    margin-right: 10px;
-}
-
-::ng-deep .formDisplay>p-float-label{
-    width: 100% !important;
-}

@@ -6,12 +6,16 @@ version = 3
 name = "UniverseCollector"
 version = "0.0.1"
 dependencies = [
+ "chrono",
  "directories",
+ "dotenv",
  "lazy_static",
  "libloading",
+ "regex",
  "reqwest 0.12.4",
  "rusqlite",
  "rusty_dl",
+ "scraper",
  "serde",
  "serde_derive",
  "serde_json",
@@ -525,8 +529,10 @@ checksum = "a21f936df1771bf62b77f047b726c4625ff2e8aa607c01ec06e5a05bd8463401"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets 0.52.5",
 ]
 
@@ -934,6 +940,12 @@ dependencies = [
  "quote",
  "syn 2.0.60",
 ]
+
+[[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
 name = "dtoa"

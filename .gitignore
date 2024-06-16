@@ -126,6 +126,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 /extensions_src/metadata_extensions/IGDB/target/
+/extensions_src/metadata_extensions/igdb/target/
 /.angular
 /extensions_src/metadata_extensions/YT_BG/target
 .idea/

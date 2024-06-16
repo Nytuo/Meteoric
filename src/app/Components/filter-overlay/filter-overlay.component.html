@@ -1,0 +1,45 @@
+<p-dialog [visible]="visible" (visibleChange)="updateVisible()" [style]="{ width: '250px' }">
+    <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
+        <p-selectButton [options]="stateOptions" [(ngModel)]="viewState" optionLabel="label"
+                        optionValue="value"></p-selectButton>
+        <div>
+            <div for="zoom">Zoom</div>
+            <p-slider [(ngModel)]="zoomLevel" step="2" min="5" max="50" (onChange)="changeZoom()"></p-slider>
+            <br/>
+            <div for="gap">Gap</div>
+            <p-slider [(ngModel)]="gapLevel" min="0" max="50" step="2" (onChange)="changeGap()"></p-slider>
+            <br/>
+            <div class="flex flex-column gap-3">
+                <div class="flex flex-wrap gap-3" style="margin-bottom: 10px;">
+                    <div class="flex align-items-center">
+                        <p-radioButton value="name" name="displayInfo" [(ngModel)]="displayInfo"
+                                       (ngModelChange)="changeDisplayInfo()"
+                                       inputId="name" id="name"></p-radioButton>
+                        <label for="name" class="ml-2">Name</label>
+                    </div>
+                    <div class="flex align-items-center">
+                        <p-radioButton value="platforms" name="displayInfo" [(ngModel)]="displayInfo"
+                                       (ngModelChange)="changeDisplayInfo()"
+                                       inputId="Platform" id="platforms"></p-radioButton>
+                        <label for="platforms" class="ml-2">Platforms</label>
+                    </div>
+
+                    <div class="flex align-items-center">
+                        <p-radioButton value="tags" name="displayInfo" [(ngModel)]="displayInfo"
+                                       (ngModelChange)="changeDisplayInfo()"
+                                       inputId="tags" id="tags"></p-radioButton>
+                        <label for="tags" class="ml-2">Tags</label>
+                    </div>
+
+                    <div class="flex align-items-center">
+                        <p-radioButton value="rating" name="displayInfo" [(ngModel)]="displayInfo"
+                                       (ngModelChange)="changeDisplayInfo()"
+                                       inputId="rating" id="rating"></p-radioButton>
+                        <label for="rating" class="ml-2">Rating</label>
+                    </div>
+                </div>
+                <p-button label="Reset" (click)="clearDisplayInfo()"></p-button>
+            </div>
+        </div>
+    </div>
+</p-dialog>

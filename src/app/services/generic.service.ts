@@ -19,27 +19,12 @@ export class GenericService {
         });
     }
 
-    async callMetadataApi() {
-        await invoke<string>("get_available_metadata_api").then((metadataProviders) => {
-            this.changeMetadataProviders(JSON.parse(metadataProviders));
-        });
-    }
-
     isAuthorizedToBookmark = false;
 
     private zoom: BehaviorSubject<number> = new BehaviorSubject<number>(12);
     private gap: BehaviorSubject<number> = new BehaviorSubject<number>(1);
     private displayInfo: BehaviorSubject<any> = new BehaviorSubject<any>(null);
     private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-    private metadataProviders: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
-
-    changeMetadataProviders(metadataProviders: string[]) {
-        this.metadataProviders.next(metadataProviders);
-    }
-
-    getMetadataProviders() {
-        return this.metadataProviders.asObservable();
-    }
 
     changeZoom(zoom: number) {
         this.zoom.next(zoom);

@@ -4,7 +4,7 @@
         <p-button icon="pi pi-chevron-right" (click)="location.forward()"></p-button>
         <p-button icon="pi pi-bookmark" [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"></p-button>
     </div>
-    <div class="main" *ngIf="!gameMode">
+    <div class="main" *ngIf="!onGamePage">
         <div class="searchBar">
             <input type="text" placeholder="Search"/>
             <span class="material-symbols-outlined">
@@ -12,16 +12,16 @@
             </span>
         </div>
         <div class="addGame">
-            <p-button icon="pi pi-plus-circle" (click)="creationMode = true; showOverlay()"></p-button>
+            <p-button icon="pi pi-plus-circle" (click)="toggleOverlay('game')"></p-button>
         </div>
         <div class="filter">
             <p-button icon="pi pi-filter"></p-button>
         </div>
-        <div class="more" (click)="showOverlay()">
+        <div class="more" (click)="toggleOverlay()">
             <p-button icon="pi pi-ellipsis-v"></p-button>
         </div>
     </div>
-    <div class="main" *ngIf="gameMode">
+    <div class="main" *ngIf="onGamePage">
         <p-selectButton
                 [options]="gameOptions"
                 [(ngModel)]="gameOpt"
@@ -30,7 +30,7 @@
         <div class="launchGame">
             <p-button icon="pi pi-play" label="JOUER"></p-button>
         </div>
-        <div class="more" (click)="showOverlay()">
+        <div class="more" (click)="toggleOverlay('game')">
             <p-button icon="pi pi-ellipsis-v"></p-button>
         </div>
     </div>
@@ -41,197 +41,5 @@
     </div>
 </div>
 
-<p-dialog *ngIf="!gameMode && !creationMode" [(visible)]="overlayVisible" [style]="{ width: '250px' }">
-    <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
-        <p-selectButton [options]="stateOptions" [(ngModel)]="viewState" optionLabel="label"
-                        optionValue="value"></p-selectButton>
-        <div>
-            <div for="zoom">Zoom</div>
-            <p-slider [(ngModel)]="zoomLevel" step="2" min="5" max="50" (onChange)="changeZoom()"></p-slider>
-            <br/>
-            <div for="gap">Gap</div>
-            <p-slider [(ngModel)]="gapLevel" min="0" max="50" step="2" (onChange)="changeGap()"></p-slider>
-            <br/>
-            <div class="flex flex-column gap-3">
-                <div class="flex flex-wrap gap-3" style="margin-bottom: 10px;">
-                    <div class="flex align-items-center">
-                        <p-radioButton value="name" name="displayInfo" [(ngModel)]="displayInfo"
-                                       (ngModelChange)="changeDisplayInfo()"
-                                       inputId="name" id="name"></p-radioButton>
-                        <label for="name" class="ml-2">Name</label>
-                    </div>
-                    <div class="flex align-items-center">
-                        <p-radioButton value="platforms" name="displayInfo" [(ngModel)]="displayInfo"
-                                       (ngModelChange)="changeDisplayInfo()"
-                                       inputId="Platform" id="platforms"></p-radioButton>
-                        <label for="platforms" class="ml-2">Platforms</label>
-                    </div>
-
-                    <div class="flex align-items-center">
-                        <p-radioButton value="tags" name="displayInfo" [(ngModel)]="displayInfo"
-                                       (ngModelChange)="changeDisplayInfo()"
-                                       inputId="tags" id="tags"></p-radioButton>
-                        <label for="tags" class="ml-2">Tags</label>
-                    </div>
-
-                    <div class="flex align-items-center">
-                        <p-radioButton value="rating" name="displayInfo" [(ngModel)]="displayInfo"
-                                       (ngModelChange)="changeDisplayInfo()"
-                                       inputId="rating" id="rating"></p-radioButton>
-                        <label for="rating" class="ml-2">Rating</label>
-                    </div>
-                </div>
-                <p-button label="Reset" (click)="clearDisplayInfo()"></p-button>
-            </div>
-        </div>
-    </div>
-</p-dialog>
-
-<p-dialog header="Edit Game" *ngIf="gameMode || creationMode" [(visible)]="overlayVisible"
-          [style]="{ width: '50%', height: '80%' }" resizable="true" maximizable="true"
-          (onHide)="creationMode = false; closeOverlay()">
-    <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
-        <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center;">
-            <p-dropdown
-                    [(ngModel)]="selectedMetadataProvider"
-                    [options]="metadataProviders"
-                    optionLabel="label"
-                    placeholder="Select An Extension"/>
-            <p-floatLabel>
-                <input pInputText id="searchGame" [(ngModel)]="searchingGame" (keydown.enter)="searchGameInAPI()"/>
-                <label for="searchGame">Search A Game</label>
-            </p-floatLabel>
-            <p-button label="Search" (click)="searchGameInAPI()"></p-button>
-        </div>
-        <div *ngIf="searchMode">
-            <p-button label="Back" (click)="searchMode = false"></p-button>
-            <p *ngIf="message">{{ message }}</p>
-            <div *ngIf="!message">
-                <p-listbox [options]="searchedGames" [(ngModel)]="selectedItem" optionLabel="name"></p-listbox>
-                <p-button label="Select" (click)="selectItem()"></p-button>
-            </div>
-        </div>
-        <p-tabView *ngIf="!searchMode">
-            <p-tabPanel header="General">
-                <form [formGroup]="info" (ngSubmit)="saveGameInfo()" class="formDisplay">
-                    <ng-container *ngIf="currentGame">
-                        <div *ngFor="let field of currentGame | keyvalue"
-                             [style.display]="generalKeys.includes(field.key) ? 'block' : 'none'">
-                            <p-floatLabel *ngIf="generalKeys.includes(field.key)">
-                                <input pInputText [id]="field.key" [formControlName]="field.key"/>
-                                <label [for]="field.key">{{ field.key }}</label>
-                                <br>
-                                <small id="tags-helper" *ngIf="field.key === 'tags'">
-                                    Tags are separated by commas
-                                </small>
-                            </p-floatLabel>
-                        </div>
-                    </ng-container>
-                    <p-button label="Save" type="submit"></p-button>
-                </form>
-            </p-tabPanel>
-            <p-tabPanel header="Personal">
-                <form [formGroup]="stat" (ngSubmit)="saveGameStat()" class="formDisplay">
-                    <ng-container *ngIf="currentGame">
-                        <div *ngFor="let field of currentGame | keyvalue"
-                             [style.display]="statKeys.includes(field.key) ? 'block' : 'none'">
-                            <p-floatLabel *ngIf="statKeys.includes(field.key)">
-                                <input pInputText [id]="field.key" [formControlName]="field.key"/>
-                                <label [for]="field.key">{{ field.key }}</label>
-                            </p-floatLabel>
-                        </div>
-                    </ng-container>
-                    <p-button label="Save" type="submit"></p-button>
-                </form>
-            </p-tabPanel>
-            <p-tabPanel header="Media" class="formDisplayAlt" [cache]="false">
-                <ng-container *ngIf="currentGame">
-                    <ng-template pTemplate="content">
-                        <div class="formDisplay">
-                            <p>Background</p>
-                            <div>
-                                <img [src]="currentGame.background" width="150px"
-                                     (click)="openFileChooser('background-input')"/>
-                                <input type="file" id="background-input" style="display: none"
-                                       (change)="onFileSelected($event, 'background')">
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <p>Jaquette</p>
-                            <div>
-                                <img [src]="currentGame.jaquette" width="150px"
-                                     (click)="openFileChooser('jaquette-input')"/>
-                                <input type="file" id="jaquette-input" style="display: none"
-                                       (change)="onFileSelected($event, 'jaquette')">
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <p>Logo</p>
-                            <div>
-                                <img [src]="currentGame.logo" width="150px" (click)="openFileChooser('logo-input')"/>
-                                <input type="file" id="logo-input" style="display: none"
-                                       (change)="onFileSelected($event, 'logo')">
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <p>Icon</p>
-                            <div>
-                                <img [src]="currentGame.icon" width="150px" (click)="openFileChooser('icon-input')"/>
-                                <input type="file" id="icon-input" style="display: none"
-                                       (change)="onFileSelected($event, 'icon')">
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <p>Screenshots (Needs page reloading)</p>
-                            <div *ngFor="let screenshot of currentGame.screenshots | keyvalue">
-                                <img src="{{screenshot.value}}" width="150px"/>
-                                <br>
-                                <p-button label="Delete" (click)="deleteScreenshot(screenshot.value)"></p-button>
-                            </div>
-                            <input type="file" id="screen-input" (change)="onFileSelected($event, 'screenshot')">
-                        </div>
-                        <div class="formDisplay">
-                            <p>Background Music (Needs page reloading)</p>
-                            <div>
-                                <audio src="{{currentGame.backgroundMusic}}" controls></audio>
-                                <br>
-                                <input type="file" id="music-input" (change)="onFileSelected($event, 'audio')">
-                                <p-floatLabel>
-                                    <input pInputText id="music-name" [(ngModel)]="YTURL"/>
-                                    <label for="music-name">Youtube Video URL</label>
-                                </p-floatLabel>
-                                <p-button label="Save" (click)="searchYT4BGMusic()"></p-button>
-
-                                <p-button label="Delete" (click)="deleteBackgroundMusic()"></p-button>
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <p>Video (Needs page reloading)</p>
-                            <div *ngFor="let video of currentGame.videos | keyvalue">
-                                <video src="{{video.value}}" controls width="450px"></video>
-                                <br>
-                                <p-button label="Delete" (click)="deleteVideo(video.value)"></p-button>
-                            </div>
-                            <input type="file" id="vide-input" (change)="onFileSelected($event, 'video')">
-                        </div>
-                    </ng-template>
-                </ng-container>
-            </p-tabPanel>
-            <p-tabPanel header="Execution">
-                <form [formGroup]="exec" (ngSubmit)="saveGameExec()" class="formDisplay">
-                    <ng-container *ngIf="currentGame">
-                        <div *ngFor="let field of currentGame | keyvalue"
-                             [style.display]="execKeys.includes(field.key) ? 'block' : 'none'">
-                            <p-floatLabel *ngIf="execKeys.includes(field.key)">
-                                <input pInputText [id]="field.key" [formControlName]="field.key"/>
-                                <label [for]="field.key">{{ field.key }}</label>
-                            </p-floatLabel>
-                        </div>
-                    </ng-container>
-                    <p-button label="Save" type="submit"></p-button>
-                </form>
-            </p-tabPanel>
-        </p-tabView>
-    </div>
-
-</p-dialog>
+<app-filter-overlay *ngIf="!onGamePage && overlayVisible" [(visible)]="overlayVisible"></app-filter-overlay>
+<app-add-game-overlay *ngIf="gameOverlayOpen" [(visible)]="gameOverlayOpen" [gameFromURL]="gameFromUrl"></app-add-game-overlay>
