@@ -1,9 +1,9 @@
 use directories::ProjectDirs;
 
 pub fn create_extra_dirs(id: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut id = (id);
+    let id = id;
     let extra_content_dir = create_extra_content_dir()?;
-    let game_dir = extra_content_dir.join(id.clone());
+    let game_dir = extra_content_dir.join(id);
     if !game_dir.exists() {
         std::fs::create_dir_all(game_dir.clone()).unwrap();
     }
@@ -36,9 +36,9 @@ pub fn remove_file(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn get_extra_dirs(id: &str) -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
-    let mut game_name = (id);
+    let game_name = id;
     let extra_content_dir = create_extra_content_dir()?;
-    let game_dir = extra_content_dir.join(game_name.clone());
+    let game_dir = extra_content_dir.join(game_name);
     Ok(game_dir)
 }
 
@@ -48,9 +48,9 @@ pub fn get_base_extra_dir() -> Result<std::path::PathBuf, Box<dyn std::error::Er
 }
 
 pub fn read_extra_dirs_for(id: &str, extra_dir: &str) -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
-    let mut game_name = (id);
+    let game_name = id;
     let extra_content_dir = create_extra_content_dir()?;
-    let game_dir = extra_content_dir.join(game_name.clone());
+    let game_dir = extra_content_dir.join(game_name);
     let extra_dir = game_dir.join(extra_dir);
     Ok(extra_dir)
 }

@@ -4,13 +4,10 @@
 extern crate directories;
 extern crate rusqlite;
 
-use std::ffi::OsStr;
-use std::sync::Mutex;
 
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 
-use crate::database::establish_connection;
 use crate::tauri_commander::{delete_element, download_yt_audio, get_all_categories, get_all_games, get_all_images_location, get_all_videos_location, get_games_by_category, post_game, save_media_to_external_storage, search_metadata, upload_file};
 
 mod database;
@@ -77,7 +74,6 @@ async fn main() {
     initialize();
     let dotenv_file = ProjectDirs::from("fr", "Nytuo", "universe").unwrap().config_dir().join("universe.env");
     dotenv::from_filename(dotenv_file).ok();
-    let conn = establish_connection().unwrap();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game,search_metadata,save_media_to_external_storage,download_yt_audio])
         .run(tauri::generate_context!())

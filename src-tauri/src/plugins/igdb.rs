@@ -8,7 +8,7 @@ pub async fn calculate_igdb_token(client_id: String, client_secret: String) -> R
     let url = "https://id.twitch.tv/oauth2/token?client_id=".to_string() + &*client_id + "&client_secret=" + &*client_secret + "&grant_type=client_credentials";
     let client = reqwest::Client::new();
     let response = client.post(url).send().await?;
-    let mut json: HashMap<String, serde_json::Value> = response.json().await?;
+    let json: HashMap<String, serde_json::Value> = response.json().await?;
     if json.contains_key("message") && json["message"].as_str().unwrap() == "invalid client" {
         return Err("Error while getting token".into());
     }

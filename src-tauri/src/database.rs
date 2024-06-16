@@ -11,8 +11,6 @@ pub(crate) fn query_data(conn: &Connection, tables: Vec<&str>, fields: Vec<&str>
         sql = format!("SELECT {} FROM {} WHERE {}", fields.join(","), tables.join(","), conditions.iter().map(|(field, value)| format!("{} = {}", field, value)).collect::<Vec<String>>().join(" AND "));
     }
     let mut stmt = conn.prepare(&sql)?;
-    let col_count = stmt.column_count();
-    let col_names = stmt.column_names().into_iter().map(|s| s.to_string()).collect::<Vec<String>>();
     let json = make_a_json_from_db(&mut stmt)?;
     Ok(json)
 }

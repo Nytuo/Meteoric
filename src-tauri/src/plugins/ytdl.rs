@@ -1,5 +1,4 @@
 use std::collections::{HashSet};
-use std::error::Error;
 use reqwest::Client;
 use serde_json::Value;
 use serde_json::json;

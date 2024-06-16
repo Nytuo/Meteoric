@@ -1,17 +1,11 @@
 use std::collections::HashMap;
 use std::env;
-use std::fs::rename;
-use std::io::{Read, Write};
-use directories::ProjectDirs;
 use rusty_dl::Downloader;
 use rusty_dl::errors::DownloadError;
 use rusty_dl::youtube::YoutubeDownloader;
-use tauri::utils::html::parse;
-use tokio::io::AsyncBufReadExt;
-use std::io::BufRead;
 use crate::{IGame};
 use crate::database::{establish_connection, query_all_data, query_data, update_game};
-use crate::file_operations::{create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_base_extra_dir, get_extra_dirs, read_extra_dirs_for, remove_file};
+use crate::file_operations::{create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs, remove_file};
 use crate::plugins::{igdb, ytdl};
 
 #[tauri::command]
@@ -58,7 +52,7 @@ pub fn get_all_videos_location(id: String) -> String {
 
 #[tauri::command]
 pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result<(), String> {
-    let mut id = (&id);
+    let id = &id;
     if id.is_empty() {
         return Err("Game name is empty".to_string());
     }
@@ -101,8 +95,8 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
 }
 
 #[tauri::command]
-pub fn delete_element(type_of: String, id: String, element_name: String) -> Result<(), String> {
-    let mut id = (&id);
+pub fn delete_element(type_of: String, id: String) -> Result<(), String> {
+    let id = &id;
     if id.is_empty() {
         return Err("Game name is empty".to_string());
     }
@@ -162,7 +156,7 @@ pub fn search_metadata(game_name: String, plugin_name: String) -> String {
         "igdb" => {
             let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
             let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
-            let keys = igdb::set_credentials(Vec::from([client_id, client_secret]));
+            igdb::set_credentials(Vec::from([client_id, client_secret]));
             let result = igdb::search_game(&game_name).unwrap();
             format!("{:?}", result)
         }
@@ -200,8 +194,8 @@ pub fn post_game(game: String) -> Result<(), String> {
 pub async fn save_media_to_external_storage(id: String, game: String) -> Result<(), String> {
     let game: HashMap<String, serde_json::Value> = serde_json::from_str(&game).map_err(|e| e.to_string())?;
     let is_game_id_found = id != "" && id != "undefined" && id != "null" && id != "-1";
-    let mut id = (&id);
-    let mut new_game_id;
+    let mut id = &id;
+    let new_game_id;
     if !is_game_id_found {
         let latest_game_id = query_all_data(&establish_connection().unwrap(), "games").unwrap().last().unwrap().get("id").unwrap().to_string();
         println!("{:?}", latest_game_id);
@@ -260,8 +254,8 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
 
                         if is_youtube {
                             match download_youtube_video(url, video_path.to_str().unwrap().to_string(), "video-".to_string() + &(get_nb_of_videos).to_string()).await {
-                                Ok(_) => (println!("Youtube video downloaded")),
-                                Err(e) => (println!("Error downloading youtube video: {:?}", e)),
+                                Ok(_) => println!("Youtube video downloaded"),
+                                Err(e) => println!("Error downloading youtube video: {:?}", e),
                             }
                         } else {
                             let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
@@ -301,7 +295,7 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
 
 #[tauri::command]
 pub async fn download_yt_audio(url: String, id: String) -> Result<(), String> {
-    let mut id = (&id);
+    let id = &id;
     if id.is_empty() {
         return Err("Game name is empty".to_string());
     }
