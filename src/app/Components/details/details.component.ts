@@ -122,7 +122,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 return;
             }
             image.src = this.game.background;
-            this.genericService.stopAllAudio();
             this.genericService.playBackgroundMusic(this.game.backgroundMusic);
         });
 
