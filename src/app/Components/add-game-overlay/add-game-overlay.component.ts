@@ -128,6 +128,7 @@ export class AddGameOverlayComponent implements OnInit {
         };
         this.gameFromURL.subscribe(val => {
             if (val !== '' && val !== undefined) {
+                this.genericService.stopAllAudio();
                 let gameID = val;
                 this.currentGameID = gameID;
                 console.log(this.currentGameID);
@@ -379,7 +380,7 @@ export class AddGameOverlayComponent implements OnInit {
             if (fileContent === null || fileContent === undefined || this.currentGame === undefined) {
                 return;
             }
-            this.db.uploadFile(fileContent, type, this.currentGame.name).then(() => {
+            this.db.uploadFile(fileContent, type, this.currentGame.id).then(() => {
                 console.log("File uploaded");
                 if (this.currentGame === undefined) {
                     return;

@@ -104,9 +104,9 @@ export class DBService {
         return invoke("post_game", { game: JSON.stringify(game) });
     }
 
-    async uploadFile(file: any, typeOf: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette", gameName: string) {
+    async uploadFile(file: any, typeOf: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette", id: string) {
         let fileContent = Array.from(new Uint8Array(file));
-        return invoke("upload_file", { fileContent, typeOf, gameName });
+        return invoke("upload_file", { fileContent, typeOf, id });
     }
 
     async deleteElement(typeOf: "screenshot" | "video" | "audio", gameName: string, elementName?: string) {

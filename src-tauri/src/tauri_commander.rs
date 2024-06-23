@@ -52,7 +52,17 @@ pub fn get_all_videos_location(id: String) -> String {
 
 #[tauri::command]
 pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result<(), String> {
-    let id = &id;
+    let is_game_id_found = id != "" && id != "undefined" && id != "null" && id != "-1";
+    let mut id = &id;
+    let new_game_id;
+    if !is_game_id_found {
+        let latest_game_id = query_all_data(&establish_connection().unwrap(), "games").unwrap().last().unwrap().get("id").unwrap().to_string();
+        println!("{:?}", latest_game_id);
+        let latest_game_id = latest_game_id.replace("\"", "");
+        let latest_game_id = latest_game_id.parse::<i32>().unwrap();
+        new_game_id = (latest_game_id + 1).to_string().parse().unwrap();
+        id = &new_game_id;
+    }
     if id.is_empty() {
         return Err("Game name is empty".to_string());
     }
