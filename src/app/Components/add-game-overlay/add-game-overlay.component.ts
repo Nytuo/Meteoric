@@ -1,28 +1,31 @@
-import {Component, ElementRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ButtonModule} from "primeng/button";
-import {DialogModule} from "primeng/dialog";
-import {DropdownModule} from "primeng/dropdown";
-import {FloatLabelModule} from "primeng/floatlabel";
-import {InputTextModule} from "primeng/inputtext";
-import {KeyValuePipe, NgForOf, NgIf} from "@angular/common";
-import {ListboxModule} from "primeng/listbox";
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {SharedModule} from "primeng/api";
-import {TabViewModule} from "primeng/tabview";
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ButtonModule } from "primeng/button";
+import { DialogModule } from "primeng/dialog";
+import { DropdownModule } from "primeng/dropdown";
+import { FloatLabelModule } from "primeng/floatlabel";
+import { InputTextModule } from "primeng/inputtext";
+import { KeyValuePipe, NgForOf, NgIf } from "@angular/common";
+import { ListboxModule } from "primeng/listbox";
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { SharedModule } from "primeng/api";
+import { TabViewModule } from "primeng/tabview";
 import IGame from "../../../interfaces/IGame";
-import {DBService} from "../../services/db.service";
-import {GameService} from "../../services/game.service";
-import {GenericService} from "../../services/generic.service";
-import {invoke} from "@tauri-apps/api/tauri";
+import { DBService } from "../../services/db.service";
+import { GameService } from "../../services/game.service";
+import { GenericService } from "../../services/generic.service";
+import { invoke } from "@tauri-apps/api/tauri";
 import simpleSvgPlaceholder from "@cloudfour/simple-svg-placeholder";
-import {NavigationEnd, Router} from "@angular/router";
-import {BehaviorSubject} from "rxjs";
-import {IGDBComponent} from "../../plugins/igdb/igdb.component";
-import {YtdlComponent} from "../../plugins/ytdl/ytdl.component";
+import { NavigationEnd, Router } from "@angular/router";
+import { BehaviorSubject } from "rxjs";
+import { IGDBComponent } from "../../plugins/igdb/igdb.component";
+import { YtdlComponent } from "../../plugins/ytdl/ytdl.component";
+import { SteamGridComponent } from "../../plugins/steam_grid/steam_grid.component";
 
 @Component({
     selector: 'app-add-game-overlay',
     standalone: true,
+    templateUrl: './add-game-overlay.component.html',
+    styleUrl: './add-game-overlay.component.css',
     imports: [
         ButtonModule,
         DialogModule,
@@ -38,10 +41,9 @@ import {YtdlComponent} from "../../plugins/ytdl/ytdl.component";
         TabViewModule,
         FormsModule,
         IGDBComponent,
-        YtdlComponent
-    ],
-    templateUrl: './add-game-overlay.component.html',
-    styleUrl: './add-game-overlay.component.css'
+        YtdlComponent,
+        SteamGridComponent
+    ]
 })
 export class AddGameOverlayComponent implements OnInit {
 
@@ -58,11 +60,17 @@ export class AddGameOverlayComponent implements OnInit {
     message: string = '';
     searchedGames: any[] = [];
     searchingGame: string = '';
-    selectedMetadataProvider: { label: string, provider: string } = {label: '', provider: ''};
-    metadataProviders: { label: string, provider: string }[] = [{label: 'IGDB', provider: 'igdb'}, {
+    selectedMetadataProvider: { label: string, provider: string } = { label: '', provider: '' };
+    // ADD API HERE
+    metadataProviders: { label: string, provider: string }[] = [{ label: 'IGDB', provider: 'igdb' }, {
         label: 'Youtube',
         provider: 'ytdl'
-    }];
+    },
+    {
+        label: 'SteamGrid',
+        provider: 'steam_grid'
+    }
+    ];
 
     ngOnInit(): void {
         this.currentGame = {
@@ -122,6 +130,7 @@ export class AddGameOverlayComponent implements OnInit {
             if (val !== '' && val !== undefined) {
                 let gameID = val;
                 this.currentGameID = gameID;
+                console.log(this.currentGameID);
                 let game = this.gameService.getGame(gameID);
                 this.gameService.setGameObservable(game);
                 if (game !== undefined) {
@@ -197,11 +206,13 @@ export class AddGameOverlayComponent implements OnInit {
     }
 
 
+
+
     async searchGameInAPI() {
         let gameName = this.searchingGame;
         let provider = this.selectedMetadataProvider.provider;
 
-        await invoke<string>("search_metadata", {gameName: gameName, pluginName: provider}).then((games) => {
+        await invoke<string>("search_metadata", { gameName: gameName, pluginName: provider }).then((games) => {
             console.log(games);
             this.message = "";
             if (games === undefined) {
@@ -210,6 +221,14 @@ export class AddGameOverlayComponent implements OnInit {
             if (games === "No credentials found") {
                 this.message = "No credentials found, please check your configuration";
             }
+
+            if (provider === "steam_grid") {
+                let array = JSON.parse(JSON.parse(games));
+                this.searchedGames = array;
+                this.openSearchMode();
+                return;
+            }
+
             let type = JSON.parse(games) && JSON.parse(JSON.parse(games)[0]);
             type = type.url ? "audio" : "game";
             console.log(type);
@@ -414,7 +433,19 @@ export class AddGameOverlayComponent implements OnInit {
         if (this.currentGame === undefined) {
             return;
         }
-        this.db.saveMediaToExternalStorage(this.currentGame);
+        this.db.saveMediaToExternalStorage(this.currentGame).then(()=>{
+            if (this.currentGame === undefined) {
+                return;
+            }
+            this.db.refreshGameLinks(this.currentGame).then((game) => {
+                if (this.currentGameID === undefined) {
+                    return;
+                }
+                this.currentGame = game;
+                this.gameService.setGame(this.currentGameID, this.currentGame);
+                this.isAudioMetadata = false;
+            });
+        })
     }
 
     searchYT4BGMusic() {
@@ -445,6 +476,8 @@ export class AddGameOverlayComponent implements OnInit {
         tags: new FormControl('')
     });
 
+    // ADD API HERE
+
     checkIsIGDB() {
         return this.selectedMetadataProvider.provider === 'igdb';
     }
@@ -453,18 +486,27 @@ export class AddGameOverlayComponent implements OnInit {
         return this.selectedMetadataProvider.provider === 'ytdl';
     }
 
+    checkIsSteamGrid() {
+        return this.selectedMetadataProvider.provider === 'steam_grid';
+    }
+
     selectItem() {
-        if (this.isAudioMetadata) {
-            console.log(this.selectedItem);
-            if (this.selectedItem === undefined) {
-                return;
-            }
+        console.log(this.selectedItem);
+        if (this.selectedItem === undefined) {
+            return;
+        }
+        this.selectedItem.id = this.currentGameID;
+        this.currentGame = this.selectedItem;
+        if (this.selectedMetadataProvider.provider === 'ytdl') {
             this.YTURL = this.selectedItem.url;
             this.searchYT4BGMusic();
             return;
         }
-        console.log(this.selectedItem);
-        this.currentGame = this.selectedItem;
+        if (this.selectedMetadataProvider.provider === 'steam_grid') {
+            this.saveMediaToExternalStorage();
+            
+            return;
+        }
         this.displayInfo = new FormGroup({
             name: new FormControl(this.currentGame?.name),
             rating: new FormControl(this.currentGame?.rating),

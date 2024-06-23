@@ -9,6 +9,7 @@ use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 
 use crate::tauri_commander::{delete_element, download_yt_audio, get_all_categories, get_all_games, get_all_images_location, get_all_videos_location, get_games_by_category, post_game, save_media_to_external_storage, search_metadata, upload_file};
+use crate::plugins::steam_grid::{steamgrid_get_grid, steamgrid_get_hero, steamgrid_get_logo, steamgrid_get_icon};
 
 mod database;
 mod file_operations;
@@ -75,7 +76,7 @@ async fn main() {
     let dotenv_file = ProjectDirs::from("fr", "Nytuo", "universe").unwrap().config_dir().join("universe.env");
     dotenv::from_filename(dotenv_file).ok();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game,search_metadata,save_media_to_external_storage,download_yt_audio])
+        .invoke_handler(tauri::generate_handler![get_all_videos_location, get_all_games, get_all_categories, get_games_by_category, get_all_images_location, upload_file, delete_element, post_game,search_metadata,save_media_to_external_storage,download_yt_audio,steamgrid_get_grid,steamgrid_get_hero,steamgrid_get_logo,steamgrid_get_icon])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

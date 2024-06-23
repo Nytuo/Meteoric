@@ -6,7 +6,7 @@ use rusty_dl::youtube::YoutubeDownloader;
 use crate::{IGame};
 use crate::database::{establish_connection, query_all_data, query_data, update_game};
 use crate::file_operations::{create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs, remove_file};
-use crate::plugins::{igdb, ytdl};
+use crate::plugins::{igdb, ytdl, steam_grid};
 
 #[tauri::command]
 pub fn get_all_games() -> String {
@@ -147,7 +147,8 @@ pub fn get_games_by_category(category: String) -> String {
 }
 
 #[tauri::command]
-pub fn search_metadata(game_name: String, plugin_name: String) -> String {
+pub async fn search_metadata(game_name: String, plugin_name: String) -> String {
+    // ADD API HERE
     match plugin_name.as_str() {
         "ytdl" => {
             let result = ytdl::search_game(&game_name).unwrap();
@@ -158,6 +159,12 @@ pub fn search_metadata(game_name: String, plugin_name: String) -> String {
             let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
             igdb::set_credentials(Vec::from([client_id, client_secret]));
             let result = igdb::search_game(&game_name).unwrap();
+            format!("{:?}", result)
+        }
+        "steam_grid" => {
+            let api_key = env::var("STEAMGRIDDB_API_KEY").expect("STEAMGRIDDB_API_KEY not found");
+            steam_grid::set_credentials(api_key).await;
+            let result = steam_grid::search_game(&game_name).unwrap();
             format!("{:?}", result)
         }
         _ => {

@@ -14,12 +14,15 @@
             </p-floatLabel>
             <p-button label="Search" (click)="searchGameInAPI()"></p-button>
         </div>
-
+        <!--ADD API HERE-->
         <app-igdb *ngIf="searchMode && checkIsIGDB()" [message]="message" [searchedGames]="searchedGames"
                   (selectItem)="selectItem()" (back)="searchMode = false" [(selectedItem)]="selectedItem"></app-igdb>
 
         <app-ytdl *ngIf="searchMode && checkIsYTDL()" [message]="message" [searchedGames]="searchedGames"
                   (selectItem)="selectItem()" (back)="searchMode = false" [(selectedItem)]="selectedItem"></app-ytdl>
+
+        <app-steam-grid *ngIf="searchMode && checkIsSteamGrid()" [message]="message" [searchedGames]="searchedGames"
+                       (selectItem)="selectItem()" (back)="searchMode = false" [(selectedItem)]="selectedItem"></app-steam-grid>
 
         <p-tabView *ngIf="!searchMode">
             <p-tabPanel header="General">

@@ -1,0 +1,50 @@
+<div>
+    <div *ngIf="!selectedItem">
+        <p-button label="Back" (click)="back.emit()"></p-button>
+        <p>Select the game you want to add</p>
+        <p *ngIf="message">{{ message }}</p>
+        <div *ngIf="!message">
+            <p-listbox [options]="searchedGames" (ngModelChange)="updateSelectedItem(
+                $event
+            )" [(ngModel)]="selectedItem" optionLabel="name"></p-listbox>
+        </div>
+    </div>
+    <div *ngIf="currentStep === 1">
+        <p-button label="Back" (click)="updateSelectedItem(null)"></p-button>
+        <p>Select the Grid</p>
+        <div class="container">
+            <div *ngFor="let grid of availableGrids">
+                <img [src]="grid.thumb" alt="Grid" (click)="selectGrid(grid.image)">
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="currentStep === 2">
+        <p>Select the Hero</p>
+        <div class="container">
+            <div *ngFor="let hero of availableHeroes">
+                <img [src]="hero.thumb" alt="Hero" class="hero" (click)="selectHero(hero.image)">
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="currentStep === 3">
+        <p>Select the Logo</p>
+        <div class="container">
+            <div *ngFor="let logo of availableLogos">
+                <img [src]="logo.thumb" alt="Logo" (click)="selectLogo(logo.image)">
+            </div>
+        </div>
+    </div>
+    <div *ngIf="currentStep === 4">
+        <p>Select the Icon</p>
+        <div class="container">
+            <div *ngFor="let icon of availableIcons">
+                <img [src]="icon.thumb" alt="Icon" (click)="selectIcon(icon.image)">
+            </div>
+        </div>
+    </div>
+
+    <p-button *ngIf="currentStep === 4" label="Save" (click)="send()"></p-button>
+
+</div>

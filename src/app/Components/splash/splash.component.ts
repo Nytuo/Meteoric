@@ -13,11 +13,17 @@ import {appWindow} from "@tauri-apps/api/window";
 })
 export class SplashComponent implements OnInit {
 
+
     constructor() {
     }
 
     ngOnInit() {
-        this.loadVideo().then(r => console.log("Video loaded"));
+        const DEV_MODE = true;
+        if (!DEV_MODE) {
+            this.loadVideo().then(r => console.log("Video loaded"));
+        } else {
+            this.goToHome();
+        }
     }
 
     async loadVideo() {

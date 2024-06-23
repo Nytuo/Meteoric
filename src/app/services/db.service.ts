@@ -4,7 +4,7 @@ import IGame from "../../interfaces/IGame";
 import { configDir } from "@tauri-apps/api/path";
 import ICategory from "../../interfaces/ICategory";
 import { platform } from "@tauri-apps/api/os";
-import {FormGroup} from "@angular/forms";
+import { FormGroup } from "@angular/forms";
 
 @Injectable({
     providedIn: 'root'
@@ -61,14 +61,14 @@ export class DBService {
         game.background = convertFileSrc(configDirPath + id + "/background.jpg") + "?" + new Date().getTime();
         game.logo = convertFileSrc(configDirPath + id + "/logo.png") + "?" + new Date().getTime();
         game.icon = convertFileSrc(configDirPath + id + "/icon.png") + "?" + new Date().getTime();
-        let allImagesLocation = await invoke<string>("get_all_images_location", {id: id});
+        let allImagesLocation = await invoke<string>("get_all_images_location", { id: id });
         let allImagesLocationParsed = JSON.parse(allImagesLocation);
         game.screenshots = [];
         for (let i = 0; i < allImagesLocationParsed.length; i++) {
             game.screenshots[i] = convertFileSrc(configDirPath + allImagesLocationParsed[i]);
         }
         game.videos = [];
-        let allVideosLocation = await invoke<string>("get_all_videos_location", {id: id});
+        let allVideosLocation = await invoke<string>("get_all_videos_location", { id: id });
         allVideosLocation = JSON.parse(allVideosLocation);
         for (let i = 0; i < allVideosLocation.length; i++) {
             game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
@@ -106,14 +106,14 @@ export class DBService {
 
     async uploadFile(file: any, typeOf: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette", gameName: string) {
         let fileContent = Array.from(new Uint8Array(file));
-        return invoke("upload_file", {fileContent, typeOf, gameName});
+        return invoke("upload_file", { fileContent, typeOf, gameName });
     }
 
     async deleteElement(typeOf: "screenshot" | "video" | "audio", gameName: string, elementName?: string) {
         if (elementName === undefined) {
-            return invoke("delete_element", {typeOf, gameName, elementName: ""});
+            return invoke("delete_element", { typeOf, gameName, elementName: "" });
         }
-        return invoke("delete_element", {typeOf, gameName, elementName});
+        return invoke("delete_element", { typeOf, gameName, elementName });
     }
 
     async getGame(id: string) {
@@ -124,19 +124,29 @@ export class DBService {
         });
     }
 
-    saveMediaToExternalStorage(currentGame: IGame) {
-        let exportGame = {
-            jaquette: currentGame.jaquette,
-            background: currentGame.background,
-            logo: currentGame.logo,
-            icon: currentGame.icon,
-            screenshots: currentGame.screenshots,
-            videos: currentGame.videos,
-            audio: currentGame.backgroundMusic
-        }
+    async saveMediaToExternalStorage(currentGame: IGame): Promise<void> {
+        return new Promise((resolve, reject) => {
 
-        let exportGameString = JSON.stringify(exportGame);
+            let exportGame = {
+                jaquette: currentGame.jaquette,
+                background: currentGame.background,
+                logo: currentGame.logo,
+                icon: currentGame.icon,
+                screenshots: currentGame.screenshots,
+                videos: currentGame.videos,
+                audio: currentGame.backgroundMusic
+            }
 
-        invoke("save_media_to_external_storage", { id: currentGame.id, game: exportGameString });
+            let exportGameString = JSON.stringify(exportGame);
+
+            invoke("save_media_to_external_storage", { id: currentGame.id, game: exportGameString }).then(() => {
+                setTimeout(() => {
+                    resolve();
+                }, 4000);
+            })
+                .catch((error) => {
+                    reject(error);
+                });
+        });
     }
 }
