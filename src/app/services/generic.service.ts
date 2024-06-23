@@ -66,11 +66,17 @@ export class GenericService {
         return this.displayBookmark.asObservable();
     }
 
+    private audioInterval: string | number | NodeJS.Timeout | undefined;
+
     playBackgroundMusic(backgroundMusic: string) {
         if (!backgroundMusic) return;
 
         if (this.audio) {
             this.audio.pause();
+        }
+
+        if (this.audioInterval){
+            clearInterval(this.audioInterval);
         }
 
         this.audio = new Audio(backgroundMusic);
@@ -79,12 +85,12 @@ export class GenericService {
         this.audio.play();
 
         let volume = 0;
-        const interval = setInterval(() => {
+        this.audioInterval = setInterval(() => {
             if (volume < 0.9) {
                 volume += 0.1;
                 if (this.audio) this.audio.volume = volume;
             } else {
-                clearInterval(interval);
+                clearInterval(this.audioInterval);
             }
         }, 100);
     }
@@ -93,12 +99,12 @@ export class GenericService {
         if (!this.audio) return;
 
         let volume = this.audio.volume;
-        const interval = setInterval(() => {
+        this.audioInterval = setInterval(() => {
             if (volume > 0.1) {
                 volume -= 0.1;
                 if (this.audio) this.audio.volume = volume;
             } else {
-                clearInterval(interval);
+                clearInterval(this.audioInterval);
                 if (this.audio) this.audio.pause();
             }
         }, 100);
