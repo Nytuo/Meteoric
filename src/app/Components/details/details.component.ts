@@ -1,19 +1,19 @@
-import {Component, NgIterable, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute} from "@angular/router";
-import {GameService} from "../../services/game.service";
+import { Component, NgIterable, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from "@angular/router";
+import { GameService } from "../../services/game.service";
 import IGame from "../../../interfaces/IGame";
-import {NgForOf, NgOptimizedImage, NgStyle} from "@angular/common";
-import {RatingModule} from "primeng/rating";
-import {FormsModule} from "@angular/forms";
-import {TagModule} from "primeng/tag";
-import {SplitterModule} from "primeng/splitter";
-import {DividerModule} from "primeng/divider";
-import {TableModule} from "primeng/table";
-import {CarouselModule, CarouselResponsiveOptions} from "primeng/carousel";
-import {ButtonModule} from "primeng/button";
-import {appWindow} from "@tauri-apps/api/window";
-import {GalleriaModule} from "primeng/galleria";
-import {GenericService} from "../../services/generic.service";
+import { NgForOf, NgOptimizedImage, NgStyle } from "@angular/common";
+import { RatingModule } from "primeng/rating";
+import { FormsModule } from "@angular/forms";
+import { TagModule } from "primeng/tag";
+import { SplitterModule } from "primeng/splitter";
+import { DividerModule } from "primeng/divider";
+import { TableModule } from "primeng/table";
+import { CarouselModule, CarouselResponsiveOptions } from "primeng/carousel";
+import { ButtonModule } from "primeng/button";
+import { appWindow } from "@tauri-apps/api/window";
+import { GalleriaModule } from "primeng/galleria";
+import { GenericService } from "../../services/generic.service";
 
 @Component({
     selector: 'app-details',
@@ -45,10 +45,10 @@ export class DetailsComponent implements OnInit, OnDestroy {
         lastTimePlayed: string;
         totalTrohpies: number;
     }[] = [
-        {player: 'John', trophies: 3, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10},
-        {player: 'Doe', trophies: 5, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10},
-        {player: 'Jane', trophies: 7, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10}
-    ];
+            { player: 'John', trophies: 3, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10 },
+            { player: 'Doe', trophies: 5, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10 },
+            { player: 'Jane', trophies: 7, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10 }
+        ];
 
     friendsTrohpiesAvg: number = 0;
     friendsTimePlayedAvg: number = 0;
@@ -122,7 +122,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 return;
             }
             image.src = this.game.background;
-            this.genericService.playBackgroundMusic(this.game.backgroundMusic);
+            if (this.game.backgroundMusic)
+                this.genericService.playBackgroundMusic(this.game.backgroundMusic);
         });
 
         this.gameService.getGameObservable(this.id.toString()).subscribe(game => {
@@ -155,7 +156,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 return;
             }
             image.src = this.game.background;
-            this.genericService.playBackgroundMusic(this.game.backgroundMusic);
+            if (this.game.backgroundMusic)
+                this.genericService.playBackgroundMusic(this.game.backgroundMusic);
 
         });
     }
