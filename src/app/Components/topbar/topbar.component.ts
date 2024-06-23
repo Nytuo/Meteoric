@@ -73,6 +73,7 @@ export class TopbarComponent {
         });
         this.router.events.subscribe((val) => {
             if (val instanceof NavigationEnd) {
+                console.log(val.url)
                 if (val.url.includes('game') && !val.url.includes('games')) {
                     this.onGamePage = true;
                     this.gameFromUrl.next(val.url.split('/')[2]);
@@ -80,6 +81,8 @@ export class TopbarComponent {
                     if (id) {
                         this.gameService.setGameObservable(this.gameService.getGame(id));
                     }
+                }else{
+                    this.onGamePage = false;
                 }
             }
         });
