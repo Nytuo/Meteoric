@@ -12,8 +12,8 @@ use crate::plugins::steam_grid::{
 };
 use crate::tauri_commander::{
     delete_element, download_yt_audio, get_all_categories, get_all_fields_from_db, get_all_games,
-    get_all_images_location, get_all_videos_location, get_games_by_category, post_game,
-    save_media_to_external_storage, search_metadata, upload_csv_to_db, upload_file,
+    get_all_images_location, get_all_videos_location, get_games_by_category, import_library,
+    post_game, save_media_to_external_storage, search_metadata, upload_csv_to_db, upload_file,
 };
 
 mod database;
@@ -82,6 +82,31 @@ impl IGame {
             "last_time_played",
         ]
     }
+
+    pub fn new() -> IGame {
+        IGame {
+            id: String::new(),
+            name: String::new(),
+            sort_name: String::new(),
+            rating: String::new(),
+            platforms: String::new(),
+            description: String::new(),
+            critic_score: String::new(),
+            genres: String::new(),
+            styles: String::new(),
+            release_date: String::new(),
+            developers: String::new(),
+            editors: String::new(),
+            game_dir: String::new(),
+            exec_file: String::new(),
+            tags: String::new(),
+            status: String::new(),
+            time_played: String::new(),
+            trophies: String::new(),
+            trophies_unlocked: String::new(),
+            last_time_played: String::new(),
+        }
+    }
 }
 
 fn initialize() {
@@ -134,7 +159,8 @@ async fn main() {
             steamgrid_get_logo,
             steamgrid_get_icon,
             get_all_fields_from_db,
-            upload_csv_to_db
+            upload_csv_to_db,
+            import_library
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

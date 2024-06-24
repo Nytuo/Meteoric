@@ -21,6 +21,7 @@ import { IGDBComponent } from "../../plugins/igdb/igdb.component";
 import { YtdlComponent } from "../../plugins/ytdl/ytdl.component";
 import { SteamGridComponent } from "../../plugins/steam_grid/steam_grid.component";
 import { CSVImporter } from "../../plugins/csv_importer/csv_importer.component";
+import {EpicImporterComponent} from "../../plugins/epic-importer/epic-importer.component";
 
 @Component({
     selector: 'app-add-game-overlay',
@@ -44,7 +45,8 @@ import { CSVImporter } from "../../plugins/csv_importer/csv_importer.component";
         IGDBComponent,
         YtdlComponent,
         SteamGridComponent,
-        CSVImporter
+        CSVImporter,
+        EpicImporterComponent
     ]
 })
 export class AddGameOverlayComponent implements OnInit {
@@ -75,7 +77,11 @@ export class AddGameOverlayComponent implements OnInit {
     {
         label: 'CSV Importer',
         provider: 'csv_importer'
-    }
+    },
+        {
+            label: 'Epic Importer',
+            provider: 'epic_importer'
+        }
     ];
     hideSearch: boolean = false;
 
@@ -237,7 +243,7 @@ export class AddGameOverlayComponent implements OnInit {
                 return;
             }
 
-            if (provider === "csv_importer") {
+            if (provider === "csv_importer" || provider === 'epic_importer') {
                 this.openSearchMode();
                 return;
             }
@@ -492,7 +498,7 @@ export class AddGameOverlayComponent implements OnInit {
     // ADD API HERE
 
     routineOnSelect() {
-        if (this.selectedMetadataProvider.provider === 'csv_importer') {
+        if (this.selectedMetadataProvider.provider === 'csv_importer' || this.selectedMetadataProvider.provider === 'epic_importer') {
             this.hideSearch = false;
         } else {
             this.hideSearch = true;
@@ -514,6 +520,10 @@ export class AddGameOverlayComponent implements OnInit {
 
     checkIsCSVImporter() {
         return this.selectedMetadataProvider.provider === 'csv_importer';
+    }
+
+    checkIsEpicImporter(){
+        return this.selectedMetadataProvider.provider === 'epic_importer';
     }
 
     selectItem() {

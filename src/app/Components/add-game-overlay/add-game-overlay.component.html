@@ -27,6 +27,8 @@
         
         <app-csv-importer *ngIf="searchMode && checkIsCSVImporter()"></app-csv-importer>
 
+        <app-epic-importer *ngIf="searchMode && checkIsEpicImporter()"></app-epic-importer>
+
         <p-tabView *ngIf="!searchMode">
             <p-tabPanel header="General">
                 <form [formGroup]="info" (ngSubmit)="saveGameInfo()" class="formDisplay">

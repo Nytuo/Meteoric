@@ -26,6 +26,9 @@ scraper = "0.19.0"
 regex = "1.10.4"
 dotenv = "0.15.0"
 steamgriddb_api="0.3.1"
+egs-api="0.7.1"
+steam-rs="0.4.4"
+gog="0.5.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

@@ -1,8 +1,7 @@
 <div class="game" id="{{gameId}}" [style.width]="width"  [routerLink]="['/game', gameId]">
-    <img [src]="loading ? 'assets/logo.gif' : gameImage"
-         class="image" alt="{{gameName}}" (error)="changeSourceOnError($event)" (load)="loading = false">
-    <div style="margin-top: 10px;"
-         *ngIf="!loading">
+    <img src="assets/logo.gif"
+         class="image" alt="{{gameName}}" #imageElement>
+    <div style="margin-top: 10px;">
         <p class="text" *ngIf="displayInfo == 'name'">{{ gameName }}</p>
         <p class="italic" *ngIf="displayInfo == 'platforms'">{{ gamePlatforms }}</p>
         <div *ngIf="displayInfo == 'rating'">
