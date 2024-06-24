@@ -20,6 +20,7 @@ import { BehaviorSubject } from "rxjs";
 import { IGDBComponent } from "../../plugins/igdb/igdb.component";
 import { YtdlComponent } from "../../plugins/ytdl/ytdl.component";
 import { SteamGridComponent } from "../../plugins/steam_grid/steam_grid.component";
+import { CSVImporter } from "../../plugins/csv_importer/csv_importer.component";
 
 @Component({
     selector: 'app-add-game-overlay',
@@ -42,7 +43,8 @@ import { SteamGridComponent } from "../../plugins/steam_grid/steam_grid.componen
         FormsModule,
         IGDBComponent,
         YtdlComponent,
-        SteamGridComponent
+        SteamGridComponent,
+        CSVImporter
     ]
 })
 export class AddGameOverlayComponent implements OnInit {
@@ -60,17 +62,22 @@ export class AddGameOverlayComponent implements OnInit {
     message: string = '';
     searchedGames: any[] = [];
     searchingGame: string = '';
-    selectedMetadataProvider: { label: string, provider: string } = { label: '', provider: '' };
+    selectedMetadataProvider: { label: string, provider: string; } = { label: '', provider: '' };
     // ADD API HERE
-    metadataProviders: { label: string, provider: string }[] = [{ label: 'IGDB', provider: 'igdb' }, {
+    metadataProviders: { label: string, provider: string; }[] = [{ label: 'IGDB', provider: 'igdb' }, {
         label: 'Youtube',
         provider: 'ytdl'
     },
     {
         label: 'SteamGrid',
         provider: 'steam_grid'
+    },
+    {
+        label: 'CSV Importer',
+        provider: 'csv_importer'
     }
     ];
+    hideSearch: boolean = false;
 
     ngOnInit(): void {
         this.currentGame = {
@@ -226,6 +233,11 @@ export class AddGameOverlayComponent implements OnInit {
             if (provider === "steam_grid") {
                 let array = JSON.parse(JSON.parse(games));
                 this.searchedGames = array;
+                this.openSearchMode();
+                return;
+            }
+
+            if (provider === "csv_importer") {
                 this.openSearchMode();
                 return;
             }
@@ -434,7 +446,7 @@ export class AddGameOverlayComponent implements OnInit {
         if (this.currentGame === undefined) {
             return;
         }
-        this.db.saveMediaToExternalStorage(this.currentGame).then(()=>{
+        this.db.saveMediaToExternalStorage(this.currentGame).then(() => {
             if (this.currentGame === undefined) {
                 return;
             }
@@ -446,7 +458,7 @@ export class AddGameOverlayComponent implements OnInit {
                 this.gameService.setGame(this.currentGameID, this.currentGame);
                 this.isAudioMetadata = false;
             });
-        })
+        });
     }
 
     searchYT4BGMusic() {
@@ -479,6 +491,15 @@ export class AddGameOverlayComponent implements OnInit {
 
     // ADD API HERE
 
+    routineOnSelect() {
+        if (this.selectedMetadataProvider.provider === 'csv_importer') {
+            this.hideSearch = false;
+        } else {
+            this.hideSearch = true;
+        }
+    }
+
+
     checkIsIGDB() {
         return this.selectedMetadataProvider.provider === 'igdb';
     }
@@ -489,6 +510,10 @@ export class AddGameOverlayComponent implements OnInit {
 
     checkIsSteamGrid() {
         return this.selectedMetadataProvider.provider === 'steam_grid';
+    }
+
+    checkIsCSVImporter() {
+        return this.selectedMetadataProvider.provider === 'csv_importer';
     }
 
     selectItem() {
@@ -505,7 +530,6 @@ export class AddGameOverlayComponent implements OnInit {
         }
         if (this.selectedMetadataProvider.provider === 'steam_grid') {
             this.saveMediaToExternalStorage();
-            
             return;
         }
         this.displayInfo = new FormGroup({

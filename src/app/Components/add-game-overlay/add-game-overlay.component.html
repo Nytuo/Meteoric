@@ -6,9 +6,10 @@
             <p-dropdown
                     [(ngModel)]="selectedMetadataProvider"
                     [options]="metadataProviders"
+                    (onChange)="routineOnSelect()"
                     optionLabel="label"
                     placeholder="Select An Extension"/>
-            <p-floatLabel>
+            <p-floatLabel *ngIf="hideSearch">
                 <input pInputText id="searchGame" [(ngModel)]="searchingGame" (keydown.enter)="searchGameInAPI()"/>
                 <label for="searchGame">Search A Game</label>
             </p-floatLabel>
@@ -23,6 +24,8 @@
 
         <app-steam-grid *ngIf="searchMode && checkIsSteamGrid()" [message]="message" [searchedGames]="searchedGames"
                        (selectItem)="selectItem()" (back)="searchMode = false" [(selectedItem)]="selectedItem"></app-steam-grid>
+        
+        <app-csv-importer *ngIf="searchMode && checkIsCSVImporter()"></app-csv-importer>
 
         <p-tabView *ngIf="!searchMode">
             <p-tabPanel header="General">

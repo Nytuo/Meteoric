@@ -112,6 +112,12 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
 }
 
 
+pub(crate) fn get_all_fields(conn: &Connection) -> Result<Vec<String>, rusqlite::Error>{
+    let mut stmt = conn.prepare(&format!("SELECT * FROM games LIMIT 1"))?;
+    let col_names = stmt.column_names().into_iter().map(|s| s.to_string()).collect::<Vec<String>>();
+    Ok(col_names)
+}
+
 
 
 

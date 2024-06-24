@@ -15,7 +15,17 @@ export class DBService {
     }
 
     JSONParserForGames(games: string): IGame[] {
-        let gamesArray = JSON.parse(games) as IGame[];
+        console.log(games);
+        // Remove all unicode characters
+        games = games.replace(/\\u\{a0\}/g, "\\u00A0");
+
+        let gamesArray: IGame[] = [];
+        try {
+            gamesArray = JSON.parse(games) as IGame[];
+        } catch (error) {
+            console.error("Failed to parse games JSON:", error);
+            return [];
+        }
         console.log(gamesArray);
         gamesArray.map(async game => {
             let id = game.id;
@@ -135,7 +145,7 @@ export class DBService {
                 screenshots: currentGame.screenshots,
                 videos: currentGame.videos,
                 audio: currentGame.backgroundMusic
-            }
+            };
 
             let exportGameString = JSON.stringify(exportGame);
 
