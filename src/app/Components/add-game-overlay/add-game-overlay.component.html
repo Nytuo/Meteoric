@@ -15,6 +15,7 @@
             </p-floatLabel>
             <p-button label="Search" (click)="searchGameInAPI()"></p-button>
         </div>
+        <p>THIS APP IS UNDER DEVELOPMENT, THE AUTH FLOWS ARE NOT USER FRIENDLY YET</p>
         <!--ADD API HERE-->
         <app-igdb *ngIf="searchMode && checkIsIGDB()" [message]="message" [searchedGames]="searchedGames"
                   (selectItem)="selectItem()" (back)="searchMode = false" [(selectedItem)]="selectedItem"></app-igdb>
@@ -29,6 +30,7 @@
 
         <app-epic-importer *ngIf="searchMode && checkIsEpicImporter()"></app-epic-importer>
         <app-steam-importer *ngIf="searchMode && checkIsSteamImporter()"></app-steam-importer>
+        <app-gog-importer *ngIf="searchMode && checkIsGogImporter()"></app-gog-importer>
 
 
 

@@ -23,6 +23,7 @@ import { SteamGridComponent } from "../../plugins/steam_grid/steam_grid.componen
 import { CSVImporter } from "../../plugins/csv_importer/csv_importer.component";
 import { EpicImporterComponent } from "../../plugins/epic-importer/epic-importer.component";
 import { SteamImporterComponent } from "../../plugins/steam-importer/steam-importer.component";
+import { GogImporterComponent } from "../../plugins/gog-importer/gog-importer.component";
 
 @Component({
     selector: 'app-add-game-overlay',
@@ -48,7 +49,8 @@ import { SteamImporterComponent } from "../../plugins/steam-importer/steam-impor
         SteamGridComponent,
         CSVImporter,
         EpicImporterComponent,
-        SteamImporterComponent
+        SteamImporterComponent,
+        GogImporterComponent
     ]
 })
 export class AddGameOverlayComponent implements OnInit {
@@ -87,6 +89,10 @@ export class AddGameOverlayComponent implements OnInit {
     {
         label: 'Steam Importer',
         provider: 'steam_importer'
+    },
+    {
+        label: 'GOG Importer',
+        provider: 'gog_importer'
     }
     ];
     hideSearch: boolean = false;
@@ -249,7 +255,7 @@ export class AddGameOverlayComponent implements OnInit {
                 return;
             }
 
-            if (provider === "csv_importer" || provider === 'epic_importer' || provider === 'steam_importer') {
+            if (provider === "csv_importer" || provider === 'epic_importer' || provider === 'steam_importer' || provider === 'gog_importer') {
                 this.openSearchMode();
                 return;
             }
@@ -504,7 +510,7 @@ export class AddGameOverlayComponent implements OnInit {
     // ADD API HERE
 
     routineOnSelect() {
-        if (this.selectedMetadataProvider.provider === 'csv_importer' || this.selectedMetadataProvider.provider === 'epic_importer' || this.selectedMetadataProvider.provider === 'steam_importer') {
+        if (this.selectedMetadataProvider.provider === 'csv_importer' || this.selectedMetadataProvider.provider === 'epic_importer' || this.selectedMetadataProvider.provider === 'steam_importer' || this.selectedMetadataProvider.provider === 'gog_importer') {
             this.hideSearch = false;
         } else {
             this.hideSearch = true;
@@ -533,6 +539,9 @@ export class AddGameOverlayComponent implements OnInit {
     }
     checkIsSteamImporter() {
         return this.selectedMetadataProvider.provider === 'steam_importer';
+    }
+    checkIsGogImporter() {
+        return this.selectedMetadataProvider.provider === 'gog_importer';
     }
 
     selectItem() {

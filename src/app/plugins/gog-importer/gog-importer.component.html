@@ -1,0 +1,10 @@
+<div>
+    <p>Please Follow <a target="_blank" href="https://login.gog.com/auth?client_id=46899977096215655&layout=galaxy&redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&response_type=code">https://login.gog.com/auth?client_id=46899977096215655&layout=galaxy&redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&response_type=code</a> and paste the login code below :</p>
+    <p-floatLabel>
+        <input pInputText id="AuthCode" [(ngModel)]="authCode" />
+        <label for="AuthCode">GOG Code</label>
+    </p-floatLabel>
+    <p-button label="Login And Sync" (click)="loginAndSync()"></p-button>
+    <p-button label="Sync (Already Logged in)" (click)="syncOnly()"></p-button>
+
+</div>

@@ -30,6 +30,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         igame.id = "-1".to_string();
         igame.name = game.name;
         igame.time_played = (game.playtime_forever / 60).to_string();
+        igame.platforms = "steam".to_string();
         let conn = establish_connection().unwrap();
         update_game(&conn, igame)?;
     }

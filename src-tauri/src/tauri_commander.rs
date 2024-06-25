@@ -5,7 +5,7 @@ use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
     remove_file,
 };
-use crate::plugins::{epic_importer, igdb, steam_grid, steam_importer, ytdl};
+use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
 use crate::IGame;
 use rusty_dl::errors::DownloadError;
 use rusty_dl::youtube::YoutubeDownloader;
@@ -288,6 +288,10 @@ pub async fn import_library(plugin_name: String, creds: Vec<String>) {
             creds_temp.push(api_key.clone());
             steam_importer::set_credentials(creds_temp).await;
             steam_importer::get_games_from_user().await;
+        }
+        "gog_importer" => {
+            gog_importer::set_credentials(creds).await;
+            gog_importer::get_games_from_user().await;
         }
         _ => {
             eprintln!("Unsupported plugin: {}", plugin_name);
