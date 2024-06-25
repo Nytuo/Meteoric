@@ -21,7 +21,8 @@ import { IGDBComponent } from "../../plugins/igdb/igdb.component";
 import { YtdlComponent } from "../../plugins/ytdl/ytdl.component";
 import { SteamGridComponent } from "../../plugins/steam_grid/steam_grid.component";
 import { CSVImporter } from "../../plugins/csv_importer/csv_importer.component";
-import {EpicImporterComponent} from "../../plugins/epic-importer/epic-importer.component";
+import { EpicImporterComponent } from "../../plugins/epic-importer/epic-importer.component";
+import { SteamImporterComponent } from "../../plugins/steam-importer/steam-importer.component";
 
 @Component({
     selector: 'app-add-game-overlay',
@@ -46,7 +47,8 @@ import {EpicImporterComponent} from "../../plugins/epic-importer/epic-importer.c
         YtdlComponent,
         SteamGridComponent,
         CSVImporter,
-        EpicImporterComponent
+        EpicImporterComponent,
+        SteamImporterComponent
     ]
 })
 export class AddGameOverlayComponent implements OnInit {
@@ -78,10 +80,14 @@ export class AddGameOverlayComponent implements OnInit {
         label: 'CSV Importer',
         provider: 'csv_importer'
     },
-        {
-            label: 'Epic Importer',
-            provider: 'epic_importer'
-        }
+    {
+        label: 'Epic Importer',
+        provider: 'epic_importer'
+    },
+    {
+        label: 'Steam Importer',
+        provider: 'steam_importer'
+    }
     ];
     hideSearch: boolean = false;
 
@@ -243,7 +249,7 @@ export class AddGameOverlayComponent implements OnInit {
                 return;
             }
 
-            if (provider === "csv_importer" || provider === 'epic_importer') {
+            if (provider === "csv_importer" || provider === 'epic_importer' || provider === 'steam_importer') {
                 this.openSearchMode();
                 return;
             }
@@ -498,7 +504,7 @@ export class AddGameOverlayComponent implements OnInit {
     // ADD API HERE
 
     routineOnSelect() {
-        if (this.selectedMetadataProvider.provider === 'csv_importer' || this.selectedMetadataProvider.provider === 'epic_importer') {
+        if (this.selectedMetadataProvider.provider === 'csv_importer' || this.selectedMetadataProvider.provider === 'epic_importer' || this.selectedMetadataProvider.provider === 'steam_importer') {
             this.hideSearch = false;
         } else {
             this.hideSearch = true;
@@ -522,8 +528,11 @@ export class AddGameOverlayComponent implements OnInit {
         return this.selectedMetadataProvider.provider === 'csv_importer';
     }
 
-    checkIsEpicImporter(){
+    checkIsEpicImporter() {
         return this.selectedMetadataProvider.provider === 'epic_importer';
+    }
+    checkIsSteamImporter() {
+        return this.selectedMetadataProvider.provider === 'steam_importer';
     }
 
     selectItem() {

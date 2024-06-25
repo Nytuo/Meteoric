@@ -28,6 +28,9 @@
         <app-csv-importer *ngIf="searchMode && checkIsCSVImporter()"></app-csv-importer>
 
         <app-epic-importer *ngIf="searchMode && checkIsEpicImporter()"></app-epic-importer>
+        <app-steam-importer *ngIf="searchMode && checkIsSteamImporter()"></app-steam-importer>
+
+
 
         <p-tabView *ngIf="!searchMode">
             <p-tabPanel header="General">
