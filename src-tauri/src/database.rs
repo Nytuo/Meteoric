@@ -1,27 +1,74 @@
-use std::collections::HashMap;
-use directories::ProjectDirs;
-use rusqlite::{Connection, params};
 use crate::IGame;
+use chrono::format;
+use directories::ProjectDirs;
+use rusqlite::{params, Connection};
+use std::collections::HashMap;
 
-pub(crate) fn query_data(conn: &Connection, tables: Vec<&str>, fields: Vec<&str>, conditions: Vec<(&str, &str)>, is_list: bool) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
+pub(crate) fn query_data(
+    conn: &Connection,
+    tables: Vec<&str>,
+    fields: Vec<&str>,
+    conditions: Vec<(&str, &str)>,
+    is_list: bool,
+) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
     let sql;
     if is_list {
-        sql = format!("SELECT {} FROM {} WHERE {}", fields.join(","), tables.join(","), conditions.iter().map(|(field, value)| format!("{} IN ({})", field, value)).collect::<Vec<String>>().join(" AND "));
+        sql = format!(
+            "SELECT {} FROM {} WHERE {}",
+            fields.join(","),
+            tables.join(","),
+            conditions
+                .iter()
+                .map(|(field, value)| format!("{} IN ({})", field, value))
+                .collect::<Vec<String>>()
+                .join(" AND ")
+        );
     } else {
-        sql = format!("SELECT {} FROM {} WHERE {}", fields.join(","), tables.join(","), conditions.iter().map(|(field, value)| format!("{} = {}", field, value)).collect::<Vec<String>>().join(" AND "));
+        sql = format!(
+            "SELECT {} FROM {} WHERE {}",
+            fields.join(","),
+            tables.join(","),
+            conditions
+                .iter()
+                .map(|(field, value)| format!("{} = {}", field, value))
+                .collect::<Vec<String>>()
+                .join(" AND ")
+        );
     }
     let mut stmt = conn.prepare(&sql)?;
     let json = make_a_json_from_db(&mut stmt)?;
     Ok(json)
 }
 
-pub(crate) fn query_all_data(conn: &Connection, table: &str) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
+pub(crate) fn query_all_data(
+    conn: &Connection,
+    table: &str,
+) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
     let mut stmt = conn.prepare(&format!("SELECT * FROM {}", table))?;
     let json = make_a_json_from_db(&mut stmt)?;
     Ok(json)
 }
 
-fn update_data(conn: &Connection, id: i32, field: &str, value: &str, table: &str) -> rusqlite::Result<()> {
+pub(crate) fn add_category(
+    conn: &Connection,
+    name: String,
+    icon: String,
+    games: Vec<String>,
+    filters: Vec<String>,
+    views: Vec<String>,
+    background: String,
+) -> rusqlite::Result<()> {
+    conn.execute("INSERT INTO universe (name, icon, games, filters, views, background) VALUES (?1,?2,?3,?4,?5,?6)", params![name, icon, games.join(","), filters.join(","), views.join(","), background])?;
+    Ok(())
+}
+
+fn update_data(
+    conn: &Connection,
+    id: i32,
+    field: &str,
+    value: &str,
+    table: &str,
+) -> rusqlite::Result<()> {
     conn.execute(
         &format!("UPDATE {} SET {} = ?1 WHERE id = ?2", table, field),
         params![value, id],
@@ -79,15 +126,23 @@ fn create_default_tables(conn: &Connection) -> rusqlite::Result<()> {
     Ok(())
 }
 
-fn make_a_json_from_db(stmt: &mut rusqlite::Statement) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
+fn make_a_json_from_db(
+    stmt: &mut rusqlite::Statement,
+) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
     let col_count = stmt.column_count();
-    let col_names = stmt.column_names().into_iter().map(|s| s.to_string()).collect::<Vec<String>>();
+    let col_names = stmt
+        .column_names()
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect::<Vec<String>>();
     let rows = stmt.query_map([], |row| {
         let mut map = HashMap::new();
         for i in 0..col_count {
             let value = match row.get_ref(i).unwrap() {
                 rusqlite::types::ValueRef::Integer(int) => int.to_string(),
-                rusqlite::types::ValueRef::Text(text) => std::str::from_utf8(text).unwrap_or_default().to_string(),
+                rusqlite::types::ValueRef::Text(text) => {
+                    std::str::from_utf8(text).unwrap_or_default().to_string()
+                }
                 _ => String::new(),
             };
             let name = col_names[i].clone();
@@ -111,15 +166,15 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
     Ok(conn)
 }
 
-
-pub(crate) fn get_all_fields(conn: &Connection) -> Result<Vec<String>, rusqlite::Error>{
+pub(crate) fn get_all_fields(conn: &Connection) -> Result<Vec<String>, rusqlite::Error> {
     let mut stmt = conn.prepare(&format!("SELECT * FROM games LIMIT 1"))?;
-    let col_names = stmt.column_names().into_iter().map(|s| s.to_string()).collect::<Vec<String>>();
+    let col_names = stmt
+        .column_names()
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect::<Vec<String>>();
     Ok(col_names)
 }
-
-
-
 
 fn parse_fields(game: &IGame) -> IGame {
     let game_copy = IGame {
@@ -156,8 +211,31 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<(), String> {
         conn.execute(&sql_update, []).map_err(|e| e.to_string())?;
         println!("Game updated");
     } else {
-        let all_fields = vec![game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.tags, game.status, game.time_played, game.trophies_unlocked, game.last_time_played];
-        let all_fields = all_fields.iter().map(|field| field.to_string()).collect::<Vec<String>>().join("', '");
+        let all_fields = vec![
+            game.name,
+            game.sort_name,
+            game.rating,
+            game.platforms,
+            game.description,
+            game.critic_score,
+            game.genres,
+            game.styles,
+            game.release_date,
+            game.developers,
+            game.editors,
+            game.game_dir,
+            game.exec_file,
+            game.tags,
+            game.status,
+            game.time_played,
+            game.trophies_unlocked,
+            game.last_time_played,
+        ];
+        let all_fields = all_fields
+            .iter()
+            .map(|field| field.to_string())
+            .collect::<Vec<String>>()
+            .join("', '");
         let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, tags, status, time_played, trophies_unlocked, last_time_played) VALUES ('{}')", all_fields);
         println!("SQL: {}", sql_insert);
         conn.execute(&sql_insert, []).map_err(|e| e.to_string())?;
@@ -181,4 +259,3 @@ pub fn get_game_id_by_name(conn: &Connection, name: &str) -> Result<String, Stri
     let id = id.unwrap().get(0).unwrap().to_string();
     Ok(id)
 }*/
-

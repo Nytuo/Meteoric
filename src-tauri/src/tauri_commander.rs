@@ -1,5 +1,5 @@
 use crate::database::{
-    establish_connection, get_all_fields, query_all_data, query_data, update_game,
+    add_category, establish_connection, get_all_fields, query_all_data, query_data, update_game,
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
@@ -36,6 +36,28 @@ pub fn get_all_categories() -> String {
         .collect::<Vec<String>>()
         .join(",");
     format!("[{}]", category)
+}
+
+#[tauri::command]
+pub async fn create_category(
+    name: String,
+    icon: String,
+    games: Vec<String>,
+    filters: Vec<String>,
+    views: Vec<String>,
+    background: String,
+) -> Result<(), String> {
+    let conn = establish_connection().unwrap();
+    let _ = add_category(
+        &conn,
+        name.clone(),
+        icon.clone(),
+        games.clone(),
+        filters.clone(),
+        views.clone(),
+        background.clone(),
+    );
+    Ok(())
 }
 
 #[tauri::command]

@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable} from "rxjs";
-import {GameService} from "./game.service";
-import {DBService} from "./db.service";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from "rxjs";
+import { GameService } from "./game.service";
+import { DBService } from "./db.service";
 import ICategory from "../../interfaces/ICategory";
-import {GenericService} from "./generic.service";
+import { GenericService } from "./generic.service";
 
 @Injectable({
     providedIn: 'root'
@@ -23,16 +23,16 @@ export class CategoryService {
             games: ["*"],
             filters: ["All", "Installed", "Not Installed"],
             views: ["Grid", "List"],
-            background: ""
+            background: "",
         },
         {
             id: -1,
             name: "Installed",
             icon: "download",
-            games: ["installed"],
+            games: ["*"],
             filters: ["All", "Installed", "Not Installed"],
             views: ["Grid", "List"],
-            background: ""
+            background: "",
         }
     ];
 
@@ -57,6 +57,12 @@ export class CategoryService {
         });
     }
 
+    createCategory(name: string, icon: string, games: string[], filters: string[], views: string[], background: string) {
+        this.db.createCategory(name, icon, games, filters, views, background).then(() => {
+            this.getCategoriesFromDB();
+        });
+    }
+
     getCurrentCategory() {
         return this.currentCategory;
     }
@@ -74,7 +80,9 @@ export class CategoryService {
         this.genericService.changeDisplayBookmark(true);
     }
 
-    getCategories() {
+    async getCategories() {
+        this.categories[0].count = await this.gameService.getCountOfGamesInCategory(this.categories[0].name);
+        this.categories[1].count = await this.gameService.getCountOfGamesInCategory(this.categories[1].name);
         this.catSubject.next(this.categories);
     }
 

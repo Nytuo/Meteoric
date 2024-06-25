@@ -27,9 +27,12 @@
              [routerLink]="['/games']">
             <span class="activeIndicator" *ngIf="category.id == currentCategory"></span>
             <div class="categoryItem">
-                <span class="material-symbols-outlined">{{ category.icon || 'bookmark' }}</span>
-                <p>{{ category.name }}</p>
-                <p>{{ category.count }}</p>
+                <span class="categoryItemEl">
+                      <span class="material-symbols-outlined">{{ category.icon || 'bookmark' }}</span>
+                <p>{{ category.name }}</p> 
+                </span>
+              
+                <p-tag value="{{ category.count }}"></p-tag>
             </div>
         </div>
     </div>

@@ -8,4 +8,5 @@ export default interface ICategory {
     filters: string[];
     views: string[];
     background: string;
+    count?: number;
 }

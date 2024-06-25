@@ -1,10 +1,10 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import IGame from "../../interfaces/IGame";
-import {BehaviorSubject, Observable} from "rxjs";
-import {configDir} from "@tauri-apps/api/path";
-import {DBService} from "./db.service";
-import {GenericService} from "./generic.service";
-import {FormGroup} from "@angular/forms";
+import { BehaviorSubject, Observable } from "rxjs";
+import { configDir } from "@tauri-apps/api/path";
+import { DBService } from "./db.service";
+import { GenericService } from "./generic.service";
+import { FormGroup } from "@angular/forms";
 
 @Injectable({
     providedIn: 'root'
@@ -56,6 +56,25 @@ export class GameService {
             this.games = games;
             this.gamesObservable.next(this.games);
         });
+    }
+
+    async getCountOfGamesInCategory(category: string): Promise<number> {
+        if (category === "All") {
+            return await this.games.length;
+        }
+        if (category === "Installed") {
+            // TODO : implement installed count
+            return 0;
+        }
+        let promise = new Promise<number>((resolve, reject) => {
+            this.db.getGamesByCategory(category).then(games => {
+                if (games === undefined) {
+                    return reject();
+                }
+                resolve(games.length);
+            });
+        });
+        return promise;
     }
 
     getGame(id: string) {

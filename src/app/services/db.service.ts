@@ -92,6 +92,10 @@ export class DBService {
         return JSON.parse(categories) as ICategory[];
     }
 
+    async createCategory(name: string, icon: string, games: string[], filters: string[], views: string[], background: string) {
+        await invoke("create_category", { name: name, icon: icon, games: games, filters: filters, views: views, background: background });
+    }
+
     async getGames(): Promise<void | IGame[]> {
         return new Promise<void | IGame[]>((resolve, reject) => {
             invoke<string>("get_all_games").then(games => {

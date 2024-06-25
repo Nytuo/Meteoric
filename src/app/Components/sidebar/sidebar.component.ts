@@ -1,8 +1,9 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {RouterLink} from "@angular/router";
-import {NgForOf, NgIf} from "@angular/common";
-import {CategoryService} from "../../services/category.service";
-import {appWindow} from "@tauri-apps/api/window";
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { RouterLink } from "@angular/router";
+import { NgForOf, NgIf } from "@angular/common";
+import { CategoryService } from "../../services/category.service";
+import { appWindow } from "@tauri-apps/api/window";
+import { TagModule } from 'primeng/tag';
 
 @Component({
     selector: 'app-sidebar',
@@ -10,7 +11,8 @@ import {appWindow} from "@tauri-apps/api/window";
     imports: [
         RouterLink,
         NgForOf,
-        NgIf
+        NgIf,
+        TagModule
     ],
     templateUrl: './sidebar.component.html',
     styleUrl: './sidebar.component.css'

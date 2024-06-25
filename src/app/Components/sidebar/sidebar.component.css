@@ -27,8 +27,6 @@
 }
 
 .category {
-    display: flex;
-    flex-direction: row;
     cursor: pointer;
 }
 
@@ -49,13 +47,20 @@
 
 .categoryItem {
     display: flex;
-    justify-content: start;
+    justify-content: space-between;
     align-items: center;
+}
+
+.categoryItemEl{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
 }
 
 .activeIndicator {
     width: 5px;
-    height: 30px;
+    height: 53px;
     background-color: #3546e8;
     position: absolute;
     left: 0;
@@ -81,4 +86,8 @@
     padding: 10px;
     gap: 20px;
     cursor: pointer;
+}
+
+.atright{
+    right: 0;
 }
