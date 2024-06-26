@@ -1,17 +1,18 @@
-import {Injectable} from '@angular/core';
-import {BehaviorSubject} from "rxjs";
-import {NavigationEnd, Router} from "@angular/router";
-import {CategoryService} from "./category.service";
-import {invoke} from "@tauri-apps/api/tauri";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from "rxjs";
+import { NavigationEnd, Router } from "@angular/router";
+import { CategoryService } from "./category.service";
+import { invoke } from "@tauri-apps/api/tauri";
 
 @Injectable({
     providedIn: 'root'
 })
 export class GenericService {
+
     private audio: HTMLAudioElement | null = null;
 
     constructor(protected router: Router) {
-        this.router.events.subscribe( (event) => {
+        this.router.events.subscribe((event) => {
             if (event instanceof NavigationEnd && this.isAuthorizedToBookmark) {
                 this.changeDisplayBookmark(false);
             }
@@ -75,7 +76,7 @@ export class GenericService {
             this.audio.pause();
         }
 
-        if (this.audioInterval){
+        if (this.audioInterval) {
             clearInterval(this.audioInterval);
         }
 
@@ -114,8 +115,12 @@ export class GenericService {
         this.stopBackgroundMusic();
     }
 
+    startRoutine() {
+        invoke('startup_routine');
+    }
+
     async downloadYTAudio(url: string, id: string) {
-        return await invoke<string>("download_yt_audio", {url, id}).then((response) => {
+        return await invoke<string>("download_yt_audio", { url, id }).then((response) => {
             console.log(response);
         });
     }

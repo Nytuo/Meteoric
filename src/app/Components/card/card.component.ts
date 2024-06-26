@@ -19,7 +19,7 @@ import { FormsModule } from "@angular/forms";
         NgForOf,
         TagModule,
         RatingModule,
-        FormsModule
+        FormsModule,
     ],
     templateUrl: './card.component.html',
     styleUrl: './card.component.css'

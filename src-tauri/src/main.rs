@@ -4,8 +4,14 @@
 extern crate directories;
 extern crate rusqlite;
 
+use database::{establish_connection, query_all_data};
 use directories::ProjectDirs;
+use file_operations::{have_no_metadata, is_folder_empty_recursive};
+use plugins::igdb;
 use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
+use std::path::Path;
+use std::{env, fs};
 
 use crate::plugins::steam_grid::{
     steamgrid_get_grid, steamgrid_get_hero, steamgrid_get_icon, steamgrid_get_logo,
@@ -13,8 +19,8 @@ use crate::plugins::steam_grid::{
 use crate::tauri_commander::{
     create_category, delete_element, download_yt_audio, get_all_categories, get_all_fields_from_db,
     get_all_games, get_all_images_location, get_all_videos_location, get_games_by_category,
-    import_library, post_game, save_media_to_external_storage, search_metadata, upload_csv_to_db,
-    upload_file,
+    import_library, post_game, save_media_to_external_storage, search_metadata, startup_routine,
+    upload_csv_to_db, upload_file,
 };
 
 mod database;
@@ -32,6 +38,31 @@ struct ITrophy {
     status: String,
     date_obtained: String,
     platform: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct Metadata {
+    jaquette: Option<String>,
+    background: Option<String>,
+    logo: Option<String>,
+    icon: Option<String>,
+    audio: Option<String>,
+    screenshots: Option<Vec<String>>,
+    videos: Option<Vec<String>>,
+}
+
+impl Metadata {
+    fn new() -> Metadata {
+        Metadata {
+            jaquette: None,
+            background: None,
+            logo: None,
+            icon: None,
+            audio: None,
+            screenshots: None,
+            videos: None,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -108,6 +139,99 @@ impl IGame {
             last_time_played: String::new(),
         }
     }
+
+    pub fn is_empty(&self, field: &str) -> bool {
+        match field {
+            "id" => self.id == "",
+            "name" => self.name == "",
+            "sort_name" => self.sort_name == "",
+            "rating" => self.rating == "",
+            "platforms" => self.platforms == "",
+            "description" => self.description == "",
+            "critic_score" => self.critic_score == "",
+            "genres" => self.genres == "",
+            "styles" => self.styles == "",
+            "release_date" => self.release_date == "",
+            "developers" => self.developers == "",
+            "editors" => self.editors == "",
+            "game_dir" => self.game_dir == "",
+            "exec_file" => self.exec_file == "",
+            "tags" => self.tags == "",
+            "status" => self.status == "",
+            "time_played" => self.time_played == "",
+            "trophies" => self.trophies == "",
+            "trophies_unlocked" => self.trophies_unlocked == "",
+            "last_time_played" => self.last_time_played == "",
+            _ => false,
+        }
+    }
+
+    pub fn from_hashmap(hashmap: HashMap<String, String>) -> IGame {
+        IGame {
+            id: hashmap["id"].clone(),
+            name: hashmap["name"].clone(),
+            sort_name: hashmap["sort_name"].clone(),
+            rating: hashmap["rating"].clone(),
+            platforms: hashmap["platforms"].clone(),
+            description: hashmap["description"].clone(),
+            critic_score: hashmap["critic_score"].clone(),
+            genres: hashmap["genres"].clone(),
+            styles: hashmap["styles"].clone(),
+            release_date: hashmap["release_date"].clone(),
+            developers: hashmap["developers"].clone(),
+            editors: hashmap["editors"].clone(),
+            game_dir: hashmap["game_dir"].clone(),
+            exec_file: hashmap["exec_file"].clone(),
+            tags: hashmap["tags"].clone(),
+            status: hashmap["status"].clone(),
+            time_played: hashmap["time_played"].clone(),
+            trophies: hashmap["trophies"].clone(),
+            trophies_unlocked: hashmap["trophies_unlocked"].clone(),
+            last_time_played: hashmap["last_time_played"].clone(),
+        }
+    }
+
+    pub fn get(&self, field: &str) -> Option<&String> {
+        match field {
+            "id" => return Some(&self.id),
+            "name" => return Some(&self.name),
+            "sort_name" => return Some(&self.sort_name),
+            "rating" => return Some(&self.rating),
+            "platforms" => return Some(&self.platforms),
+            "description" => return Some(&self.description),
+            "critic_score" => return Some(&self.critic_score),
+            "genres" => return Some(&self.genres),
+            "styles" => return Some(&self.styles),
+            "release_date" => return Some(&self.release_date),
+            "developers" => return Some(&self.developers),
+            "editors" => return Some(&self.editors),
+            "game_dir" => return Some(&self.game_dir),
+            "exec_file" => return Some(&self.exec_file),
+            "tags" => return Some(&self.tags),
+            "status" => return Some(&self.status),
+            "time_played" => return Some(&self.time_played),
+            "trophies" => return Some(&self.trophies),
+            "trophies_unlocked" => return Some(&self.trophies_unlocked),
+            "last_time_played" => return Some(&self.last_time_played),
+            _ => (),
+        }
+        None
+    }
+
+    fn check_if_game_has_minimum_requirements(&self) -> bool {
+        let minimum_fields = vec![
+            "name".to_string(),
+            "description".to_string(),
+            "genres".to_string(),
+            "release_date".to_string(),
+        ];
+        for field in &minimum_fields {
+            if self.is_empty(field) {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 fn initialize() {
@@ -131,6 +255,57 @@ fn initialize() {
             "Extra content dir: {:?}",
             proj_dirs.config_dir().join("universe_extra_content")
         );
+    }
+}
+
+fn to_title_case(s: &str) -> String {
+    let exceptions: HashSet<&str> = vec![
+        "of", "at", "and", "but", "or", "for", "nor", "on", "in", "with",
+    ]
+    .into_iter()
+    .collect();
+
+    s.split_whitespace()
+        .enumerate()
+        .map(|(i, word)| {
+            if exceptions.contains(word) && i != 0 {
+                word.to_lowercase()
+            } else {
+                let mut chars = word.chars();
+                match chars.next() {
+                    None => String::new(),
+                    Some(first) => {
+                        first.to_uppercase().collect::<String>() + &chars.as_str().to_lowercase()
+                    }
+                }
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+pub fn routine() {
+    populate_info();
+}
+
+fn hash2_games(games: Vec<HashMap<String, String>>) -> Vec<IGame> {
+    let mut games_v: Vec<IGame> = Vec::new();
+    for game in games {
+        let game = IGame::from_hashmap(game);
+        games_v.push(game)
+    }
+    games_v
+}
+
+fn populate_info() {
+    let conn = establish_connection().unwrap();
+    let all_games = hash2_games(query_all_data(&conn, "games").unwrap());
+    let games = have_no_metadata(all_games);
+    for game in games {
+        let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
+        let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
+        igdb::set_credentials(Vec::from([client_id, client_secret]));
+        let _ = igdb::routine(game.name, game.id);
     }
 }
 
@@ -162,7 +337,8 @@ async fn main() {
             get_all_fields_from_db,
             upload_csv_to_db,
             import_library,
-            create_category
+            create_category,
+            startup_routine
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

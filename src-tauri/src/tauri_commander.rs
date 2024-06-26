@@ -6,13 +6,14 @@ use crate::file_operations::{
     remove_file,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
-use crate::IGame;
+use crate::{routine, IGame};
 use rusty_dl::errors::DownloadError;
 use rusty_dl::youtube::YoutubeDownloader;
 use rusty_dl::Downloader;
 use std::collections::HashMap;
 use std::env;
 use std::hash::Hash;
+use tokio::task;
 
 #[tauri::command]
 pub fn get_all_games() -> String {
@@ -185,6 +186,16 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
     if let Err(e) = std::fs::write(&file_path, &file_content) {
         return Err(format!("Error writing file: {:?}", e));
     }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn startup_routine() -> Result<(), String> {
+    let handle = task::spawn_blocking(move || {
+        routine();
+    });
+
+    handle.await.unwrap();
     Ok(())
 }
 
