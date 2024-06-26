@@ -16,7 +16,7 @@
     </div>
 
 
-    <div style="display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: space-between; align-content: start; width: 100%; margin-top: 5rem; margin-bottom: 5rem;">
+    <div style="display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: space-between; align-content: start; width: 100%; margin-top: 5rem; margin-bottom: 5rem;"  style="display: none;">
         <div class="leftPanel">
             <div class="activity">
                 <p class="fadedText">Activity</p>
@@ -78,10 +78,19 @@
             </p-table>
         </div>
     </div>
-    <div>
-        <p class="fadedText">Overview</p>
-        <p-divider align="center" type="solid" layout="horizontal"></p-divider>
-
+    <div>        
+        <p id="description" class="gameDescription">{{ game?.description }}</p>
+        <div class="gameDetails">
+            <div class="gameDetail">
+                <p class="fadedText">Critics Score : <span class="whiterized">{{ game?.critic_score }}</span></p>
+                <p class="fadedText">Genres : <span class="whiterized">{{ game?.genres }}</span></p>
+                <p class="fadedText">Styles : <span class="whiterized">{{ game?.styles }}</span></p>
+                <p class="fadedText">Release Date : <span class="whiterized">{{ game?.release_date }}</span></p>
+                <p class="fadedText">Developers : <span class="whiterized">{{ game?.developers }}</span></p>
+                <p class="fadedText">Editors : <span class="whiterized">{{ game?.editors }}</span></p>
+                <p class="fadedText">Status : <span class="whiterized">{{ game?.status }}</span></p>
+            </div>
+        </div>
         <p-galleria [value]="media.images" [showItemNavigators]="true" [responsiveOptions]="responsiveOptions"
                     [circular]="true" [numVisible]="5" [containerStyle]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto' }">
             <ng-template pTemplate="item" ngFor let-item [ngForOf]="media.images">
@@ -101,18 +110,6 @@
                 </video>
             </ng-template>
         </p-carousel>
-        <p id="description" class="gameDescription">{{ game?.description }}</p>
-        <div class="gameDetails">
-            <div class="gameDetail">
-                <p class="fadedText">Critics Score : <span class="whiterized">{{ game?.critic_score }}</span></p>
-                <p class="fadedText">Genres : <span class="whiterized">{{ game?.genres }}</span></p>
-                <p class="fadedText">Styles : <span class="whiterized">{{ game?.styles }}</span></p>
-                <p class="fadedText">Release Date : <span class="whiterized">{{ game?.release_date }}</span></p>
-                <p class="fadedText">Developers : <span class="whiterized">{{ game?.developers }}</span></p>
-                <p class="fadedText">Editors : <span class="whiterized">{{ game?.editors }}</span></p>
-                <p class="fadedText">Status : <span class="whiterized">{{ game?.status }}</span></p>
-            </div>
-        </div>
     </div>
 
 </div>

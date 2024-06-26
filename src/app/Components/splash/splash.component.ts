@@ -1,8 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {platform} from "@tauri-apps/api/os";
-import {configDir} from "@tauri-apps/api/path";
-import {convertFileSrc} from "@tauri-apps/api/tauri";
-import {appWindow} from "@tauri-apps/api/window";
+import { Component, OnInit } from '@angular/core';
+import { platform } from "@tauri-apps/api/os";
+import { configDir } from "@tauri-apps/api/path";
+import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { appWindow } from "@tauri-apps/api/window";
 
 @Component({
     selector: 'app-splash',
@@ -18,7 +18,7 @@ export class SplashComponent implements OnInit {
     }
 
     ngOnInit() {
-        const DEV_MODE = true;
+        const DEV_MODE = false;
         if (!DEV_MODE) {
             this.loadVideo().then(r => console.log("Video loaded"));
         } else {

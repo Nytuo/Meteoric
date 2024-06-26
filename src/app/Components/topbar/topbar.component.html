@@ -28,7 +28,7 @@
                 optionLabel="label"
                 optionValue="value"/>
         <div class="launchGame">
-            <p-button icon="pi pi-play" label="JOUER"></p-button>
+            <p-button id="playbtn" icon="pi pi-play" [label]="displayPlayForGame" (click)="playGame()"></p-button>
         </div>
         <div class="more" (click)="toggleOverlay('game')">
             <p-button icon="pi pi-ellipsis-v"></p-button>

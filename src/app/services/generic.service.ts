@@ -124,4 +124,10 @@ export class GenericService {
             console.log(response);
         });
     }
+
+    launchGame(gameId: string) {
+        invoke('launch_game', { gameId }).then((response) => {
+            console.log(response);
+        });
+    }
 }

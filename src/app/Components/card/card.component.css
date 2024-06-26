@@ -28,6 +28,10 @@
     filter: brightness(0.8);
 }
 
+.image.color:hover{
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
