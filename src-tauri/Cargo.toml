@@ -30,6 +30,7 @@ egs-api="0.7.1"
 steam-rs="0.4.4"
 gog="0.5.0"
 
+
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]

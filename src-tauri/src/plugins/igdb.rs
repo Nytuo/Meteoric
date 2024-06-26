@@ -7,7 +7,7 @@ use tokio::task;
 use crate::database::{establish_connection, query_all_data, update_game};
 use crate::file_operations::{create_extra_dirs, get_extra_dirs, save_media_to_external_storage};
 use crate::tauri_commander::download_youtube_video;
-use crate::{to_title_case, IGame, Metadata};
+use crate::{send_message_to_frontend, to_title_case, IGame, Metadata};
 
 pub async fn calculate_igdb_token(
     client_id: String,

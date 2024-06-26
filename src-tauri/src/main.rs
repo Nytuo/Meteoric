@@ -7,11 +7,14 @@ extern crate rusqlite;
 use database::{establish_connection, query_all_data};
 use directories::ProjectDirs;
 use file_operations::{have_no_metadata, is_folder_empty_recursive};
+use lazy_static::lazy_static;
 use plugins::igdb;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
+use std::sync::Mutex;
 use std::{env, fs};
+use tauri::{AppHandle, Manager, State, Window};
 
 use crate::plugins::steam_grid::{
     steamgrid_get_grid, steamgrid_get_hero, steamgrid_get_icon, steamgrid_get_logo,
@@ -234,6 +237,16 @@ impl IGame {
     }
 }
 
+pub fn send_message_to_frontend(message: &str) {
+    println!("Message to frontend: {}", message);
+    let handle = APP_HANDLE.lock().unwrap();
+    if let Some(app_handle) = handle.as_ref() {
+        let state: State<AppState> = app_handle.state();
+        let window = &state.main_window;
+        window.emit("frontend-message", message).unwrap();
+    }
+}
+
 fn initialize() {
     if let Some(proj_dirs) = ProjectDirs::from("fr", "Nytuo", "universe") {
         proj_dirs.config_dir();
@@ -301,12 +314,28 @@ fn populate_info() {
     let conn = establish_connection().unwrap();
     let all_games = hash2_games(query_all_data(&conn, "games").unwrap());
     let games = have_no_metadata(all_games);
-    for game in games {
-        let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
-        let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
-        igdb::set_credentials(Vec::from([client_id, client_secret]));
-        let _ = igdb::routine(game.name, game.id);
+    if games.len() > 0 {
+        send_message_to_frontend(&format!("ROUTINE_IGDB_TOTAL: {}", games.len()));
+    } else {
+        send_message_to_frontend("ROUTINE_IGDB_TOTAL: -1");
+        return;
     }
+    let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
+    let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
+    igdb::set_credentials(Vec::from([client_id, client_secret]));
+    for (index, game) in games.iter().enumerate() {
+        send_message_to_frontend(&format!("ROUTINE_IGDB_STATUS: {}", index));
+        send_message_to_frontend(&format!("ROUTINE_IGDB_NAME: {}", game.name));
+        let _ = igdb::routine(game.clone().name, game.clone().id);
+    }
+}
+
+struct AppState {
+    main_window: Window,
+}
+
+lazy_static! {
+    static ref APP_HANDLE: Mutex<Option<AppHandle>> = Mutex::new(None);
 }
 
 #[tokio::main]
@@ -318,6 +347,17 @@ async fn main() {
         .join("universe.env");
     dotenv::from_filename(dotenv_file).ok();
     tauri::Builder::default()
+        .setup(|app| {
+            let main_window = app.get_window("main").unwrap();
+            app.manage(AppState {
+                main_window: main_window.clone(),
+            });
+
+            let mut handle = APP_HANDLE.lock().unwrap();
+            *handle = Some(app.handle());
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             get_all_videos_location,
             get_all_games,

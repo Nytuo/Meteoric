@@ -121,6 +121,9 @@ fn create_extra_content_dir() -> Result<std::path::PathBuf, Box<dyn std::error::
 pub fn is_folder_empty_recursive(dir: &Path) -> bool {
     let mut files = Vec::new();
     let exclusions = vec![".", "..", "musics", "videos", "screenshots"];
+    if fs::read_dir(&dir).is_err() {
+        return true;
+    }
     for entry in fs::read_dir(dir).unwrap() {
         match entry {
             Ok(entry) => files.push(entry),
