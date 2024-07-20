@@ -20,7 +20,7 @@ libloading = "0.8.3"
 tokio = { version = "1.0.0", features = ["full"] }
 lazy_static = "1.4.0"
 reqwest =  { version = "0.12.4", features = ["json"] }
-rusty_dl = "1.0.8"
+rusty_ytdl = "0.7.3"
 chrono = "0.4.38"
 scraper = "0.19.0"
 regex = "1.10.4"

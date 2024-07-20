@@ -6,13 +6,14 @@ use crate::file_operations::{
     remove_file,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
-use crate::{routine, IGame};
-use rusty_dl::errors::DownloadError;
-use rusty_dl::youtube::YoutubeDownloader;
-use rusty_dl::Downloader;
+use crate::{routine, send_message_to_frontend, IGame};
+use rusty_ytdl::{
+    DownloadOptions, Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions,
+};
 use std::collections::HashMap;
 use std::env;
 use std::hash::Hash;
+use std::path::PathBuf;
 use tokio::task;
 
 #[tauri::command]
@@ -499,17 +500,17 @@ pub async fn download_yt_audio(url: String, id: String) -> Result<(), String> {
     }
 
     create_extra_dirs(&id).unwrap();
-    let game_dir = get_extra_dirs(&id).unwrap().join("musics");
+    let game_dir = get_extra_dirs(&id)
+        .unwrap()
+        .join("musics")
+        .join("theme.mp3");
 
-    if let Err(e) = download_youtube_audio(
-        &url,
-        game_dir.to_str().unwrap().to_string(),
-        "theme".to_string(),
-    )
-    .await
-    {
+    send_message_to_frontend("YT_BG_MUSIC: Begin");
+    if let Err(e) = download_youtube_audio(&url, game_dir).await {
         return Err(format!("Error downloading youtube audio: {:?}", e));
     }
+    send_message_to_frontend("YT_BG_MUSIC: Done");
+
     Ok(())
 }
 
@@ -517,29 +518,26 @@ pub async fn download_youtube_video(
     url: &str,
     location: String,
     name: String,
-) -> Result<(), DownloadError> {
-    let downloader = YoutubeDownloader::new(url);
-    downloader?
-        .print_dl_status()
-        .rename_with_underscores()
-        .with_name(name)
-        .download_to(&location)
-        .await?;
+) -> Result<(), VideoError> {
+    let path = std::path::Path::new(&location).join(format!("{}.mp4", name));
+    let video_options = VideoOptions {
+        quality: VideoQuality::Lowest,
+        filter: VideoSearchOptions::VideoAudio,
+        ..Default::default()
+    };
+    let video = Video::new_with_options(url, video_options).unwrap();
+    video.download(path).await.unwrap();
     Ok(())
 }
 
-pub async fn download_youtube_audio(
-    url: &str,
-    location: String,
-    name: String,
-) -> Result<(), DownloadError> {
-    let downloader = YoutubeDownloader::new(url);
-    downloader?
-        .print_dl_status()
-        .rename_with_underscores()
-        .with_name(name)
-        .only_audio()
-        .download_to(&location)
-        .await?;
+pub async fn download_youtube_audio(url: &str, location: PathBuf) -> Result<(), VideoError> {
+    let path = std::path::Path::new(&location);
+    let video_options = VideoOptions {
+        quality: VideoQuality::HighestAudio,
+        filter: VideoSearchOptions::Audio,
+        ..Default::default()
+    };
+    let video = Video::new_with_options(url, video_options).unwrap();
+    video.download(path).await.unwrap();
     Ok(())
 }
