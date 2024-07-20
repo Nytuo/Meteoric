@@ -58,7 +58,7 @@ export class TopbarComponent {
     isBookmarkAllowed: boolean = false;
     gameOverlayOpen: boolean = false;
     gameID: string = '';
-    displayPlayForGame = 'Link A Game';
+    displayPlayForGame = 'LINK';
 
 
     toggleOverlay(overlay_name: string = 'filter') {
@@ -88,7 +88,7 @@ export class TopbarComponent {
                         let game = this.gameService.getGame(id);
                         this.gameService.setGameObservable(game);
                         this.gameID = id;
-                        this.displayPlayForGame = (game?.exec_file && game?.game_dir) ? 'PLAY' : 'LINK A GAME';
+                        this.displayPlayForGame = (game?.exec_file && game?.game_dir) ? 'PLAY' : 'LINK';
                     }
                 } else {
                     this.onGamePage = false;
@@ -125,7 +125,7 @@ export class TopbarComponent {
 
 
     async playGame() {
-        if (this.displayPlayForGame === 'Link A Game') {
+        if (this.displayPlayForGame === 'LINK') {
             const selected = await open({
                 multiple: false,
                 filters: [{
@@ -146,7 +146,7 @@ export class TopbarComponent {
                 game.game_dir = execs.game_dir;
                 await this.dbService.postGame(game!);
                 this.gameService.setGame(this.gameID, game!);
-                this.displayPlayForGame = (game?.exec_file && game?.game_dir) ? 'PLAY' : 'LINK A GAME';
+                this.displayPlayForGame = (game?.exec_file && game?.game_dir) ? 'PLAY' : 'LINK';
             }
             return;
         }

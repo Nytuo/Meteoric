@@ -161,6 +161,7 @@ export class AddGameOverlayComponent implements OnInit {
                 this.gameService.setGameObservable(game);
                 if (game !== undefined) {
                     this.currentGame = game;
+                    this.searchingGame = game.name;
                     console.log(game);
                     this.displayInfo = new FormGroup({
                         name: new FormControl(game.name),
