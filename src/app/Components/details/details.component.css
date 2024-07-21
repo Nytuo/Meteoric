@@ -29,6 +29,11 @@
     transform: translateX(-50%);
     z-index: 1;
     mask-image: radial-gradient(ellipse, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0) 70%);
+    transition: filter 0.5s ease-in-out, -webkit-filter 0.5s ease-in-out;
+}
+
+.bgLaunch{
+    filter:brightness(20%);
 }
 
 p.fadedText {
@@ -119,4 +124,36 @@ p.fadedText {
 
 .gameDetails{
     margin-top: 40px;
+}
+
+.hidden{
+    animation: fadeOut 1s forwards;
+}
+
+.logoLaunch{
+    animation: logoLaunch 1s forwards;
+}
+
+@keyframes fadeOut{
+    from {opacity: 1;
+        pointer-events: all;
+        transform: scale(1);
+        transition: all .5s ease-in-out;
+    }
+    to {opacity: 0;
+        pointer-events: none;
+        transform: scale(0.8);
+        transition: all .5s ease-in-out;
+    }
+}
+
+@keyframes logoLaunch {
+    from{
+
+    }
+    to{
+        transform: translateY(15vh) scale(1.5);
+        margin: 100px;
+        opacity: 1;
+    }
 }

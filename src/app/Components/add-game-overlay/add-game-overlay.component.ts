@@ -24,6 +24,8 @@ import { CSVImporter } from "../../plugins/csv_importer/csv_importer.component";
 import { EpicImporterComponent } from "../../plugins/epic-importer/epic-importer.component";
 import { SteamImporterComponent } from "../../plugins/steam-importer/steam-importer.component";
 import { GogImporterComponent } from "../../plugins/gog-importer/gog-importer.component";
+import { open } from '@tauri-apps/api/dialog';
+import { dirname } from '@tauri-apps/api/path';
 
 @Component({
     selector: 'app-add-game-overlay',
@@ -148,6 +150,7 @@ export class AddGameOverlayComponent implements OnInit {
             backgroundMusic: '',
             exec_file: '',
             game_dir: '',
+            exec_args: '',
             screenshots: [],
             videos: [],
         };
@@ -192,6 +195,7 @@ export class AddGameOverlayComponent implements OnInit {
                     this.exec = new FormGroup({
                         exec_file: new FormControl(game.exec_file),
                         game_dir: new FormControl(game.game_dir),
+                        exec_args: new FormControl(game.exec_args),
                     });
                 }
             } else {
@@ -218,6 +222,7 @@ export class AddGameOverlayComponent implements OnInit {
                 this.exec = new FormGroup({
                     exec_file: new FormControl(''),
                     game_dir: new FormControl(''),
+                    exec_args: new FormControl('')
                 });
             }
         });
@@ -332,6 +337,7 @@ export class AddGameOverlayComponent implements OnInit {
                     icon: api_game.icon ? api_game.icon : '',
                     backgroundMusic: api_game.backgroundMusic ? api_game.backgroundMusic : '',
                     exec_file: api_game.exec_file ? api_game.exec_file : '',
+                    exec_args: api_game.exec_args ? api_game.exec_args : '',
                     game_dir: api_game.game_dir ? api_game.game_dir : '',
                     screenshots: api_game.screenshots ? api_game.screenshots : [],
                     videos: api_game.videos ? api_game.videos : [],
@@ -394,6 +400,7 @@ export class AddGameOverlayComponent implements OnInit {
             backgroundMusic: '',
             exec_file: '',
             game_dir: '',
+            exec_args: '',
             screenshots: [],
             videos: [],
         };
@@ -590,6 +597,7 @@ export class AddGameOverlayComponent implements OnInit {
         this.exec = new FormGroup({
             exec_file: new FormControl(this.currentGame?.exec_file),
             game_dir: new FormControl(this.currentGame?.game_dir),
+            exec_args: new FormControl(this.currentGame?.exec_args),
         });
         this.saveMediaToExternalStorage();
         this.searchMode = false;
@@ -708,6 +716,7 @@ export class AddGameOverlayComponent implements OnInit {
     exec: FormGroup = new FormGroup({
         exec_file: new FormControl(''),
         game_dir: new FormControl(''),
+        exec_args: new FormControl(''),
     });
 
     get generalKeys() {
@@ -722,5 +731,33 @@ export class AddGameOverlayComponent implements OnInit {
         return Object.keys(this.exec.controls);
     }
 
+    async linkGame() {
+        const selected = await open({
+            multiple: false,
+            filters: [{
+                name: 'Executables',
+                extensions: ['exe', 'bat', 'sh'],
+            }]
+        });
+        if (selected) {
+            const execs = {
+                exec_file: selected.toString(),
+                game_dir: await dirname(selected.toString()),
+                exec_args: ""
+            };
+            if (this.currentGameID) {
+                let game = this.gameService.getGame(this.currentGameID);
+                if (!game) {
+                    return;
+                }
+                game.exec_file = execs.exec_file;
+                game.game_dir = execs.game_dir;
+                game.exec_args = execs.exec_args;
+                await this.db.postGame(game!);
+                this.gameService.setGame(this.currentGameID, game!);
+            }
+        }
+        return;
+    }
 
 }

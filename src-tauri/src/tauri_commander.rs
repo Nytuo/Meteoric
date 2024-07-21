@@ -7,13 +7,18 @@ use crate::file_operations::{
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
 use crate::{routine, send_message_to_frontend, IGame};
+use chrono::format;
 use rusty_ytdl::{
     DownloadOptions, Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions,
 };
 use std::collections::HashMap;
 use std::env;
 use std::hash::Hash;
+use std::os::windows::process;
 use std::path::PathBuf;
+use std::sync::Arc;
+use tokio::process::{Child, Command};
+use tokio::sync::Mutex;
 use tokio::task;
 
 #[tauri::command]
@@ -352,6 +357,85 @@ pub fn post_game(game: String) -> Result<(), String> {
 
     update_game(&conn, game).expect("Error updating game");
     Ok(())
+}
+
+#[tauri::command]
+pub async fn launch_game(game_id: String) -> Result<u32, String> {
+    let conn = establish_connection().unwrap();
+    let game = query_data(
+        &conn,
+        vec!["games"],
+        vec!["*"],
+        vec![("id", &game_id)],
+        false,
+    )
+    .unwrap();
+    if let Some(row) = game.get(0) {
+        let executable = row.get("exec_file").unwrap().clone();
+        let launch_dir = row.get("game_dir").unwrap().clone();
+        let args = row.get("exec_args").unwrap().clone();
+        let args = if !args.is_empty() { Some(args) } else { None };
+        let mut cmd = Command::new(&executable)
+            .current_dir(&launch_dir)
+            .args(&args)
+            .spawn()
+            .map_err(|_| "Failed to launch game".to_string())?;
+        let pid = cmd.id().ok_or("Failed to get process ID".to_string())?;
+        send_message_to_frontend(&format!("O-GL-{:?}", pid));
+        let _ = cmd.wait().await;
+        send_message_to_frontend(&format!("O-GL-END-{}", pid));
+        Ok(pid)
+    } else {
+        Err("Game not found".to_string())
+    }
+}
+
+#[tauri::command]
+pub async fn kill_game(pid: u32) -> Result<(), String> {
+    let os = std::env::consts::OS;
+    if os == "windows" {
+        kill_game_windows(pid)?;
+    } else if os == "linux" {
+        kill_game_linux(pid)?;
+    } else {
+        return Err("Unsupported operating system".to_string());
+    }
+    Ok(())
+}
+
+fn kill_game_windows(pid: u32) -> Result<(), String> {
+    use std::process::Command;
+    let output = Command::new("taskkill")
+        .args(&["/PID", &pid.to_string(), "/F"])
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "Failed to kill process: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ))
+    }
+}
+
+fn kill_game_linux(pid: u32) -> Result<(), String> {
+    use std::process::Command;
+    let output = Command::new("kill")
+        .arg("-9")
+        .arg(pid.to_string())
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "Failed to kill process: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ))
+    }
 }
 
 #[tauri::command]

@@ -26,9 +26,14 @@ export class GenericService {
     private gap: BehaviorSubject<number> = new BehaviorSubject<number>(1);
     private displayInfo: BehaviorSubject<any> = new BehaviorSubject<any>(null);
     private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private gameLaunchAnimation: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     changeZoom(zoom: number) {
         this.zoom.next(zoom);
+    }
+
+    getGameLaunchAnimationObservable() {
+        return this.gameLaunchAnimation.asObservable();
     }
 
     getZoom() {
@@ -125,8 +130,21 @@ export class GenericService {
         });
     }
 
-    launchGame(gameId: string) {
-        invoke('launch_game', { gameId }).then((response) => {
+    async launchGame(gameId: string) {
+        this.gameLaunchAnimation.next(true);
+        setTimeout(() => {
+            invoke('launch_game', { gameId }).then((response) => {
+                console.log(response);
+            });
+            this.stopAllAudio();
+        }, 2000);
+        setTimeout(() => {
+            this.gameLaunchAnimation.next(false);
+        }, 5000);
+    }
+
+    async killGame(gamePID: number) {
+        invoke('kill_game', { pid: gamePID }).then((response) => {
             console.log(response);
         });
     }

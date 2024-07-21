@@ -31,6 +31,7 @@ export default interface IGame {
     screenshots: string[];
     game_dir: string;
     exec_file: string;
+    exec_args: string;
     tags: string;
     backgroundMusic: string;
     status: string;

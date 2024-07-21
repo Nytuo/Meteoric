@@ -5,14 +5,16 @@
         <img id="logo" alt="" class="gameLogo" [src]="game?.logo"/>
         <img id="logo-top" alt="" class="gameLogo absTopRight" [src]="game?.logo"/>
         <h1 id="title" class="gameTitle">{{ game?.name }}</h1>
-        <div class="gameTopHeader">
+        <div id="gameHeaderOptional" style="display: flex; flex-direction: column; align-items: flex-start;">
+            <div class="gameTopHeader">
             <p-rating [(ngModel)]="gameRating" [cancel]="false" [style]="{'margin-right': '10px'}"></p-rating>
             <p-tag icon="pi pi-tag" *ngFor="let tag of gameTags" [value]="tag"
                    [style]="{'margin-right': '10px'}"></p-tag>
+            </div>
+            <p-tag icon="pi pi-clock" [value]="game?.time_played" [style]="{'margin-right': '10px'}"></p-tag>
+            <p-tag icon="pi pi-trophy" [value]="game?.trophies_unlocked" [style]="{'margin-right': '10px'}"></p-tag>
+            <p-tag icon="pi pi-calendar" [value]="game?.last_time_played" [style]="{'margin-right': '10px'}"></p-tag>
         </div>
-        <p-tag icon="pi pi-clock" [value]="game?.time_played" [style]="{'margin-right': '10px'}"></p-tag>
-        <p-tag icon="pi pi-trophy" [value]="game?.trophies_unlocked" [style]="{'margin-right': '10px'}"></p-tag>
-        <p-tag icon="pi pi-calendar" [value]="game?.last_time_played" [style]="{'margin-right': '10px'}"></p-tag>
     </div>
 
 
@@ -78,7 +80,7 @@
             </p-table>
         </div>
     </div>
-    <div>        
+    <div id="gameContent">
         <p id="description" class="gameDescription">{{ game?.description }}</p>
         <div class="gameDetails">
             <div class="gameDetail">

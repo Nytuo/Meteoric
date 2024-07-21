@@ -101,6 +101,7 @@ fn create_default_tables(conn: &Connection) -> rusqlite::Result<()> {
                  editors TEXT,
                  game_dir TEXT,
                  exec_file TEXT,
+                 exec_args TEXT,
                  tags TEXT,
                  status TEXT NOT NULL DEFAULT 'NOT PLAYED',
                  time_played INTEGER NOT NULL DEFAULT 0,
@@ -192,6 +193,7 @@ fn parse_fields(game: &IGame) -> IGame {
         editors: game.editors.replace("'", "''"),
         game_dir: game.game_dir.replace("'", "''"),
         exec_file: game.exec_file.replace("'", "''"),
+        exec_args: game.exec_args.replace("'", "''"),
         tags: game.tags.replace("'", "''"),
         status: game.status.replace("'", "''"),
         time_played: game.time_played.replace("'", "''"),
@@ -207,7 +209,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<(), String> {
     println!("ID exist: {:?}", id_exist);
     let game = parse_fields(&game);
     if id_exist {
-        let sql_update = format!("UPDATE games SET name = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', tags = '{}', status = '{}', time_played = '{}', trophies_unlocked = '{}', last_time_played = '{}' WHERE id = '{}';", game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.tags, game.status, game.time_played, game.trophies_unlocked, game.last_time_played, game.id);
+        let sql_update = format!("UPDATE games SET name = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', time_played = '{}', trophies_unlocked = '{}', last_time_played = '{}' WHERE id = '{}';", game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.time_played, game.trophies_unlocked, game.last_time_played, game.id);
         conn.execute(&sql_update, []).map_err(|e| e.to_string())?;
         println!("Game updated");
     } else {
@@ -225,6 +227,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<(), String> {
             game.editors,
             game.game_dir,
             game.exec_file,
+            game.exec_args,
             game.tags,
             game.status,
             game.time_played,
@@ -236,7 +239,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<(), String> {
             .map(|field| field.to_string())
             .collect::<Vec<String>>()
             .join("', '");
-        let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, tags, status, time_played, trophies_unlocked, last_time_played) VALUES ('{}')", all_fields);
+        let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, time_played, trophies_unlocked, last_time_played) VALUES ('{}')", all_fields);
         println!("SQL: {}", sql_insert);
         conn.execute(&sql_insert, []).map_err(|e| e.to_string())?;
         println!("Game inserted");

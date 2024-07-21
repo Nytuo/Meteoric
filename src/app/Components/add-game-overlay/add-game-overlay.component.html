@@ -141,6 +141,7 @@
                 </ng-container>
             </p-tabPanel>
             <p-tabPanel header="Execution">
+            <p-button id="playbtn" icon="pi pi-link" [style.background-color]="'purple'" label="Link" (click)="linkGame()"></p-button>
                 <form [formGroup]="exec" (ngSubmit)="saveGameExec()" class="formDisplay">
                     <ng-container *ngIf="currentGame">
                         <div *ngFor="let field of currentGame | keyvalue"

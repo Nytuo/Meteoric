@@ -66,7 +66,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
     media: any = {
         images: [],
         videos: []
-    }
+    };
     responsiveOptions: CarouselResponsiveOptions[] | undefined = undefined;
     activities: any[] = [
         {
@@ -160,6 +160,14 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 this.genericService.playBackgroundMusic(this.game.backgroundMusic);
 
         });
+
+        this.genericService.getGameLaunchAnimationObservable().subscribe((status) => {
+            if (status) {
+                this.launchAnimation();
+            } else {
+                this.resetAnimation();
+            }
+        });
     }
 
 
@@ -202,5 +210,24 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
     }
 
+
+    launchAnimation() {
+        document.getElementsByClassName('gameInfo')[0].scrollTo(0, 0);
+        document.querySelector("#gameContent")?.classList.add("hidden");
+        document.querySelector("#gameHeaderOptional")?.classList.add("hidden");
+        document.querySelector("#logo")?.classList.add("logoLaunch");
+        document.querySelector("#title")?.classList.add("logoLaunch");
+        document.querySelector('#bg')?.classList.add('bgLaunch');
+    }
+
+    resetAnimation() {
+        document.querySelectorAll(".hidden").forEach(element => {
+            element.classList.remove("hidden");
+        });
+        document.querySelectorAll(".logoLaunch").forEach(element => {
+            element.classList.remove("logoLaunch");
+        });
+        document.querySelector('#bg')?.classList.remove('bgLaunch');
+    }
 
 }

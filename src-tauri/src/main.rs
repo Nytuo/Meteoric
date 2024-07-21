@@ -12,9 +12,10 @@ use plugins::igdb;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::{env, fs};
 use tauri::{AppHandle, Manager, State, Window};
+use tokio::process::Child;
 
 use crate::plugins::steam_grid::{
     steamgrid_get_grid, steamgrid_get_hero, steamgrid_get_icon, steamgrid_get_logo,
@@ -22,8 +23,8 @@ use crate::plugins::steam_grid::{
 use crate::tauri_commander::{
     create_category, delete_element, download_yt_audio, get_all_categories, get_all_fields_from_db,
     get_all_games, get_all_images_location, get_all_videos_location, get_games_by_category,
-    import_library, post_game, save_media_to_external_storage, search_metadata, startup_routine,
-    upload_csv_to_db, upload_file,
+    import_library, kill_game, launch_game, post_game, save_media_to_external_storage,
+    search_metadata, startup_routine, upload_csv_to_db, upload_file,
 };
 
 mod database;
@@ -84,6 +85,7 @@ struct IGame {
     editors: String,
     game_dir: String,
     exec_file: String,
+    exec_args: String,
     tags: String,
     status: String,
     time_played: String,
@@ -109,6 +111,7 @@ impl IGame {
             "editors",
             "game_dir",
             "exec_file",
+            "exec_args",
             "tags",
             "status",
             "time_played",
@@ -134,6 +137,7 @@ impl IGame {
             editors: String::new(),
             game_dir: String::new(),
             exec_file: String::new(),
+            exec_args: String::new(),
             tags: String::new(),
             status: String::new(),
             time_played: String::new(),
@@ -159,6 +163,7 @@ impl IGame {
             "editors" => self.editors == "",
             "game_dir" => self.game_dir == "",
             "exec_file" => self.exec_file == "",
+            "exec_args" => self.exec_args == "",
             "tags" => self.tags == "",
             "status" => self.status == "",
             "time_played" => self.time_played == "",
@@ -185,6 +190,7 @@ impl IGame {
             editors: hashmap["editors"].clone(),
             game_dir: hashmap["game_dir"].clone(),
             exec_file: hashmap["exec_file"].clone(),
+            exec_args: hashmap["exec_args"].clone(),
             tags: hashmap["tags"].clone(),
             status: hashmap["status"].clone(),
             time_played: hashmap["time_played"].clone(),
@@ -210,6 +216,7 @@ impl IGame {
             "editors" => return Some(&self.editors),
             "game_dir" => return Some(&self.game_dir),
             "exec_file" => return Some(&self.exec_file),
+            "exec_args" => return Some(&self.exec_args),
             "tags" => return Some(&self.tags),
             "status" => return Some(&self.status),
             "time_played" => return Some(&self.time_played),
@@ -330,6 +337,8 @@ fn populate_info() {
     }
 }
 
+// TODO Process watcher to send a message to front end in case a game process has stopped
+
 struct AppState {
     main_window: Window,
 }
@@ -378,7 +387,9 @@ async fn main() {
             upload_csv_to_db,
             import_library,
             create_category,
-            startup_routine
+            startup_routine,
+            launch_game,
+            kill_game
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
