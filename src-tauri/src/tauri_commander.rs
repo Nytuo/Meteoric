@@ -610,8 +610,13 @@ pub async fn download_youtube_video(
         ..Default::default()
     };
     let video = Video::new_with_options(url, video_options).unwrap();
-    video.download(path).await.unwrap();
-    Ok(())
+    match video.download(path).await {
+        Ok(_) => Ok(()),
+        Err(err) => {
+            println!("Error downloading video: {}", err);
+            Err(VideoError::DownloadError(err.to_string()))
+        }
+    }
 }
 
 pub async fn download_youtube_audio(url: &str, location: PathBuf) -> Result<(), VideoError> {
@@ -622,6 +627,11 @@ pub async fn download_youtube_audio(url: &str, location: PathBuf) -> Result<(), 
         ..Default::default()
     };
     let video = Video::new_with_options(url, video_options).unwrap();
-    video.download(path).await.unwrap();
-    Ok(())
+    match video.download(path).await {
+        Ok(_) => Ok(()),
+        Err(err) => {
+            println!("Error downloading video: {}", err);
+            Err(VideoError::DownloadError(err.to_string()))
+        }
+    }
 }

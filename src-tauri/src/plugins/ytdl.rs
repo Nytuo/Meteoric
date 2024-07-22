@@ -1,7 +1,7 @@
-use std::collections::{HashSet};
 use reqwest::Client;
-use serde_json::Value;
 use serde_json::json;
+use serde_json::Value;
+use std::collections::HashSet;
 use tokio::task;
 
 #[derive(Debug)]
@@ -11,7 +11,9 @@ struct YoutubeSearchResult {
     thumbnail: String,
 }
 
-async fn scrap_youtube_search_results(search: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+async fn scrap_youtube_search_results(
+    search: &str,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let client = Client::new();
     let search = search.replace(" ", "+");
     let search = search + "+music+theme";
@@ -36,15 +38,32 @@ async fn scrap_youtube_search_results(search: &str) -> Result<Vec<String>, Box<d
             break;
         }
     }
-    for i in 0..yt_initial_data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"].as_array().unwrap().len() {
-        let item = &yt_initial_data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"][i];
+    for i in 0..yt_initial_data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]
+        ["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"]
+        .as_array()
+        .unwrap()
+        .len()
+    {
+        let item = &yt_initial_data["contents"]["twoColumnSearchResultsRenderer"]
+            ["primaryContents"]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]
+            ["contents"][i];
         if !item["videoRenderer"].is_object() {
             continue;
         }
         let item = &item["videoRenderer"];
-        let title = item["title"]["runs"][0]["text"].as_str().unwrap().to_string();
-        let url = format!("https://www.youtube.com/watch?v={}", item["videoId"].as_str().unwrap());
-        let thumbnail = item["thumbnail"]["thumbnails"][0]["url"].as_str().unwrap().to_string();
+        let title = item["title"]["runs"][0]["text"]
+            .as_str()
+            .unwrap()
+            .to_string()
+            .replace(|c: char| !c.is_ascii(), "");
+        let url = format!(
+            "https://www.youtube.com/watch?v={}",
+            item["videoId"].as_str().unwrap()
+        );
+        let thumbnail = item["thumbnail"]["thumbnails"][0]["url"]
+            .as_str()
+            .unwrap()
+            .to_string();
         if !video_url.contains(&url) && !video_title.contains(&title) {
             video_url.insert(url.clone());
             video_title.insert(title.clone());

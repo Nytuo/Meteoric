@@ -481,6 +481,7 @@ export class AddGameOverlayComponent implements OnInit {
                     return;
                 }
                 this.currentGame = game;
+                this.gameService.getGames();
                 this.gameService.setGame(this.currentGameID, this.currentGame);
                 this.isAudioMetadata = false;
             });

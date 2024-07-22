@@ -10,7 +10,7 @@ edition = "2021"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = [ "dialog-open", "window-set-fullscreen", "os-all", "path-all", "protocol-asset", "shell-open"] }
+tauri = { version = "1", features = [ "dialog-open", "window-set-fullscreen", "os-all", "path-all", "protocol-asset", "shell-open", "devtools"] }
 serde = { version = "1", features = ["derive"] }
 rusqlite = {version = "0.31.0", features = ["bundled"] }
 directories = "5.0.1"

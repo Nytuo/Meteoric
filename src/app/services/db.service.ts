@@ -18,7 +18,6 @@ export class DBService {
         console.log(games);
         // Remove all unicode characters
         games = games.replace(/\\u\{a0\}/g, "\\u00A0");
-
         let gamesArray: IGame[] = [];
         try {
             gamesArray = JSON.parse(games) as IGame[];
