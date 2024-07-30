@@ -17,9 +17,11 @@ use std::hash::Hash;
 use std::os::windows::process;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::process::{Child, Command};
 use tokio::sync::Mutex;
 use tokio::task;
+use tokio::time::Instant;
 
 #[tauri::command]
 pub fn get_all_games() -> String {
@@ -359,6 +361,35 @@ pub fn post_game(game: String) -> Result<(), String> {
     Ok(())
 }
 
+struct GameTimer {
+    start_time: Option<Instant>,
+    total_time_played: Duration,
+}
+
+impl GameTimer {
+    fn new() -> Self {
+        GameTimer {
+            start_time: None,
+            total_time_played: Duration::new(0, 0),
+        }
+    }
+
+    fn start(&mut self) {
+        self.start_time = Some(Instant::now());
+    }
+
+    fn stop(&mut self) {
+        if let Some(start_time) = self.start_time {
+            self.total_time_played += start_time.elapsed();
+            self.start_time = None;
+        }
+    }
+
+    fn get_total_time_played(&self) -> Duration {
+        self.total_time_played
+    }
+}
+
 #[tauri::command]
 pub async fn launch_game(game_id: String) -> Result<u32, String> {
     let conn = establish_connection().unwrap();
@@ -370,7 +401,9 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
         false,
     )
     .unwrap();
-    if let Some(row) = game.get(0) {
+    let game = game.get(0);
+    let mut game_object: IGame = IGame::from_hashmap(game.unwrap().clone());
+    if let Some(row) = game {
         let executable = row.get("exec_file").unwrap().clone();
         let launch_dir = row.get("game_dir").unwrap().clone();
         let args = row.get("exec_args").unwrap().clone();
@@ -382,7 +415,19 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
             .map_err(|_| "Failed to launch game".to_string())?;
         let pid = cmd.id().ok_or("Failed to get process ID".to_string())?;
         send_message_to_frontend(&format!("O-GL-{:?}", pid));
+        let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        game_object.last_time_played = date;
+        let _ = update_game(&conn, game_object.clone());
+        // add a timer to count the time played
+        let mut game_timer = GameTimer::new();
+        game_timer.start();
         let _ = cmd.wait().await;
+        game_timer.stop();
+        let played_time_u128: u128 = game_timer.get_total_time_played().as_millis() as u128;
+        let time_played_db: u128 = game_object.time_played.parse().unwrap_or(0);
+        let time_played = time_played_db + played_time_u128;
+        game_object.time_played = time_played.to_string();
+        let _ = update_game(&conn, game_object.clone());
         send_message_to_frontend(&format!("O-GL-END-{}", pid));
         Ok(pid)
     } else {

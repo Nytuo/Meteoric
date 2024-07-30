@@ -1,7 +1,7 @@
 use crate::IGame;
 use chrono::format;
 use directories::ProjectDirs;
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use std::collections::HashMap;
 
 pub(crate) fn query_data(
@@ -84,46 +84,66 @@ fn insert_data(conn: &Connection, id: i32, name: &str) -> rusqlite::Result<()> {
     Ok(())
 }
 
-fn create_default_tables(conn: &Connection) -> rusqlite::Result<()> {
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS games (
-                 id             INTEGER PRIMARY KEY,
-                 name            TEXT NOT NULL,
-                 sortName        TEXT,
-                 rating TEXT NOT NULL DEFAULT '0',
-                 platforms TEXT,
-                 description TEXT,
-                 critic_score TEXT,
-                 genres TEXT,
-                 styles TEXT,
-                 release_date TEXT,
-                 developers TEXT,
-                 editors TEXT,
-                 game_dir TEXT,
-                 exec_file TEXT,
-                 exec_args TEXT,
-                 tags TEXT,
-                 status TEXT NOT NULL DEFAULT 'NOT PLAYED',
-                 time_played INTEGER NOT NULL DEFAULT 0,
-                 trophies TEXT,
-                 trophies_unlocked INTEGER NOT NULL DEFAULT 0,
-                 last_played TEXT
-                  )",
-        [],
-    )?;
+fn modify_table_add_missing_columns(
+    conn: &Connection,
+    table_name: &str,
+    required_columns: Vec<(&str, &str)>,
+) -> Result<(), rusqlite::Error> {
+    // Check if the table exists
+    let table_exists: bool = conn
+        .query_row(
+            &format!(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='{}';",
+                table_name
+            ),
+            [],
+            |_| Ok(()),
+        )
+        .is_ok();
 
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS universe (
-                  id              INTEGER PRIMARY KEY,
-                  name            TEXT NOT NULL,
-                  games           TEXT NOT NULL,
-                  icon            TEXT,
-                     background      TEXT,
-                  filters         TEXT,
-                  views           TEXT
-                  )",
-        [],
-    )?;
+    if table_exists {
+        // Query the table schema to check for the presence of the required columns
+        let mut stmt = conn.prepare(&format!("PRAGMA table_info({});", table_name))?;
+        let columns: Vec<String> = stmt
+            .query_map([], |row| row.get(1))?
+            .filter_map(Result::ok)
+            .collect();
+
+        for (column_name, column_type) in required_columns {
+            println!("Checking column {} in table {}", column_name, table_name);
+            if !columns.contains(&column_name.to_string()) {
+                println!(
+                    "Column {} not found in table {}, adding it",
+                    column_name, table_name
+                );
+                // Alter the table to add the missing column
+                let alter_table_query = format!(
+                    "ALTER TABLE {} ADD COLUMN {} {};",
+                    table_name, column_name, column_type
+                );
+                conn.execute(&alter_table_query, [])?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn create_table(
+    conn: &Connection,
+    table_name: &str,
+    required_columns: Vec<(&str, &str)>,
+) -> Result<(), rusqlite::Error> {
+    let create_table_query = format!(
+        "CREATE TABLE IF NOT EXISTS {} ({});",
+        table_name,
+        required_columns
+            .iter()
+            .map(|(column_name, column_type)| format!("{} {}", column_name, column_type))
+            .collect::<Vec<String>>()
+            .join(", ")
+    );
+    conn.execute(&create_table_query, [])?;
     Ok(())
 }
 
@@ -163,7 +183,42 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
     let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
     let db_path = proj_dirs.config_dir().join("universe.db");
     let conn = Connection::open(db_path)?;
-    create_default_tables(&conn)?;
+    let required_columns_games = vec![
+        ("id", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT NOT NULL"),
+        ("sortName", "TEXT"),
+        ("rating", "TEXT NOT NULL DEFAULT '0'"),
+        ("platforms", "TEXT"),
+        ("description", "TEXT"),
+        ("critic_score", "TEXT"),
+        ("genres", "TEXT"),
+        ("styles", "TEXT"),
+        ("release_date", "TEXT"),
+        ("developers", "TEXT"),
+        ("editors", "TEXT"),
+        ("game_dir", "TEXT"),
+        ("exec_file", "TEXT"),
+        ("exec_args", "TEXT"),
+        ("tags", "TEXT"),
+        ("status", "TEXT NOT NULL DEFAULT 'NOT PLAYED'"),
+        ("time_played", "INTEGER NOT NULL DEFAULT 0"),
+        ("trophies", "TEXT"),
+        ("trophies_unlocked", "INTEGER NOT NULL DEFAULT 0"),
+        ("last_played", "TEXT"),
+    ];
+    let required_columns_universe = vec![
+        ("id", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT NOT NULL"),
+        ("games", "TEXT NOT NULL"),
+        ("icon", "TEXT"),
+        ("background", "TEXT"),
+        ("filters", "TEXT"),
+        ("views", "TEXT"),
+    ];
+    create_table(&conn, "games", required_columns_games.clone())?;
+    modify_table_add_missing_columns(&conn, "games", required_columns_games.clone())?;
+    create_table(&conn, "universe", required_columns_universe.clone())?;
+    modify_table_add_missing_columns(&conn, "universe", required_columns_universe.clone())?;
     Ok(conn)
 }
 
