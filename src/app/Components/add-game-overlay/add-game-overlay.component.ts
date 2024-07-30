@@ -70,6 +70,7 @@ export class AddGameOverlayComponent implements OnInit {
     message: string = '';
     searchedGames: any[] = [];
     searchingGame: string = '';
+    statuses: any = ['Not started', 'In progress', 'Completed', 'On hold', 'Dropped', 'Platinum'];
     selectedMetadataProvider: { label: string, provider: string; } = { label: '', provider: '' };
     // ADD API HERE
     metadataProviders: { label: string, provider: string; }[] = [{ label: 'IGDB', provider: 'igdb' }, {

@@ -57,12 +57,17 @@
                 <form [formGroup]="stat" (ngSubmit)="saveGameStat()" class="formDisplay">
                     <ng-container *ngIf="currentGame">
                         <div *ngFor="let field of currentGame | keyvalue"
-                             [style.display]="statKeys.includes(field.key) ? 'block' : 'none'">
+                             [style.display]="(statKeys.includes(field.key) && field.key !== 'status') ? 'block' : 'none'">
                             <p-floatLabel *ngIf="statKeys.includes(field.key)">
                                 <input pInputText [id]="field.key" [formControlName]="field.key"/>
                                 <label [for]="field.key">{{ field.key }}</label>
                             </p-floatLabel>
                         </div>
+                        <p-dropdown
+                            [formControlName]="'status'"
+                            [options]="statuses"
+                            [showClear]="true" 
+                            placeholder="Select a status" />
                     </ng-container>
                     <p-button label="Save" type="submit"></p-button>
                 </form>

@@ -50,7 +50,7 @@ pub(crate) async fn search_game_igdb(
 
     let igdb_base_url = "https://api.igdb.com/v4/";
     let request_url = igdb_base_url.to_string() + "games";
-    let fields = "name,cover.image_id,genres.name,platforms.*,release_dates.date,summary,screenshots.image_id,aggregated_rating,artworks.image_id,category,first_release_date,franchise.name,game_engines.*,involved_companies.company.url,involved_companies.company.start_date,involved_companies.company.name,involved_companies.company.description,involved_companies.company.country,involved_companies.company.logo.image_id,involved_companies.developer,involved_companies.publisher,player_perspectives.name,rating,remakes.name,remasters.name,standalone_expansions.name,status,storyline,videos.video_id,themes.name,external_games.media,external_games.uid";
+    let fields = "name,cover.image_id,genres.name,platforms.*,release_dates.date,summary,screenshots.image_id,aggregated_rating,artworks.image_id,category,first_release_date,franchise.name,game_engines.*,involved_companies.company.url,involved_companies.company.start_date,involved_companies.company.name,involved_companies.company.description,involved_companies.company.country,involved_companies.company.logo.image_id,involved_companies.developer,involved_companies.publisher,player_perspectives.name,rating,remakes.name,remasters.name,standalone_expansions.name,storyline,videos.video_id,themes.name,external_games.media,external_games.uid";
     let mut headers = HeaderMap::new();
     headers.insert("Client-ID", client_id.parse().unwrap());
     headers.insert(
@@ -317,12 +317,6 @@ pub fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std::erro
         .to_string();
     igame.editors = game_json
         .get("editors")
-        .unwrap_or(&serde_json::Value::String("".to_string()))
-        .as_str()
-        .unwrap()
-        .to_string();
-    igame.status = game_json
-        .get("status")
         .unwrap_or(&serde_json::Value::String("".to_string()))
         .as_str()
         .unwrap()
