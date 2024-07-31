@@ -36,8 +36,8 @@ export class GameService {
         this.gameObservable.next(game);
     }
 
-    getGames() {
-        this.db.getGames().then(games => {
+    async getGames() {
+        await this.db.getGames().then(games => {
             if (games === undefined) {
                 console.log("getGames: no games found");
                 return;

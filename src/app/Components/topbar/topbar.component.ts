@@ -103,6 +103,7 @@ export class TopbarComponent implements OnInit {
                     }
                 } else {
                     this.onGamePage = false;
+                    this.gameFromUrl.next('');
                 }
             }
         });

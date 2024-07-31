@@ -232,7 +232,6 @@ impl IGame {
         let minimum_fields = vec![
             "name".to_string(),
             "description".to_string(),
-            "genres".to_string(),
             "release_date".to_string(),
         ];
         for field in &minimum_fields {

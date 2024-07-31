@@ -446,30 +446,33 @@ export class AddGameOverlayComponent implements OnInit {
             fileInput.click();
     }
 
-    deleteVideo(key: any) {
+    deleteVideo(path: any) {
         if (this.currentGame === undefined || this.currentGameID === undefined) {
             return;
         }
-        delete this.currentGame.videos[this.currentGame.videos.indexOf(key)];
+        let id = this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
+        id = id.toString().split("video-")[1].split(".")[0];
+        this.db.deleteElement("video", this.currentGame.id, id.toString());
+        delete this.currentGame.videos[this.currentGame.videos.indexOf(path)];
         this.gameService.setGame(this.currentGameID, this.currentGame);
-        this.db.deleteElement("video", this.currentGame.name, key);
+    }
+
+    deleteScreenshot(path: any) {
+        if (this.currentGame === undefined || this.currentGameID === undefined) {
+            return;
+        }
+        let id = this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
+        id = id.toString().split("screenshot-")[1].split(".")[0];
+        this.db.deleteElement("screenshot", this.currentGame.id, id);
+        delete this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
+        this.gameService.setGame(this.currentGameID, this.currentGame);
     }
 
     deleteBackgroundMusic() {
         if (this.currentGame === undefined) {
             return;
         }
-        this.db.deleteElement("audio", this.currentGame.name);
-    }
-
-    deleteScreenshot(path: any) {
-        console.log(path);
-        if (this.currentGame === undefined || this.currentGameID === undefined) {
-            return;
-        }
-        delete this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
-        this.gameService.setGame(this.currentGameID, this.currentGame);
-        this.db.deleteElement("screenshot", this.currentGame.name, path);
+        this.db.deleteElement("audio", this.currentGame.id);
     }
 
     private saveMediaToExternalStorage() {
@@ -481,12 +484,13 @@ export class AddGameOverlayComponent implements OnInit {
                 return;
             }
             this.db.refreshGameLinks(this.currentGame).then((game) => {
-                if (this.currentGameID === undefined) {
-                    return;
-                }
                 this.currentGame = game;
-                this.gameService.getGames();
-                this.gameService.setGame(this.currentGameID, this.currentGame);
+                this.gameService.getGames().then(() => {
+                    if (this.currentGameID === undefined || this.currentGame === undefined) {
+                        return;
+                    }
+                    this.gameService.setGame(this.currentGameID, this.currentGame);
+                });
                 this.isAudioMetadata = false;
             });
         });

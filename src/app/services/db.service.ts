@@ -15,7 +15,6 @@ export class DBService {
     }
 
     JSONParserForGames(games: string): IGame[] {
-        console.log(games);
         // Remove all unicode characters
         games = games.replace(/\\u\{a0\}/g, "\\u00A0");
         let gamesArray: IGame[] = [];
@@ -122,11 +121,12 @@ export class DBService {
         return invoke("upload_file", { fileContent, typeOf, id });
     }
 
-    async deleteElement(typeOf: "screenshot" | "video" | "audio", gameName: string, elementName?: string) {
-        if (elementName === undefined) {
-            return invoke("delete_element", { typeOf, gameName, elementName: "" });
+    async deleteElement(typeOf: "screenshot" | "video" | "audio", gameID: string, elementToDelete?: string) {
+        console.log("Deleting element", typeOf, gameID, elementToDelete);
+        if (elementToDelete === undefined) {
+            return invoke("delete_element", { typeOf, id: gameID, elementToDelete: "" });
         }
-        return invoke("delete_element", { typeOf, gameName, elementName });
+        return invoke("delete_element", { typeOf, id: gameID, elementToDelete });
     }
 
     async getGame(id: string) {

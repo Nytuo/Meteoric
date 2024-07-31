@@ -208,10 +208,14 @@ pub async fn startup_routine() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn delete_element(type_of: String, id: String) -> Result<(), String> {
+pub fn delete_element(
+    type_of: String,
+    id: String,
+    element_to_delete: String,
+) -> Result<(), String> {
     let id = &id;
     if id.is_empty() {
-        return Err("Game name is empty".to_string());
+        return Err("Game id is empty".to_string());
     }
     if type_of.is_empty() {
         return Err("Type of is empty".to_string());
@@ -227,24 +231,22 @@ pub fn delete_element(type_of: String, id: String) -> Result<(), String> {
         return Err("Type of is not valid".to_string());
     }
     if id.contains("/") || id.contains("\\") {
-        return Err("Game name is not valid".to_string());
+        return Err("Game id is not valid".to_string());
     }
 
     create_extra_dirs(&id).unwrap();
     let game_dir = get_extra_dirs(&id).unwrap();
-    let get_nb_of_screenshots = std::fs::read_dir(&game_dir.join("screenshots"))
-        .unwrap()
-        .count();
-    let get_nb_of_videos = std::fs::read_dir(&game_dir.join("videos")).unwrap().count();
     let file_path = match type_of.as_str() {
         "screenshot" => game_dir
+            .clone()
             .join("screenshots")
-            .join("screenshot-".to_string() + &get_nb_of_screenshots.to_string() + ".jpg"),
+            .join("screenshot-".to_string() + &element_to_delete + ".jpg"),
         "video" => game_dir
+            .clone()
             .join("videos")
-            .join("video-".to_string() + &get_nb_of_videos.to_string() + ".mp4"),
-        "audio" => game_dir.join("musics").join("theme.mp3"),
-        _ => game_dir,
+            .join("video-".to_string() + &element_to_delete + ".mp4"),
+        "audio" => game_dir.clone().join("musics").join("theme.mp3"),
+        _ => game_dir.clone(),
     };
 
     if !file_path.exists() {
