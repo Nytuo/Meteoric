@@ -75,11 +75,9 @@ export class GenericService {
     private audioInterval: string | number | NodeJS.Timeout | undefined;
 
     playBackgroundMusic(backgroundMusic: string) {
+        console.log('Playing background music');
+        console.log(backgroundMusic);
         if (!backgroundMusic) return;
-
-        if (this.audio) {
-            this.audio.pause();
-        }
 
         if (this.audioInterval) {
             clearInterval(this.audioInterval);
@@ -87,21 +85,16 @@ export class GenericService {
 
         this.audio = new Audio(backgroundMusic);
         this.audio.loop = true;
-        this.audio.volume = 0;
+        this.audio.volume = 1;
         this.audio.play();
+    }
 
-        let volume = 0;
-        this.audioInterval = setInterval(() => {
-            if (volume < 0.9) {
-                volume += 0.1;
-                if (this.audio) this.audio.volume = volume;
-            } else {
-                clearInterval(this.audioInterval);
-            }
-        }, 100);
+    isBackgroundMusicPlaying() {
+        return this.audio && !this.audio.paused;
     }
 
     stopBackgroundMusic() {
+        console.log('Stopping background music');
         if (!this.audio) return;
 
         let volume = this.audio.volume;

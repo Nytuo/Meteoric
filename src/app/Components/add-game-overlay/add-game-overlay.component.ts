@@ -351,6 +351,9 @@ export class AddGameOverlayComponent implements OnInit {
     }
 
     closeOverlay() {
+        if (this.currentGame !== undefined) {
+            this.genericService.playBackgroundMusic(this.currentGame.backgroundMusic);
+        }
         this.currentGame = {
             id: "-1",
             trophies: '',

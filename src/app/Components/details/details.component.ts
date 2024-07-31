@@ -122,8 +122,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 return;
             }
             image.src = this.game.background;
-            if (this.game.backgroundMusic)
-                this.genericService.playBackgroundMusic(this.game.backgroundMusic);
         });
 
         this.gameService.getGameObservable(this.id.toString()).subscribe(game => {
@@ -156,9 +154,9 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 return;
             }
             image.src = this.game.background;
-            if (this.game.backgroundMusic)
+            if (this.game.backgroundMusic && !this.genericService.isBackgroundMusicPlaying()) {
                 this.genericService.playBackgroundMusic(this.game.backgroundMusic);
-
+            }
         });
 
         this.genericService.getGameLaunchAnimationObservable().subscribe((status) => {

@@ -76,7 +76,6 @@ export class TopbarComponent implements OnInit {
                 this.gameOverlayOpen = !this.gameOverlayOpen;
                 break;
         }
-        this.genericService.stopAllAudio();
     }
 
     constructor(protected genericService: GenericService, protected location: Location, protected router: Router, private gameService: GameService, private dbService: DBService, private tauri: TauriService) {
@@ -120,6 +119,15 @@ export class TopbarComponent implements OnInit {
                 this.btnicon = 'pi pi-play';
                 this.color = { 'backgroundColor': 'rgb(13 81 198)' };
             }
+        });
+
+        this.gameService.getGameObservable(this.gameID).subscribe((game) => {
+            if (!game) {
+                return;
+            }
+            this.displayPlayForGame = (game?.exec_file && game?.game_dir) ? 'PLAY' : 'LINK';
+            this.btnicon = (game?.exec_file && game?.game_dir) ? 'pi pi-play' : 'pi pi-link';
+            this.color = (game?.exec_file && game?.game_dir) ? { 'backgroundColor': 'rgb(13 81 198)' } : { 'backgroundColor': 'purple' };
         });
     }
 
