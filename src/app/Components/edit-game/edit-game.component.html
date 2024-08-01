@@ -11,6 +11,8 @@
 						gap: 1rem;
 						justify-content: space-between;
 						align-items: center;
+						margin-top: 1rem;
+						margin-bottom: 1rem;
 					"
 					*ngIf="hideSearch"
 				>
@@ -26,7 +28,7 @@
 					<p-button label="Search" (click)="searchGameInAPI()"></p-button>
 				</div>
 				<app-igdb
-					*ngIf="selectedItem === 'igdb'"
+					*ngIf="selectedProvider === 'igdb'"
 					[message]="message"
 					[searchedGames]="searchedGames"
 					(selectItem)="selectItem()"
@@ -35,7 +37,7 @@
 				></app-igdb>
 
 				<app-ytdl
-					*ngIf="selectedItem === 'ytdl'"
+					*ngIf="selectedProvider === 'ytdl'"
 					[message]="message"
 					[searchedGames]="searchedGames"
 					(selectItem)="selectItem()"
@@ -44,14 +46,14 @@
 				></app-ytdl>
 
 				<app-steam-grid
-					*ngIf="selectedItem === 'steam_grid'"
+					*ngIf="selectedProvider === 'steam_grid'"
 					[message]="message"
 					[searchedGames]="searchedGames"
 					(selectItem)="selectItem()"
 					(back)="searchMode = false"
 					[(selectedItem)]="selectedItem"
 				></app-steam-grid>
-				<div *ngIf="selectedItem === 'general'">
+				<div *ngIf="selectedProvider === 'general'">
 					<form
 						[formGroup]="info"
 						(ngSubmit)="saveGameInfo()"
@@ -80,7 +82,7 @@
 						<p-button label="Save" type="submit"></p-button>
 					</form>
 				</div>
-				<div *ngIf="selectedItem === 'personal'">
+				<div *ngIf="selectedProvider === 'personal'">
 					<form
 						[formGroup]="stat"
 						(ngSubmit)="saveGameStat()"
@@ -114,7 +116,7 @@
 						<p-button label="Save" type="submit"></p-button>
 					</form>
 				</div>
-				<div *ngIf="selectedItem === 'media'">
+				<div *ngIf="selectedProvider === 'media'">
 					<ng-container *ngIf="currentGame">
 						<div class="formDisplay">
 							<h2>Background</h2>
@@ -276,7 +278,7 @@
 						</div>
 					</ng-container>
 				</div>
-				<div *ngIf="selectedItem === 'exec'">
+				<div *ngIf="selectedProvider === 'exec'">
 					<form
 						[formGroup]="exec"
 						(ngSubmit)="saveGameExec()"

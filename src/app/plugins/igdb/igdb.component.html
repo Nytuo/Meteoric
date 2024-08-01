@@ -1,10 +1,29 @@
 <div>
-    <p-button label="Back" (click)="back.emit()"></p-button>
-    <p *ngIf="message">{{ message }}</p>
-    <div *ngIf="!message">
-        <p-listbox [options]="searchedGames" (ngModelChange)="updateSelectedItem(
-            $event
-        )" [(ngModel)]="selectedItem" optionLabel="name"></p-listbox>
-        <p-button label="Select" (click)="selectItem.emit()"></p-button>
-    </div>
+	<p *ngIf="message">{{ message }}</p>
+	<div
+		*ngIf="!message"
+		style="
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			justify-content: space-around;
+			align-items: center;
+		"
+	>
+		<div
+			*ngFor="let game of searchedGames"
+			(click)="updateSelectedItem(game)"
+			style="text-align: center"
+		>
+			<img
+				src="{{ game.jaquette }}"
+				alt="{{ game.name }}"
+				width="150px"
+				height="200px"
+				[className]="{ selected: game === selectedItem }"
+			/>
+			<p>{{ game.name }}</p>
+		</div>
+	</div>
+	<p-button label="Select" (click)="selectItem.emit()"></p-button>
 </div>

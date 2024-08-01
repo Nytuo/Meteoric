@@ -67,6 +67,7 @@ export class EditGameComponent implements OnInit {
     YTURL: string = '';
     isAudioMetadata: boolean = false;
     selectedItem: any = undefined;
+    selectedProvider: any = undefined;
     searchMode = false;
     message: string = '';
     searchedGames: any[] = [];
@@ -80,28 +81,28 @@ export class EditGameComponent implements OnInit {
                 label: 'General',
                 icon: 'pi pi-file',
                 command: () => {
-                    this.selectedItem = 'general';
+                    this.selectedProvider = 'general';
                 }
             },
             {
                 label: 'Personal',
                 icon: 'pi pi-id-card',
                 command: () => {
-                    this.selectedItem = 'personal';
+                    this.selectedProvider = 'personal';
                 }
             },
             {
                 label: 'Media',
                 icon: 'pi pi-images',
                 command: () => {
-                    this.selectedItem = 'media';
+                    this.selectedProvider = 'media';
                 }
             },
             {
                 label: 'Execution',
                 icon: 'pi pi-play',
                 command: () => {
-                    this.selectedItem = 'exec';
+                    this.selectedProvider = 'exec';
 
                 }
             }
@@ -115,21 +116,24 @@ export class EditGameComponent implements OnInit {
                 label: 'Youtube Background Music Provider',
                 icon: 'pi pi-youtube',
                 command: () => {
-                    this.selectedItem = 'ytdl';
+                    this.selectedProvider = 'ytdl';
+                    this.hideSearch = true;
                 }
             },
             {
                 label: 'Steam Grid DB Provider',
                 icon: 'pi pi-desktop',
                 command: () => {
-                    this.selectedItem = 'steam_grid';
+                    this.selectedProvider = 'steam_grid';
+                    this.hideSearch = true;
                 }
             },
             {
                 label: 'IGDB Provider',
                 icon: 'pi pi-desktop',
                 command: () => {
-                    this.selectedItem = 'igdb';
+                    this.selectedProvider = 'igdb';
+                    this.hideSearch = true;
                 }
             }
         ]
@@ -252,7 +256,7 @@ export class EditGameComponent implements OnInit {
 
     async searchGameInAPI() {
         let gameName = this.searchingGame;
-        let provider = this.selectedItem;
+        let provider = this.selectedProvider;
 
         await invoke<string>("search_metadata", { gameName: gameName, pluginName: provider, strict: false }).then((games) => {
             console.log(games);
