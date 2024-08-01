@@ -1,7 +1,7 @@
 <div class="sidebar">
     <div class="accountAndSettings">
-        <div class="settings">
-                    <span class="material-symbols-outlined" [routerLink]="['/settings']">
+        <div class="settings" (click)="openSettings()" style="cursor: pointer">
+                    <span class="material-symbols-outlined">
                         settings
         </span>
         </div>
@@ -37,3 +37,4 @@
         </div>
     </div>
 </div>
+<app-settings-overlay *ngIf="settingsOpen" [(visible)]="settingsOpen"></app-settings-overlay>

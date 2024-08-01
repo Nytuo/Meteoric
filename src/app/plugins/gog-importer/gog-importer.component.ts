@@ -5,6 +5,10 @@ import { NgIf } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { invoke } from '@tauri-apps/api/tauri';
+import { ConfirmationService } from 'primeng/api';
+import { StepperModule } from 'primeng/stepper';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
     selector: 'app-gog-importer',
@@ -14,10 +18,12 @@ import { invoke } from '@tauri-apps/api/tauri';
         ListboxModule,
         NgIf,
         FormsModule,
-        FloatLabelModule
+        InputTextModule,
+        FloatLabelModule, StepperModule, ConfirmDialogModule,
     ],
     templateUrl: './gog-importer.component.html',
-    styleUrl: './gog-importer.component.css'
+    styleUrl: './gog-importer.component.css',
+    providers: [ConfirmationService]
 })
 export class GogImporterComponent {
 
@@ -40,6 +46,29 @@ export class GogImporterComponent {
         console.log(this.authCode);
         await invoke('import_library', {
             pluginName: "gog_importer", creds: ['']
+        });
+    }
+
+    constructor(private confirmationService: ConfirmationService) { }
+    openLinkInBrowser(link: string) {
+        window.open(link, '_blank');
+    }
+
+    confirm() {
+        this.confirmationService.confirm({
+            header: 'Readme',
+            message: 'You will be redirected to the GOG website to get an authentication code. This code will be used to sync your library. You will have to copy/paste the AuthCode for the next step. Do you want to continue?',
+            acceptIcon: 'pi pi-check mr-2',
+            rejectIcon: 'pi pi-times mr-2',
+            rejectButtonStyleClass: 'p-button-sm',
+            acceptButtonStyleClass: 'p-button-outlined p-button-sm',
+            accept: () => {
+                this.openLinkInBrowser(
+                    'https://login.gog.com/auth?client_id=46899977096215655&layout=galaxy&redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&response_type=code'
+                );
+            },
+            reject: () => {
+            }
         });
     }
 }

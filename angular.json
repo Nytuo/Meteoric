@@ -25,11 +25,246 @@
             "assets": [
               "src/assets"
             ],
-            "styles": [
-              "src/styles.css",
-              "node_modules/primeng/resources/themes/lara-dark-blue/theme.css",
-              "node_modules/primeng/resources/primeng.min.css"
-            ]
+            
+"styles": [
+  "src/styles.css",
+  "node_modules/primeng/resources/primeng.min.css",
+  {
+    "input": "node_modules/primeng/resources/themes/saga-blue/theme.css",
+    "bundleName": "saga-blue",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/bootstrap4-light-blue/theme.css",
+    "bundleName": "bootstrap4-light-blue",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/bootstrap4-light-purple/theme.css",
+    "bundleName": "bootstrap4-light-purple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/bootstrap4-dark-blue/theme.css",
+    "bundleName": "bootstrap4-dark-blue",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/bootstrap4-dark-purple/theme.css",
+    "bundleName": "bootstrap4-dark-purple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/md-light-indigo/theme.css",
+    "bundleName": "md-light-indigo",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/md-light-deeppurple/theme.css",
+    "bundleName": "md-light-deeppurple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/md-dark-indigo/theme.css",
+    "bundleName": "md-dark-indigo",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/md-dark-deeppurple/theme.css",
+    "bundleName": "md-dark-deeppurple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/mdc-light-indigo/theme.css",
+    "bundleName": "mdc-light-indigo",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/mdc-light-deeppurple/theme.css",
+    "bundleName": "mdc-light-deeppurple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/mdc-dark-indigo/theme.css",
+    "bundleName": "mdc-dark-indigo",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/mdc-dark-deeppurple/theme.css",
+    "bundleName": "mdc-dark-deeppurple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/fluent-light/theme.css",
+    "bundleName": "fluent-light",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/lara-light-blue/theme.css",
+    "bundleName": "lara-light-blue",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/lara-light-indigo/theme.css",
+    "bundleName": "lara-light-indigo",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/lara-light-purple/theme.css",
+    "bundleName": "lara-light-purple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/lara-light-teal/theme.css",
+    "bundleName": "lara-light-teal",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/lara-dark-blue/theme.css",
+    "bundleName": "lara-dark-blue",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/lara-dark-indigo/theme.css",
+    "bundleName": "lara-dark-indigo",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/lara-dark-purple/theme.css",
+    "bundleName": "lara-dark-purple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/lara-dark-teal/theme.css",
+    "bundleName": "lara-dark-teal",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/soho-light/theme.css",
+    "bundleName": "soho-light",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/soho-dark/theme.css",
+    "bundleName": "soho-dark",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/viva-light/theme.css",
+    "bundleName": "viva-light",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/viva-dark/theme.css",
+    "bundleName": "viva-dark",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/mira/theme.css",
+    "bundleName": "mira",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/nano/theme.css",
+    "bundleName": "nano",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/saga-green/theme.css",
+    "bundleName": "saga-green",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/saga-orange/theme.css",
+    "bundleName": "saga-orange",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/saga-purple/theme.css",
+    "bundleName": "saga-purple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/vela-blue/theme.css",
+    "bundleName": "vela-blue",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/vela-green/theme.css",
+    "bundleName": "vela-green",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/vela-orange/theme.css",
+    "bundleName": "vela-orange",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/vela-purple/theme.css",
+    "bundleName": "vela-purple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/arya-blue/theme.css",
+    "bundleName": "arya-blue",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/arya-green/theme.css",
+    "bundleName": "arya-green",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/arya-orange/theme.css",
+    "bundleName": "arya-orange",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/arya-purple/theme.css",
+    "bundleName": "arya-purple",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/nova/theme.css",
+    "bundleName": "nova",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/nova-alt/theme.css",
+    "bundleName": "nova-alt",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/nova-accent/theme.css",
+    "bundleName": "nova-accent",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/luna-amber/theme.css",
+    "bundleName": "luna-amber",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/luna-blue/theme.css",
+    "bundleName": "luna-blue",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/luna-green/theme.css",
+    "bundleName": "luna-green",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/luna-pink/theme.css",
+    "bundleName": "luna-pink",
+    "inject": false
+  },
+  {
+    "input": "node_modules/primeng/resources/themes/rhea/theme.css",
+    "bundleName": "rhea",
+    "inject": false
+  }
+]
           },
           "configurations": {
             "production": {

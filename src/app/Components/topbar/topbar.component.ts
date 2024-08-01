@@ -25,6 +25,7 @@ import { dirname } from '@tauri-apps/api/path';
 import { DBService } from '../../services/db.service';
 import { TauriService } from '../../services/tauri.service';
 import IGameLaunchedMessage from '../../../interfaces/IGameLaunchMessage';
+import { EditGameComponent } from "../edit-game/edit-game.component";
 
 @Component({
     selector: 'app-topbar',
@@ -50,6 +51,7 @@ import IGameLaunchedMessage from '../../../interfaces/IGameLaunchMessage';
         ListboxModule,
         AddGameOverlayComponent,
         FilterOverlayComponent,
+        EditGameComponent
     ],
     templateUrl: './topbar.component.html',
     styleUrl: './topbar.component.css'
@@ -65,6 +67,7 @@ export class TopbarComponent implements OnInit {
     color: { [klass: string]: any; } = { 'backgroundColor': 'purple' };
     loading: boolean = false;
     gamePID: number | null = null;
+    editPage: string | any[] | null | undefined;
 
 
     toggleOverlay(overlay_name: string = 'filter') {
@@ -88,12 +91,12 @@ export class TopbarComponent implements OnInit {
         });
         this.router.events.subscribe((val) => {
             if (val instanceof NavigationEnd) {
-                console.log(val.url);
                 if (val.url.includes('game') && !val.url.includes('games')) {
                     this.onGamePage = true;
                     this.gameFromUrl.next(val.url.split('/')[2]);
                     let id = val.url.split('/')[2];
                     if (id) {
+                        this.editPage = `/edit/${id}`;
                         let game = this.gameService.getGame(id);
                         this.gameService.setGameObservable(game);
                         this.gameID = id;

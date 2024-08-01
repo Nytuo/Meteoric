@@ -7,6 +7,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { invoke } from '@tauri-apps/api/tauri';
 import * as Papa from 'papaparse';
+import { DropdownModule } from 'primeng/dropdown';
 
 @Component({
     imports: [
@@ -15,7 +16,7 @@ import * as Papa from 'papaparse';
         TableModule,
         HttpClientModule,
         FileUploadModule,
-        FormsModule
+        FormsModule, DropdownModule
     ],
     standalone: true,
     selector: 'app-csv-importer',

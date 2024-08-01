@@ -1,72 +1,83 @@
 @import 'material-symbols';
-@import "primeicons/primeicons.css";
+@import 'primeicons/primeicons.css';
 :root {
-    font-size: 14px;
-    line-height: 24px;
-    font-weight: 400;
+	font-size: 14px;
+	line-height: 24px;
+	font-weight: 400;
 
-    color: var(--text-color);
-    background-color: var(--background-color);
+	color: var(--text-color);
+	background-color: var(--background-color);
 
-    --primary: #3546e8;
-    --secondary: #1f1f1f;
-    --tertiary: #1c1c1c;
-    --background-color: #0f0f0f;
-    --text-color: #ffffff;
-    --accent-color: #1a62fd;
+	--primary: #3546e8;
+	--secondary: #1f1f1f;
+	--tertiary: #1c1c1c;
+	--background-color: #0f0f0f;
+	--text-color: #ffffff;
+	--accent-color: #1a62fd;
 
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-text-size-adjust: 100%;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-text-size-adjust: 100%;
 
-    font-family: system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu", "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Ubuntu',
+		'Cantarell', 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+		'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 html {
-    background-image: url("assets/default_bg.jpg");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-color: #000000;
-    background-repeat: repeat;
-    overflow: hidden;
+	background-image: url('assets/default_bg.jpg');
+	background-size: cover;
+	background-position: center;
+	background-attachment: fixed;
+	background-color: #000000;
+	background-repeat: repeat;
+	overflow: hidden;
 }
 body {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    backdrop-filter: blur(70px) brightness(70%) saturate(120%) contrast(120%) invert(10%);
-    background-color: rgba(0, 0, 0, 0.5);
+	margin: 0;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	backdrop-filter: blur(70px) brightness(70%) saturate(120%) contrast(120%)
+		invert(10%);
+	background-color: rgba(0, 0, 0, 0.5);
 }
 
 app-details {
-overflow-x: hidden;
+	overflow-x: hidden;
 }
 
 @font-face {
-    font-family: 'Roboto-Light';
-    src: url('assets/fonts/Roboto-Light.ttf') format('truetype');
+	font-family: 'Roboto-Light';
+	src: url('assets/fonts/Roboto-Light.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'Roboto-Medium';
-    src: url('assets/fonts/Roboto-Medium.ttf') format('truetype');
+	font-family: 'Roboto-Medium';
+	src: url('assets/fonts/Roboto-Medium.ttf') format('truetype');
 }
 
 ::-webkit-scrollbar {
-    width: 10px;
+	width: 5px;
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+	background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: transparent;
-    border-radius: 10px;
+	background: rgba(255, 255, 255, 0.214);
+	border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.5);
+}
+
+::-webkit-scrollbar-thumb:active {
+	background: rgba(255, 255, 255, 0.8);
 }

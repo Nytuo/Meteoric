@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { CardListComponent } from "./Components/card-list/card-list.component";
@@ -8,6 +8,7 @@ import { TopbarComponent } from "./Components/topbar/topbar.component";
 import { CategoryService } from "./services/category.service";
 import { GenericService } from "./services/generic.service";
 import { LoadingBarComponent } from "./Components/loading-bar/loading-bar.component";
+import { PrimeNGConfig } from 'primeng/api';
 
 @Component({
     selector: 'app-root',
@@ -16,14 +17,16 @@ import { LoadingBarComponent } from "./Components/loading-bar/loading-bar.compon
     styleUrl: './app.component.css',
     imports: [CommonModule, RouterOutlet, CardListComponent, SidebarComponent, TopbarComponent, LoadingBarComponent]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
 
-    constructor(private gameService: GameService, private categroyService: CategoryService, private genericService: GenericService) {
+    constructor(private gameService: GameService, private categroyService: CategoryService, private genericService: GenericService, private primengConfig: PrimeNGConfig) { }
+
+    ngOnInit() {
         this.gameService.getGames();
         this.categroyService.refreshCategories();
         this.genericService.startRoutine();
+        this.primengConfig.ripple = true;
     }
-
     closeOverlay() {
         let overlay = document.getElementById("overlay");
         console.log(overlay);

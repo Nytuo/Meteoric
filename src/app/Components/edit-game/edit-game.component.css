@@ -1,0 +1,48 @@
+.formDisplay {
+	margin-top: 20px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 30px;
+	margin-right: 10px;
+}
+.formDisplayAlt {
+	margin-top: 20px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 30px;
+	margin-right: 10px;
+}
+
+::ng-deep .formDisplay > p-float-label {
+	width: 100% !important;
+}
+
+.sideBySide {
+	display: flex;
+	justify-content: space-around;
+	align-items: start;
+	width: 100%;
+}
+
+input {
+	width: 100%;
+}
+
+.ng-star-inserted,
+form {
+	width: 30vw;
+}
+.content {
+	height: 70vh;
+	width: 40vw;
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	align-items: center;
+	overflow: scroll;
+	padding: 10px;
+}

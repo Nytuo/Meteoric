@@ -5,6 +5,10 @@ import { NgIf } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { invoke } from '@tauri-apps/api/tauri';
+import { StepperModule } from 'primeng/stepper';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
     selector: 'app-epic-importer',
@@ -14,12 +18,17 @@ import { invoke } from '@tauri-apps/api/tauri';
         ListboxModule,
         NgIf,
         FormsModule,
-        FloatLabelModule
+        FloatLabelModule, StepperModule, ConfirmDialogModule,
+        InputTextModule
     ],
     templateUrl: './epic-importer.component.html',
-    styleUrl: './epic-importer.component.css'
+    styleUrl: './epic-importer.component.css',
+    providers: [ConfirmationService]
 })
 export class EpicImporterComponent {
+    openLinkInBrowser(link: string) {
+        window.open(link, '_blank');
+    }
 
     @Input() message: string = '';
     @Input() searchedGames: any[] = [];
@@ -42,4 +51,24 @@ export class EpicImporterComponent {
             pluginName: "epic_importer", creds: ['']
         });
     }
+    constructor(private confirmationService: ConfirmationService) { }
+
+    confirm() {
+        this.confirmationService.confirm({
+            header: 'Readme',
+            message: 'You will be redirected to the Epic Games website to get an authentication code. This code will be used to sync your library. You will have to copy/paste the AuthCode for the next step. Do you want to continue?',
+            acceptIcon: 'pi pi-check mr-2',
+            rejectIcon: 'pi pi-times mr-2',
+            rejectButtonStyleClass: 'p-button-sm',
+            acceptButtonStyleClass: 'p-button-outlined p-button-sm',
+            accept: () => {
+                this.openLinkInBrowser(
+                    'https://www.epicgames.com/id/login?redirectUrl=https%3A//www.epicgames.com/id/api/redirect%3FclientId%3D34a02cf8f4414e29b15921876da36f9a%26responseType%3Dcode'
+                );
+            },
+            reject: () => {
+            }
+        });
+    }
+
 }

@@ -4,6 +4,7 @@ import { NgForOf, NgIf } from "@angular/common";
 import { CategoryService } from "../../services/category.service";
 import { appWindow } from "@tauri-apps/api/window";
 import { TagModule } from 'primeng/tag';
+import { SettingsOverlayComponent } from "../settings-overlay/settings-overlay.component";
 
 @Component({
     selector: 'app-sidebar',
@@ -12,12 +13,18 @@ import { TagModule } from 'primeng/tag';
         RouterLink,
         NgForOf,
         NgIf,
-        TagModule
+        TagModule,
+        SettingsOverlayComponent
     ],
     templateUrl: './sidebar.component.html',
     styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent implements OnInit, OnDestroy {
+
+    settingsOpen = false;
+    openSettings() {
+        this.settingsOpen = true;
+    }
 
     categories: any[] = [
     ];

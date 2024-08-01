@@ -17,6 +17,21 @@
     margin-right: 10px;
 }
 
+.overlayLoading{
+    position:absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.749);
+    z-index: 1000;
+}
+
 ::ng-deep .formDisplay>p-float-label{
     width: 100% !important;
 }

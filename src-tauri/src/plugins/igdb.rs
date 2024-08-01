@@ -404,10 +404,13 @@ pub fn set_credentials(creds: Vec<String>) {
     *secret = client_secret.to_string();
 }
 
-pub fn search_game(game_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+pub fn search_game(
+    game_name: &str,
+    strict: bool,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let result = task::block_in_place(|| {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(search_game_igdb(game_name, false))
+        rt.block_on(search_game_igdb(game_name, strict))
     });
     result
 }

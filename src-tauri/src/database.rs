@@ -110,7 +110,6 @@ fn modify_table_add_missing_columns(
             .collect();
 
         for (column_name, column_type) in required_columns {
-            println!("Checking column {} in table {}", column_name, table_name);
             if !columns.contains(&column_name.to_string()) {
                 println!(
                     "Column {} not found in table {}, adding it",
@@ -259,10 +258,11 @@ fn parse_fields(game: &IGame) -> IGame {
     game_copy
 }
 
-pub fn update_game(conn: &Connection, game: IGame) -> Result<(), String> {
+pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
     let id_exist = game.id != "-1".to_string();
     println!("ID exist: {:?}", id_exist);
     let game = parse_fields(&game);
+    let game_name = game.name.clone();
     if id_exist {
         let sql_update = format!("UPDATE games SET name = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', time_played = '{}', trophies_unlocked = '{}', last_time_played = '{}' WHERE id = '{}';", game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.time_played, game.trophies_unlocked, game.last_time_played, game.id);
         conn.execute(&sql_update, []).map_err(|e| e.to_string())?;
@@ -299,7 +299,10 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<(), String> {
         conn.execute(&sql_insert, []).map_err(|e| e.to_string())?;
         println!("Game inserted");
     }
-    Ok(())
+    let id = get_game_id_by_name(&conn, &game_name)
+        .map_err(|e| e.to_string())
+        .unwrap();
+    Ok(id)
 }
 
 /*pub fn get_game_name_by_id(conn: &Connection, id: &str) -> Result<String, String> {
@@ -308,12 +311,20 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<(), String> {
     let name = rows.next().unwrap().map_err(|e| e.to_string())?;
     let name = name.unwrap().get(0).unwrap().to_string();
     Ok(name)
-}
+}*/
 
 pub fn get_game_id_by_name(conn: &Connection, name: &str) -> Result<String, String> {
-    let mut stmt = conn.prepare(&format!("SELECT id FROM games WHERE name = '{}'", name)).map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare(&format!("SELECT id FROM games WHERE name = '{}'", name))
+        .map_err(|e| e.to_string())?;
     let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
-    let id = rows.next().unwrap().map_err(|e| e.to_string())?;
-    let id = id.unwrap().get(0).unwrap().to_string();
-    Ok(id)
-}*/
+
+    // Handle the Option returned by rows.next()
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        // Attempt to get the id as an integer and convert it to a string
+        let id: i64 = row.get(0).map_err(|e| e.to_string())?;
+        Ok(id.to_string())
+    } else {
+        Err("No game found with the given name".to_string())
+    }
+}

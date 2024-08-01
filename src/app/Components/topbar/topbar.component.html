@@ -1,45 +1,72 @@
 <div class="topbar" data-tauri-drag-region>
-    <div class="navAndBookmarks">
-        <p-button icon="pi pi-chevron-left" (click)="location.back()"></p-button>
-        <p-button icon="pi pi-chevron-right" (click)="location.forward()"></p-button>
-        <p-button icon="pi pi-bookmark" [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"></p-button>
-    </div>
-    <div class="main" *ngIf="!onGamePage">
-        <div class="searchBar">
-            <input type="text" placeholder="Search"/>
-            <span class="material-symbols-outlined">
-                search
-            </span>
-        </div>
-        <div class="addGame">
-            <p-button icon="pi pi-plus-circle" (click)="toggleOverlay('game')"></p-button>
-        </div>
-        <div class="filter">
-            <p-button icon="pi pi-filter"></p-button>
-        </div>
-        <div class="more" (click)="toggleOverlay()">
-            <p-button icon="pi pi-ellipsis-v"></p-button>
-        </div>
-    </div>
-    <div class="main" *ngIf="onGamePage">
-        <p-selectButton
-                [options]="gameOptions"
-                [(ngModel)]="gameOpt"
-                optionLabel="label"
-                optionValue="value"/>
-        <div class="launchGame">
-            <p-button id="playbtn" [icon]="btnicon" [loading]="loading" [style]="color" [label]="displayPlayForGame" (click)="playGame()"></p-button>
-        </div>
-        <div class="more" (click)="toggleOverlay('game')">
-            <p-button icon="pi pi-ellipsis-v"></p-button>
-        </div>
-    </div>
-    <div class="windowManagement" [style.visibility]="'hidden'">
-        <p-button icon="pi pi-window-minimize" (click)="toggleMinimize()"></p-button>
-        <p-button icon="pi pi-window-maximize" (click)="toggleMaximize()"></p-button>
-        <p-button icon="pi pi-times-circle" (click)="appWindow.close()"></p-button>
-    </div>
+	<div class="navAndBookmarks">
+		<p-button icon="pi pi-chevron-left" (click)="location.back()"></p-button>
+		<p-button
+			icon="pi pi-chevron-right"
+			(click)="location.forward()"
+		></p-button>
+		<p-button
+			icon="pi pi-bookmark"
+			[style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
+		></p-button>
+	</div>
+	<div class="main" *ngIf="!onGamePage">
+		<div class="searchBar">
+			<input type="text" placeholder="Search" />
+			<span class="material-symbols-outlined"> search </span>
+		</div>
+		<div class="addGame">
+			<p-button
+				icon="pi pi-plus-circle"
+				(click)="toggleOverlay('game')"
+			></p-button>
+		</div>
+		<div class="filter">
+			<p-button icon="pi pi-filter"></p-button>
+		</div>
+		<div class="more" (click)="toggleOverlay()">
+			<p-button icon="pi pi-ellipsis-v"></p-button>
+		</div>
+	</div>
+	<div class="main" *ngIf="onGamePage">
+		<p-selectButton
+			[options]="gameOptions"
+			[(ngModel)]="gameOpt"
+			optionLabel="label"
+			optionValue="value"
+		/>
+		<div class="launchGame">
+			<p-button
+				id="playbtn"
+				[icon]="btnicon"
+				[loading]="loading"
+				[style]="color"
+				[label]="displayPlayForGame"
+				(click)="playGame()"
+			></p-button>
+		</div>
+		<div class="more">
+			<p-button icon="pi pi-pencil" [routerLink]="editPage"></p-button>
+		</div>
+	</div>
+	<div class="windowManagement" [style.visibility]="'hidden'">
+		<p-button
+			icon="pi pi-window-minimize"
+			(click)="toggleMinimize()"
+		></p-button>
+		<p-button
+			icon="pi pi-window-maximize"
+			(click)="toggleMaximize()"
+		></p-button>
+		<p-button icon="pi pi-times-circle" (click)="appWindow.close()"></p-button>
+	</div>
 </div>
 
-<app-filter-overlay *ngIf="!onGamePage && overlayVisible" [(visible)]="overlayVisible"></app-filter-overlay>
-<app-add-game-overlay *ngIf="gameOverlayOpen" [(visible)]="gameOverlayOpen" [gameFromURL]="gameFromUrl"></app-add-game-overlay>
+<app-filter-overlay
+	*ngIf="!onGamePage && overlayVisible"
+	[(visible)]="overlayVisible"
+></app-filter-overlay>
+<app-add-game-overlay
+	*ngIf="gameOverlayOpen"
+	[(visible)]="gameOverlayOpen"
+></app-add-game-overlay>

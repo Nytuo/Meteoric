@@ -287,7 +287,7 @@ pub fn get_games_by_category(category: String) -> String {
 }
 
 #[tauri::command]
-pub async fn search_metadata(game_name: String, plugin_name: String) -> String {
+pub async fn search_metadata(game_name: String, plugin_name: String, strict: bool) -> String {
     // ADD API HERE
     match plugin_name.as_str() {
         "ytdl" => {
@@ -299,7 +299,7 @@ pub async fn search_metadata(game_name: String, plugin_name: String) -> String {
             let client_secret =
                 env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
             igdb::set_credentials(Vec::from([client_id, client_secret]));
-            let result = igdb::search_game(&game_name).unwrap();
+            let result = igdb::search_game(&game_name, strict).unwrap();
             format!("{:?}", result)
         }
         "steam_grid" => {
@@ -355,12 +355,12 @@ pub fn get_games_by_id(id: String) -> String {
 }
 
 #[tauri::command]
-pub fn post_game(game: String) -> Result<(), String> {
+pub fn post_game(game: String) -> Result<String, String> {
     let conn = establish_connection().unwrap();
     let game: IGame = serde_json::from_str(&game).map_err(|e| e.to_string())?;
 
-    update_game(&conn, game).expect("Error updating game");
-    Ok(())
+    let id = update_game(&conn, game).expect("Error updating game");
+    Ok(id)
 }
 
 struct GameTimer {

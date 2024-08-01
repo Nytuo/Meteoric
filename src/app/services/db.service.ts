@@ -113,7 +113,15 @@ export class DBService {
     async postGame(game: IGame) {
         console.log(game);
         console.log(JSON.stringify(game));
-        return invoke("post_game", { game: JSON.stringify(game) });
+        let promise = new Promise<string>((resolve, reject) => {
+            invoke("post_game", { game: JSON.stringify(game) }).then((id) => {
+                console.log("Game posted with id", id);
+                resolve(id as string);
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+        return promise;
     }
 
     async uploadFile(file: any, typeOf: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette", id: string) {
@@ -154,6 +162,7 @@ export class DBService {
 
             invoke("save_media_to_external_storage", { id: currentGame.id, game: exportGameString }).then(() => {
                 setTimeout(() => {
+                    console.log("Media saved to external storage");
                     resolve();
                 }, 4000);
             })

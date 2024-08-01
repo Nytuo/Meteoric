@@ -45,6 +45,9 @@ p.fadedText {
 .gameDescription{
     margin: 10vh 10px 10px 10px;
     text-align: justify;
+    padding: 10px;
+    backdrop-filter: blur(200px);
+    border-radius: 10px;
 }
 
 ::ng-deep .p-datatable .p-datatable-tbody > tr {

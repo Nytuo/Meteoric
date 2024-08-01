@@ -5,6 +5,7 @@ import { NgIf } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { invoke } from '@tauri-apps/api/tauri';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
     selector: 'app-steam-importer',
@@ -14,7 +15,8 @@ import { invoke } from '@tauri-apps/api/tauri';
         ListboxModule,
         NgIf,
         FormsModule,
-        FloatLabelModule
+        FloatLabelModule,
+        InputTextModule
     ],
     templateUrl: './steam-importer.component.html',
     styleUrl: './steam-importer.component.css'

@@ -267,6 +267,7 @@ pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Resul
             }
         }
     }
+    println!("Game saved");
     Ok(())
 }
 
