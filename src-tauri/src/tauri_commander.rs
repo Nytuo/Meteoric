@@ -1,5 +1,5 @@
 use crate::database::{
-    add_category, establish_connection, get_all_fields, query_all_data, query_data, update_game,
+    add_category, add_game_to_category_db, establish_connection, get_all_fields, query_all_data, query_data, update_game
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
@@ -68,6 +68,18 @@ pub async fn create_category(
     );
     Ok(())
 }
+
+#[tauri::command]
+pub async fn add_game_to_category(
+    game_id: String,
+    category_id: String,
+) -> Result<(), String> {
+    let conn = establish_connection().unwrap();
+    println!("Game id: {}, Category id: {}", game_id, category_id);
+    let _ = add_game_to_category_db(&conn, game_id, category_id);
+    Ok(())
+}
+
 
 #[tauri::command]
 pub fn get_all_fields_from_db() -> String {

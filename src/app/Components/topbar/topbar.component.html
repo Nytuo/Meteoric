@@ -7,8 +7,29 @@
 		></p-button>
 		<p-button
 			icon="pi pi-bookmark"
+			(onClick)="op.toggle($event)"
 			[style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
 		></p-button>
+		<p-overlayPanel #op>
+			<input
+				pInputText
+				[style]="{ marginRight: '10px' }"
+				id="addcat"
+				placeholder="Add new category"
+			/>
+			<p-button icon="pi pi-plus" (click)="addCategory()"></p-button>
+			<div *ngFor="let cat of allCategories">
+				<label class="form-control" for="addtocat">
+					<input
+						type="checkbox"
+						name="addtocat"
+						[defaultChecked]="isCategoryChecked(cat.id)"
+						(change)="addToCategory(cat.id)"
+					/>
+					{{ cat.name }}
+				</label>
+			</div>
+		</p-overlayPanel>
 	</div>
 	<div class="main" *ngIf="!onGamePage">
 		<div class="searchBar">

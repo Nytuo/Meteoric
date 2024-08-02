@@ -24,7 +24,7 @@ use crate::tauri_commander::{
     create_category, delete_element, download_yt_audio, get_all_categories, get_all_fields_from_db,
     get_all_games, get_all_images_location, get_all_videos_location, get_games_by_category,
     import_library, kill_game, launch_game, post_game, save_media_to_external_storage,
-    search_metadata, startup_routine, upload_csv_to_db, upload_file,
+    search_metadata, startup_routine, upload_csv_to_db, upload_file,add_game_to_category
 };
 
 mod database;
@@ -388,7 +388,7 @@ async fn main() {
             create_category,
             startup_routine,
             launch_game,
-            kill_game
+            kill_game,add_game_to_category
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

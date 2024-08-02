@@ -67,6 +67,30 @@ export class GameService {
             // TODO : implement installed count
             return 0;
         }
+        if (category === "Steam") {
+            return await this.getGamesByPlatform("Steam", true).then((count) => {
+                if (count === undefined) {
+                    return 0;
+                }
+                return count;
+            });
+        }
+        if (category === "Epic Games") {
+            return await this.getGamesByPlatform("Epic Games", true).then((count) => {
+                if (count === undefined) {
+                    return 0;
+                }
+                return count;
+            });
+        }
+        if (category === "GOG") {
+            return await this.getGamesByPlatform("GOG", true).then((count) => {
+                if (count === undefined) {
+                    return 0;
+                }
+                return count;
+            });
+        }
         let promise = new Promise<number>((resolve, reject) => {
             this.db.getGamesByCategory(category).then(games => {
                 if (games === undefined) {
@@ -83,8 +107,25 @@ export class GameService {
         return this.games.find(game => game.id === id);
     }
 
-    getGamesByPlatform(platform: string) {
-        return this.games.filter(game => game.platforms.includes(platform));
+    async getGamesByPlatform(platform: string, count: boolean = false) {
+        let promise = new Promise<number | void>(async (resolve, reject) => {
+            await this.db.getGames().then(games => {
+                if (games === undefined) {
+                    console.log("getGames: no games found");
+                    reject();
+                    return;
+                }
+                if (count) {
+                    console.log("getGames: games found");
+                    resolve(games.filter(game => game.platforms.includes(platform)).length);
+                    return;
+                }
+                this.games = games;
+                this.gamesObservable.next(this.games.filter(game => game.platforms.includes(platform)));
+                resolve();
+            });
+        });
+        return promise;
     }
 
     getGamesByGenre(genre: string) {

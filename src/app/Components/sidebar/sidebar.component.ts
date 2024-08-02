@@ -32,7 +32,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     categories: any[] = [
     ];
 
-    currentCategory = 0;
+    currentCategory = "0";
 
     ngOnInit() {
         this.categoryService.getCategories();
@@ -45,7 +45,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         });
     }
 
-    setCurrentCategory(id: number) {
+    setCurrentCategory(id: string) {
         this.currentCategory = id;
         this.categoryService.setCurrentCategory(id);
     }

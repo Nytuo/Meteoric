@@ -62,6 +62,45 @@ pub(crate) fn add_category(
     Ok(())
 }
 
+pub(crate) fn add_game_to_category_db(
+    conn: &Connection,
+    game_id: String,
+    category_id: String,
+) -> rusqlite::Result<()> {
+    let is_empty: bool = conn
+        .query_row(
+            "SELECT games FROM universe WHERE id = ?1",
+            params![category_id],
+            |row| row.get::<_, Option<String>>(0),
+        )
+        .unwrap_or_default()
+        .is_none();
+    let is_already_present: bool = conn
+        .query_row(
+            "SELECT games FROM universe WHERE id = ?1",
+            params![category_id],
+            |row| row.get::<_, Option<String>>(0),
+        )
+        .unwrap_or_default()
+        .unwrap_or_default()
+        .contains(&game_id);
+    if is_already_present {
+        return Ok(());
+    }
+    if is_empty {
+        conn.execute(
+            "UPDATE universe SET games = ?1 WHERE id = ?2",
+            params![game_id, category_id],
+        )?;
+        return Ok(());
+    }
+    conn.execute(
+        "UPDATE universe SET games = games || ',' || ?1 WHERE id = ?2",
+        params![game_id, category_id],
+    )?;
+    Ok(())
+}
+
 fn update_data(
     conn: &Connection,
     id: i32,

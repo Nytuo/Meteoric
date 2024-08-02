@@ -11,6 +11,7 @@ import { FormGroup } from "@angular/forms";
 })
 export class DBService {
 
+
     constructor() {
     }
 
@@ -94,9 +95,18 @@ export class DBService {
         await invoke("create_category", { name: name, icon: icon, games: games, filters: filters, views: views, background: background });
     }
 
-    async getGames(): Promise<void | IGame[]> {
-        return new Promise<void | IGame[]>((resolve, reject) => {
+    async addGameToCategory(gameID: string, categoryID: string) {
+        console.log("Adding game to category", gameID, categoryID);
+        await invoke("add_game_to_category", { gameId: gameID, categoryId: categoryID });
+    }
+
+    async getGames(): Promise<IGame[]> {
+        return new Promise<IGame[]>((resolve, reject) => {
             invoke<string>("get_all_games").then(games => {
+                if (games === undefined) {
+                    console.log("getGames: no games found");
+                    reject();
+                }
                 resolve(this.JSONParserForGames(games));
             });
         });
