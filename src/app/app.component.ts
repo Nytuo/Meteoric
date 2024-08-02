@@ -8,18 +8,23 @@ import { TopbarComponent } from "./Components/topbar/topbar.component";
 import { CategoryService } from "./services/category.service";
 import { GenericService } from "./services/generic.service";
 import { LoadingBarComponent } from "./Components/loading-bar/loading-bar.component";
-import { PrimeNGConfig } from 'primeng/api';
+import { ConfirmationService, MessageService, PrimeNGConfig } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { BlockingOverlayComponent } from "./Components/blocking-overlay/blocking-overlay.component";
 
 @Component({
     selector: 'app-root',
     standalone: true,
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
-    imports: [CommonModule, RouterOutlet, CardListComponent, SidebarComponent, TopbarComponent, LoadingBarComponent]
+    imports: [CommonModule, RouterOutlet, CardListComponent, SidebarComponent, TopbarComponent, LoadingBarComponent, ToastModule, BlockingOverlayComponent],
+    providers: [ConfirmationService, MessageService]
+
 })
 export class AppComponent implements OnInit {
 
-    constructor(private gameService: GameService, private categroyService: CategoryService, private genericService: GenericService, private primengConfig: PrimeNGConfig) { }
+    constructor(private gameService: GameService, private categroyService: CategoryService, private genericService: GenericService, private primengConfig: PrimeNGConfig, private confirmationService: ConfirmationService, private messageService: MessageService) { }
+
 
     ngOnInit() {
         this.gameService.getGames();

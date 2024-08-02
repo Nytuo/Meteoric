@@ -136,6 +136,7 @@ export class SettingsOverlayComponent implements OnInit {
     items = [{
         label: 'General',
         icon: 'pi pi-info-circle',
+        expanded: true,
         items: [
             {
                 label: 'Themes',
@@ -156,6 +157,7 @@ export class SettingsOverlayComponent implements OnInit {
     {
         label: 'Game Importers',
         icon: 'pi pi-file-import',
+        expanded: true,
         items: [
             {
                 label: 'CSV Importer',

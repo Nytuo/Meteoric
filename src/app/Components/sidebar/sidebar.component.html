@@ -1,40 +1,75 @@
 <div class="sidebar">
-    <div class="accountAndSettings">
-        <div class="settings" (click)="openSettings()" style="cursor: pointer">
-                    <span class="material-symbols-outlined">
-                        settings
-        </span>
-        </div>
-        <div class="account">
-                    <span class="material-symbols-outlined" [routerLink]="['/account']">
-                        account_circle
-        </span></div>
-        <div class="account" (click)="toogleFullscreen()" style="cursor: pointer">
-                 <span class="material-symbols-outlined">
-                    magnify_fullscreen
-                 </span>
-        </div>
-    </div>
-    <div class="other">
-        <div class="stat">
-            <span class="material-symbols-outlined">monitoring</span>
-            <span [routerLink]="['/stats']">Stats</span>
-        </div>
-    </div>
-    <div class="categories">
-        <p>Categories</p>
-        <div class="category" *ngFor="let category of categories" (click)="setCurrentCategory(category.id)"
-             [routerLink]="['/games']">
-            <span class="activeIndicator" *ngIf="category.id == currentCategory"></span>
-            <div class="categoryItem">
-                <span class="categoryItemEl">
-                      <span class="material-symbols-outlined">{{ category.icon || 'bookmark' }}</span>
-                <p>{{ category.name }}</p> 
-                </span>
-              
-                <p-tag value="{{ category.count }}"></p-tag>
-            </div>
-        </div>
-    </div>
+	<p-sidebar [visible]="showSidebar">
+		<ng-template pTemplate="header">
+			<div class="accountAndSettings">
+				<div class="settings" (click)="openSettings()" style="cursor: pointer">
+					<i
+						[routerLink]="['/account']"
+						class="pi pi-cog"
+						style="font-size: 1.5rem"
+					></i>
+				</div>
+				<div class="account">
+					<i
+						[routerLink]="['/account']"
+						class="pi pi-user"
+						style="font-size: 1.5rem"
+					></i>
+				</div>
+				<div
+					class="account"
+					(click)="toogleFullscreen()"
+					style="cursor: pointer"
+				>
+					<i
+						[routerLink]="['/account']"
+						class="pi pi-window-maximize"
+						style="font-size: 1.5rem"
+					></i>
+				</div>
+			</div>
+		</ng-template>
+		<ng-template pTemplate="content">
+			<div class="other">
+				<div class="stat">
+					<i
+						[routerLink]="['/account']"
+						class="pi pi-chart-pie"
+						style="font-size: 1.5rem"
+					></i>
+
+					<span [routerLink]="['/stats']">Stats</span>
+				</div>
+			</div>
+
+			<div class="categories">
+				<p>Categories</p>
+				<div
+					class="category"
+					*ngFor="let category of categories"
+					(click)="setCurrentCategory(category.id)"
+					[routerLink]="['/games']"
+				>
+					<span
+						class="activeIndicator"
+						*ngIf="category.id == currentCategory"
+					></span>
+					<div class="categoryItem">
+						<span class="categoryItemEl">
+							<span class="material-symbols-outlined">{{
+								category.icon || 'bookmark'
+							}}</span>
+							<p>{{ category.name }}</p>
+						</span>
+
+						<p-tag value="{{ category.count }}"></p-tag>
+					</div>
+				</div>
+			</div>
+		</ng-template>
+	</p-sidebar>
 </div>
-<app-settings-overlay *ngIf="settingsOpen" [(visible)]="settingsOpen"></app-settings-overlay>
+<app-settings-overlay
+	*ngIf="settingsOpen"
+	[(visible)]="settingsOpen"
+></app-settings-overlay>

@@ -5,6 +5,8 @@ import { CategoryService } from "../../services/category.service";
 import { appWindow } from "@tauri-apps/api/window";
 import { TagModule } from 'primeng/tag';
 import { SettingsOverlayComponent } from "../settings-overlay/settings-overlay.component";
+import { SidebarModule } from 'primeng/sidebar';
+import { GenericService } from '../../services/generic.service';
 
 @Component({
     selector: 'app-sidebar',
@@ -14,7 +16,7 @@ import { SettingsOverlayComponent } from "../settings-overlay/settings-overlay.c
         NgForOf,
         NgIf,
         TagModule,
-        SettingsOverlayComponent
+        SettingsOverlayComponent, SidebarModule
     ],
     templateUrl: './sidebar.component.html',
     styleUrl: './sidebar.component.css'
@@ -22,6 +24,7 @@ import { SettingsOverlayComponent } from "../settings-overlay/settings-overlay.c
 export class SidebarComponent implements OnInit, OnDestroy {
 
     settingsOpen = false;
+    showSidebar = true;
     openSettings() {
         this.settingsOpen = true;
     }
@@ -37,6 +40,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
             this.categories = categories;
             this.currentCategory = this.categoryService.getCurrentCategory();
         });
+        this.genericService.getSidebarOpen().subscribe((sidebarOpen) => {
+            this.showSidebar = sidebarOpen;
+        });
     }
 
     setCurrentCategory(id: number) {
@@ -49,7 +55,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
 
     }
-    constructor(private categoryService: CategoryService) {
+    constructor(private categoryService: CategoryService, private genericService: GenericService) {
     }
 
 

@@ -19,13 +19,19 @@ import { FormsModule } from "@angular/forms";
 export class IGDBComponent {
     @Input() message: string = '';
     @Input() searchedGames: any[] = [];
-    @Output() selectItem: EventEmitter<any> = new EventEmitter<any>();
-    @Output() back: EventEmitter<void> = new EventEmitter<void>();
     @Input() selectedItem: any = null;
     @Output() selectedItemChange: EventEmitter<string> = new EventEmitter<string>();
 
     updateSelectedItem($event: any) {
         this.selectedItem = $event;
+        console.log('selectedItem', this.selectedItem);
+        let allSelectedItemsHTML = document.getElementsByClassName('selected');
+        for (let i = 0; i < allSelectedItemsHTML.length; i++) {
+            allSelectedItemsHTML[i].className = '';
+        }
+        let selectedItemHTML = document.getElementById('igdb_jaquette-' + this.selectedItem.name.toLowerCase().replace(' ', '-')) as HTMLImageElement;
+        selectedItemHTML.className = 'selected';
+
         this.selectedItemChange.emit(this.selectedItem);
     }
 }

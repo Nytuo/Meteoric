@@ -3,9 +3,10 @@ import { BehaviorSubject } from "rxjs";
 import { NavigationEnd, Router } from "@angular/router";
 import { CategoryService } from "./category.service";
 import { invoke } from "@tauri-apps/api/tauri";
+import { MessageService } from 'primeng/api';
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class GenericService {
 
@@ -27,6 +28,24 @@ export class GenericService {
     private displayInfo: BehaviorSubject<any> = new BehaviorSubject<any>(null);
     private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private gameLaunchAnimation: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private blockUI: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private sidebarOpen: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+
+    changeSidebarOpen(sidebarOpen: boolean) {
+        this.sidebarOpen.next(sidebarOpen);
+    }
+
+    getSidebarOpen() {
+        return this.sidebarOpen.asObservable();
+    }
+
+    changeBlockUI(blockUI: boolean) {
+        this.blockUI.next(blockUI);
+    }
+
+    getBlockUI() {
+        return this.blockUI.asObservable();
+    }
 
     changeZoom(zoom: number) {
         this.zoom.next(zoom);

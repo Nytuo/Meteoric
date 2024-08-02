@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { ButtonModule } from "primeng/button";
 import { DialogModule } from "primeng/dialog";
 import { DropdownModule } from "primeng/dropdown";
@@ -8,7 +8,7 @@ import { InputTextModule } from "primeng/inputtext";
 import { KeyValuePipe, NgForOf, NgIf } from "@angular/common";
 import { ListboxModule } from "primeng/listbox";
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { SharedModule } from "primeng/api";
+import { MessageService, SharedModule } from "primeng/api";
 import { TabViewModule } from "primeng/tabview";
 import IGame from "../../../interfaces/IGame";
 import { DBService } from "../../services/db.service";
@@ -26,10 +26,10 @@ import { EpicImporterComponent } from "../../plugins/epic-importer/epic-importer
 import { SteamImporterComponent } from "../../plugins/steam-importer/steam-importer.component";
 import { GogImporterComponent } from "../../plugins/gog-importer/gog-importer.component";
 import { open } from '@tauri-apps/api/dialog';
-import { dirname } from '@tauri-apps/api/path';
+import { dirname, documentDir } from '@tauri-apps/api/path';
 import { PanelMenuModule } from 'primeng/panelmenu';
-import { strict } from 'assert';
-
+import { CheckboxModule } from 'primeng/checkbox';
+import { SidebarModule } from 'primeng/sidebar';
 @Component({
     selector: 'app-edit-game',
     standalone: true,
@@ -54,12 +54,12 @@ import { strict } from 'assert';
         CSVImporter,
         EpicImporterComponent,
         SteamImporterComponent,
-        GogImporterComponent
+        GogImporterComponent, CheckboxModule, SidebarModule
     ],
     templateUrl: './edit-game.component.html',
     styleUrl: './edit-game.component.css',
 })
-export class EditGameComponent implements OnInit {
+export class EditGameComponent implements OnInit, OnDestroy {
 
 
     currentGame: IGame | undefined;
@@ -72,22 +72,29 @@ export class EditGameComponent implements OnInit {
     message: string = '';
     searchedGames: any[] = [];
     searchingGame: string = '';
+    strict: boolean = false;
+    hideSelectBtn: boolean = false;
     statuses: any = ['Not started', 'In progress', 'Completed', 'On hold', 'Dropped', 'Platinum'];
     items = [{
         label: 'Game information',
         icon: 'pi pi-info-circle',
+        expanded: true,
         items: [
             {
                 label: 'General',
                 icon: 'pi pi-file',
                 command: () => {
                     this.selectedProvider = 'general';
+                    this.searchedGames = [];
+                    this.hideSearch = false;
                 }
             },
             {
                 label: 'Personal',
                 icon: 'pi pi-id-card',
                 command: () => {
+                    this.searchedGames = [];
+                    this.hideSearch = false;
                     this.selectedProvider = 'personal';
                 }
             },
@@ -95,6 +102,8 @@ export class EditGameComponent implements OnInit {
                 label: 'Media',
                 icon: 'pi pi-images',
                 command: () => {
+                    this.searchedGames = [];
+                    this.hideSearch = false;
                     this.selectedProvider = 'media';
                 }
             },
@@ -102,6 +111,8 @@ export class EditGameComponent implements OnInit {
                 label: 'Execution',
                 icon: 'pi pi-play',
                 command: () => {
+                    this.searchedGames = [];
+                    this.hideSearch = false;
                     this.selectedProvider = 'exec';
 
                 }
@@ -111,13 +122,16 @@ export class EditGameComponent implements OnInit {
     {
         label: 'Metadata Providers',
         icon: 'pi pi-pencil',
+        expanded: true,
         items: [
             {
                 label: 'Youtube Background Music Provider',
                 icon: 'pi pi-youtube',
                 command: () => {
                     this.selectedProvider = 'ytdl';
+                    this.searchedGames = [];
                     this.hideSearch = true;
+                    this.hideSelectBtn = true;
                 }
             },
             {
@@ -125,7 +139,10 @@ export class EditGameComponent implements OnInit {
                 icon: 'pi pi-desktop',
                 command: () => {
                     this.selectedProvider = 'steam_grid';
+                    this.searchedGames = [];
                     this.hideSearch = true;
+                    this.hideSelectBtn = false;
+
                 }
             },
             {
@@ -133,7 +150,10 @@ export class EditGameComponent implements OnInit {
                 icon: 'pi pi-desktop',
                 command: () => {
                     this.selectedProvider = 'igdb';
+                    this.searchedGames = [];
                     this.hideSearch = true;
+                    this.hideSelectBtn = true;
+
                 }
             }
         ]
@@ -242,10 +262,24 @@ export class EditGameComponent implements OnInit {
         }
     };
 
-
-    constructor(private db: DBService, private gameService: GameService, private elementRef: ElementRef, protected genericService: GenericService, protected router: Router) {
-
+    ngAfterViewInit() {
+        let topBar = document.querySelector('.topbar') as HTMLElement;
+        if (topBar) {
+            topBar.style.display = 'none';
+        }
+        this.genericService.changeSidebarOpen(false);
     }
+
+    ngOnDestroy() {
+        let topBar = document.querySelector('.topbar') as HTMLElement;
+        if (topBar) {
+            topBar.style.display = 'flex';
+        }
+        this.genericService.changeSidebarOpen(true);
+    }
+
+
+    constructor(private db: DBService, private gameService: GameService, private elementRef: ElementRef, protected genericService: GenericService, protected router: Router, private messageService: MessageService) { }
 
     openSearchMode() {
         this.searchMode = true;
@@ -257,33 +291,31 @@ export class EditGameComponent implements OnInit {
     async searchGameInAPI() {
         let gameName = this.searchingGame;
         let provider = this.selectedProvider;
-
-        await invoke<string>("search_metadata", { gameName: gameName, pluginName: provider, strict: false }).then((games) => {
+        let strict = this.strict;
+        console.log(gameName, provider, strict);
+        await invoke<string>("search_metadata", { gameName: gameName, pluginName: provider, strict: strict }).then((games) => {
             console.log(games);
             this.message = "";
-            if (games === undefined) {
+            if (games === undefined || games.length === 0 || games === '[]') {
                 this.message = "No games found";
+                this.messageService.add({ severity: 'error', summary: 'No games found', detail: 'No games found', life: 3000 });
+                return;
             }
             if (games === "No credentials found") {
                 this.message = "No credentials found, please check your configuration";
+                this.messageService.add({ severity: 'error', summary: 'No credentials found', detail: 'No credentials found, please check your configuration', life: 3000 });
+                return;
             }
 
             if (provider === "steam_grid") {
                 let array = JSON.parse(JSON.parse(games));
                 this.searchedGames = array;
-                this.openSearchMode();
-                return;
-            }
-
-            if (provider === "csv_importer" || provider === 'epic_importer' || provider === 'steam_importer' || provider === 'gog_importer') {
-                this.openSearchMode();
                 return;
             }
 
             let type = JSON.parse(games) && JSON.parse(JSON.parse(games)[0]);
             type = type.url ? "audio" : "game";
             console.log(type);
-            this.openSearchMode();
             if (this.message !== "") {
                 return;
             }
@@ -407,6 +439,7 @@ export class EditGameComponent implements OnInit {
         this.db.deleteElement("video", this.currentGame.id, id.toString());
         delete this.currentGame.videos[this.currentGame.videos.indexOf(path)];
         this.gameService.setGame(this.currentGameID, this.currentGame);
+        this.messageService.add({ severity: 'info', summary: 'Video deleted', detail: 'The video has been deleted', life: 3000 });
     }
 
     deleteScreenshot(path: any) {
@@ -418,13 +451,16 @@ export class EditGameComponent implements OnInit {
         this.db.deleteElement("screenshot", this.currentGame.id, id);
         delete this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
         this.gameService.setGame(this.currentGameID, this.currentGame);
+        this.messageService.add({ severity: 'info', summary: 'Screenshot deleted', detail: 'The screenshot has been deleted', life: 3000 });
     }
 
     deleteBackgroundMusic() {
         if (this.currentGame === undefined) {
             return;
         }
-        this.db.deleteElement("audio", this.currentGame.id);
+        this.db.deleteElement("audio", this.currentGame.id).then(() => {
+            this.messageService.add({ severity: 'info', summary: 'Audio deleted', detail: 'The audio has been deleted', life: 3000 });
+        });
     }
 
     private saveMediaToExternalStorage() {
@@ -441,8 +477,10 @@ export class EditGameComponent implements OnInit {
                     if (this.currentGameID === undefined || this.currentGame === undefined) {
                         return;
                     }
-                    this.gameService.setGame(this.currentGameID, this.currentGame);
+                    this.gameService.setGame(this.currentGameID, this.gameService.getGame(this.currentGameID) as IGame);
                     this.gameService.setGameObservable(this.currentGame);
+                    this.messageService.add({ severity: 'info', summary: 'Metadata saved', detail: 'The metadata has been saved for : ' + this.currentGame.name, life: 3000 });
+                    this.genericService.changeBlockUI(false);
                 });
                 this.isAudioMetadata = false;
             });
@@ -479,6 +517,7 @@ export class EditGameComponent implements OnInit {
     });
 
     selectItem() {
+        this.genericService.changeBlockUI(true);
         console.log(this.selectedItem);
         if (this.selectedItem === undefined) {
             return;
@@ -490,7 +529,7 @@ export class EditGameComponent implements OnInit {
             this.searchYT4BGMusic();
             return;
         }
-        if (this.selectedItem === 'steam_grid') {
+        if (this.selectedProvider === 'steam_grid') {
             this.saveMediaToExternalStorage();
             return;
         }
@@ -525,7 +564,6 @@ export class EditGameComponent implements OnInit {
             game_dir: new FormControl(this.currentGame?.game_dir),
             exec_args: new FormControl(this.currentGame?.exec_args),
         });
-        this.saveMediaToExternalStorage();
         this.searchMode = false;
         if (this.currentGame === undefined) {
             return;
@@ -556,11 +594,12 @@ export class EditGameComponent implements OnInit {
         for (let key of this.execKeys) {
             game[key] = this.exec.get(key)?.value;
         }
-        this.db.postGame(game);
+        this.db.postGame(game).then(r => this.gameService.getGames().then(() => { this.messageService.add({ severity: 'info', summary: 'Saved', detail: 'The change has been saved', life: 3000 }); }));
         this.gameService.setGame(this.currentGameID, game);
     }
 
     saveGameInfo() {
+        this.genericService.changeBlockUI(true);
         if (this.currentGameID === undefined && this.currentGame === undefined) {
             return;
         }
@@ -584,9 +623,10 @@ export class EditGameComponent implements OnInit {
             game[key] = this.info.get(key)?.value;
         }
 
-        this.db.postGame(game);
-
-        this.gameService.setGame(this.currentGameID, game);
+        this.db.postGame(game).then(r => this.gameService.getGames().then(() => {
+            this.messageService.add({ severity: 'info', summary: 'Saved', detail: 'The change has been saved', life: 3000 });
+            this.saveMediaToExternalStorage();
+        }));
     }
 
     saveGameStat() {
@@ -613,7 +653,7 @@ export class EditGameComponent implements OnInit {
             game[key] = this.stat.get(key)?.value;
         }
 
-        this.db.postGame(game);
+        this.db.postGame(game).then(r => this.gameService.getGames().then(() => { this.messageService.add({ severity: 'info', summary: 'Saved', detail: 'The change has been saved', life: 3000 }); }));
         this.gameService.setGame(this.currentGameID, game);
     }
 
@@ -681,6 +721,7 @@ export class EditGameComponent implements OnInit {
                 game.exec_args = execs.exec_args;
                 await this.db.postGame(game!);
                 this.gameService.setGame(this.currentGameID, game!);
+                this.messageService.add({ severity: 'info', summary: 'Game Linked', detail: 'The game has been linked', life: 3000 });
             }
         }
         return;

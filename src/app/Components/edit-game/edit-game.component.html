@@ -1,38 +1,58 @@
 <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem">
-	<div [style]="{ width: '80vw' }">
-		<div class="sideBySide">
-			<div>
-				<p-panelMenu [model]="items" styleClass="w-full md:w-20rem" />
+	<p-sidebar [visible]="true" class="editmode">
+		<ng-template pTemplate="header">
+			<div class="flex align-items-center gap-2">
+				<span class="font-bold"> Editing {{ currentGame?.name }} </span>
 			</div>
-			<div class="content">
-				<div
-					style="
-						display: flex;
-						gap: 1rem;
-						justify-content: space-between;
-						align-items: center;
-						margin-top: 1rem;
-						margin-bottom: 1rem;
-					"
-					*ngIf="hideSearch"
-				>
-					<p-floatLabel>
-						<input
-							pInputText
-							id="searchGame"
-							[(ngModel)]="searchingGame"
-							(keydown.enter)="searchGameInAPI()"
-						/>
-						<label for="searchGame">Search A Game</label>
-					</p-floatLabel>
-					<p-button label="Search" (click)="searchGameInAPI()"></p-button>
-				</div>
+		</ng-template>
+		<p-panelMenu [model]="items" styleClass="w-full md:w-20rem" />
+		<br />
+		<p-button
+			label="Close"
+			[routerLink]="['/game/' + currentGame?.id]"
+			icon="pi pi-times"
+		></p-button>
+	</p-sidebar>
+	<div [style]="{ width: '80vw' }">
+		<div class="content">
+			<div
+				style="
+					width: 100%;
+					display: flex;
+					gap: 1rem;
+					justify-content: space-between;
+					align-items: center;
+					margin-top: 15vh;
+					padding: 1rem;
+				"
+				*ngIf="hideSearch"
+			>
+				<p-floatLabel style="width: 400px">
+					<input
+						pInputText
+						id="searchGame"
+						[(ngModel)]="searchingGame"
+						(keydown.enter)="searchGameInAPI()"
+					/>
+					<label for="searchGame">Search A Game</label>
+				</p-floatLabel>
+				<p-button label="Search" (click)="searchGameInAPI()"></p-button>
+				<p-checkbox
+					[(ngModel)]="strict"
+					[binary]="true"
+					label="Strict"
+				></p-checkbox>
+				<p-button
+					label="Select"
+					*ngIf="hideSelectBtn"
+					(click)="selectItem()"
+				></p-button>
+			</div>
+			<div id="providers" *ngIf="hideSearch">
 				<app-igdb
 					*ngIf="selectedProvider === 'igdb'"
 					[message]="message"
 					[searchedGames]="searchedGames"
-					(selectItem)="selectItem()"
-					(back)="searchMode = false"
 					[(selectedItem)]="selectedItem"
 				></app-igdb>
 
@@ -40,8 +60,6 @@
 					*ngIf="selectedProvider === 'ytdl'"
 					[message]="message"
 					[searchedGames]="searchedGames"
-					(selectItem)="selectItem()"
-					(back)="searchMode = false"
 					[(selectedItem)]="selectedItem"
 				></app-ytdl>
 
@@ -49,16 +67,24 @@
 					*ngIf="selectedProvider === 'steam_grid'"
 					[message]="message"
 					[searchedGames]="searchedGames"
-					(selectItem)="selectItem()"
-					(back)="searchMode = false"
 					[(selectedItem)]="selectedItem"
+					(selectItem)="selectItem()"
 				></app-steam-grid>
+			</div>
+			<div id="gameInfo" *ngIf="currentGame && !hideSearch">
 				<div *ngIf="selectedProvider === 'general'">
+					<h1>General Info</h1>
 					<form
 						[formGroup]="info"
 						(ngSubmit)="saveGameInfo()"
 						class="formDisplay"
 					>
+						<p-button
+							label="Save"
+							class="posBL"
+							icon="pi pi-save"
+							type="submit"
+						></p-button>
 						<ng-container *ngIf="currentGame">
 							<div
 								*ngFor="let field of currentGame | keyvalue"
@@ -79,10 +105,10 @@
 								</small>
 							</div>
 						</ng-container>
-						<p-button label="Save" type="submit"></p-button>
 					</form>
 				</div>
 				<div *ngIf="selectedProvider === 'personal'">
+					<h1>Personal Stats</h1>
 					<form
 						[formGroup]="stat"
 						(ngSubmit)="saveGameStat()"
@@ -117,6 +143,7 @@
 					</form>
 				</div>
 				<div *ngIf="selectedProvider === 'media'">
+					<h1>Media</h1>
 					<ng-container *ngIf="currentGame">
 						<div class="formDisplay">
 							<h2>Background</h2>
@@ -279,6 +306,7 @@
 					</ng-container>
 				</div>
 				<div *ngIf="selectedProvider === 'exec'">
+					<h1>Execution</h1>
 					<form
 						[formGroup]="exec"
 						(ngSubmit)="saveGameExec()"

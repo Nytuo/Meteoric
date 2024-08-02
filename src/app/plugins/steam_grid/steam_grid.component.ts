@@ -1,11 +1,12 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {ButtonModule} from "primeng/button";
-import {ListboxModule} from "primeng/listbox";
-import {NgIf, NgFor} from "@angular/common";
-import {FormsModule} from "@angular/forms";
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { ListboxModule } from 'primeng/listbox';
+import { NgIf, NgFor } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import ISGDB from './ISGDB';
 import { invoke } from '@tauri-apps/api/tauri';
 import IGame from '../../../interfaces/IGame';
+import { StepperModule } from 'primeng/stepper';
 
 @Component({
     selector: 'app-steam-grid',
@@ -15,22 +16,21 @@ import IGame from '../../../interfaces/IGame';
         ListboxModule,
         NgIf,
         NgFor,
-        FormsModule
+        FormsModule,
+        StepperModule,
     ],
     templateUrl: './steam_grid.component.html',
-    styleUrl: './steam_grid.component.css'
+    styleUrl: './steam_grid.component.css',
 })
-
-export class SteamGridComponent {
-
+export class SteamGridComponent implements OnInit {
+    ngOnInit(): void {
+    }
     @Input() message: string = '';
     @Input() searchedGames: any[] = [];
     @Output() selectItem: EventEmitter<any> = new EventEmitter<any>();
     @Output() back: EventEmitter<void> = new EventEmitter<void>();
     @Input() selectedItem: any = null;
     @Output() selectedItemChange: EventEmitter<any> = new EventEmitter<any>();
-
-    currentStep: number = 0;
 
     availableGrids: any[] = [];
     availableHeroes: any[] = [];
@@ -41,7 +41,7 @@ export class SteamGridComponent {
         name: '',
         release_date: '',
         verified: false,
-        types: []
+        types: [],
     };
     toSendGame = {
         id: '-1',
@@ -51,7 +51,16 @@ export class SteamGridComponent {
         icon: '',
     };
 
-    send(){
+    onStepChange($event: any) {
+        console.log($event);
+        //try switch
+        this.applySelectionOn('grid', this.selectGridIndex);
+        this.applySelectionOn('hero', this.selectHeroIndex);
+        this.applySelectionOn('logo', this.selectLogoIndex);
+        this.applySelectionOn('icon', this.selectIconIndex);
+    }
+
+    send() {
         console.log(this.toSendGame);
         this.selectedItemChange.emit(this.toSendGame);
         this.selectItem.emit();
@@ -59,7 +68,6 @@ export class SteamGridComponent {
 
     updateSelectedItem($event: any) {
         this.selectedItem = $event;
-        this.currentStep++;
         this.selectedItemLocal = this.selectedItem;
         this.updateAvailableGrids();
         this.updateAvailableHeroes();
@@ -68,75 +76,108 @@ export class SteamGridComponent {
     }
 
     async updateAvailableGrids() {
-        this.availableGrids = await invoke<string[]>("steamgrid_get_grid", { gameId: this.selectedItemLocal.id }).then((grids) => {
+        this.availableGrids = await invoke<string[]>('steamgrid_get_grid', {
+            gameId: this.selectedItemLocal.id,
+        }).then((grids) => {
             return grids;
         });
         console.log(this.availableGrids);
         this.availableGrids = this.availableGrids.map((grid: any) => {
             return {
                 image: grid.url,
-                thumb: grid.thumb
+                thumb: grid.thumb,
             };
         });
     }
 
     async updateAvailableHeroes() {
-        this.availableHeroes = await invoke<string[]>("steamgrid_get_hero", { gameId: this.selectedItemLocal.id }).then((heroes) => {
+        this.availableHeroes = await invoke<string[]>('steamgrid_get_hero', {
+            gameId: this.selectedItemLocal.id,
+        }).then((heroes) => {
             return heroes;
         });
         console.log(this.availableHeroes);
         this.availableHeroes = this.availableHeroes.map((hero: any) => {
             return {
                 image: hero.url,
-                thumb: hero.thumb
+                thumb: hero.thumb,
             };
         });
     }
 
     async updateAvailableLogos() {
-        this.availableLogos = await invoke<string[]>("steamgrid_get_logo", { gameId: this.selectedItemLocal.id }).then((logos) => {
+        this.availableLogos = await invoke<string[]>('steamgrid_get_logo', {
+            gameId: this.selectedItemLocal.id,
+        }).then((logos) => {
             return logos;
         });
         console.log(this.availableLogos);
         this.availableLogos = this.availableLogos.map((logo: any) => {
             return {
                 image: logo.url,
-                thumb: logo.thumb
+                thumb: logo.thumb,
             };
         });
     }
 
     async updateAvailableIcons() {
-        this.availableIcons = await invoke<string[]>("steamgrid_get_icon", { gameId: this.selectedItemLocal.id }).then((icons) => {
+        this.availableIcons = await invoke<string[]>('steamgrid_get_icon', {
+            gameId: this.selectedItemLocal.id,
+        }).then((icons) => {
             return icons;
         });
         console.log(this.availableIcons);
         this.availableIcons = this.availableIcons.map((icon: any) => {
             return {
                 image: icon.url,
-                thumb: icon.thumb
+                thumb: icon.thumb,
             };
         });
     }
 
-    selectGrid(grid: string) {
+    selectGridIndex = 0;
+    selectHeroIndex = 0;
+    selectLogoIndex = 0;
+    selectIconIndex = 0;
+
+    applySelectionOn(item: string, index: number) {
+        console.log('applySelectionOn', item, index);
+        let allSelectedItemsHTML = document.querySelectorAll('.' + item + '.selected');
+        for (let i = 0; i < allSelectedItemsHTML.length; i++) {
+            allSelectedItemsHTML[i].classList.remove('selected');
+        }
+        let selectedItemHTML = document.getElementById(
+            item + '-' + index,
+        ) as HTMLImageElement;
+        console.log(selectedItemHTML);
+        if (selectedItemHTML === null) {
+            return;
+        }
+        selectedItemHTML.classList.add('selected');
+    }
+
+
+    selectGrid(grid: string, index: number) {
         this.toSendGame.jaquette = grid;
-        this.currentStep++;
+        this.selectGridIndex = index;
+        this.applySelectionOn('grid', index);
     }
 
-    selectHero(hero: string) {
+    selectHero(hero: string, index: number) {
         this.toSendGame.background = hero;
-        this.currentStep++;
+        this.selectHeroIndex = index;
+        this.applySelectionOn('hero', index);
     }
 
-    selectLogo(logo: string) {
+    selectLogo(logo: string, index: number) {
         this.toSendGame.logo = logo;
-        this.currentStep++;
+        this.selectLogoIndex = index;
+        this.applySelectionOn('logo', index);
     }
 
-    selectIcon(icon: string) {
+    selectIcon(icon: string, index: number) {
         this.toSendGame.icon = icon;
+        this.selectIconIndex = index;
+        this.applySelectionOn('icon', index);
     }
-
-
 }

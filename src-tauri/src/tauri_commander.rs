@@ -295,7 +295,7 @@ pub async fn search_metadata(game_name: String, plugin_name: String, strict: boo
             format!("{:?}", result)
         }
         "igdb" => {
-            let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
+            let client_id: String = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
             let client_secret =
                 env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
             igdb::set_credentials(Vec::from([client_id, client_secret]));

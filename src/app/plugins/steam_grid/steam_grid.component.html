@@ -1,50 +1,178 @@
 <div>
-    <div *ngIf="!selectedItem">
-        <p-button label="Back" (click)="back.emit()"></p-button>
-        <p>Select the game you want to add</p>
-        <p *ngIf="message">{{ message }}</p>
-        <div *ngIf="!message">
-            <p-listbox [options]="searchedGames" (ngModelChange)="updateSelectedItem(
-                $event
-            )" [(ngModel)]="selectedItem" optionLabel="name"></p-listbox>
-        </div>
-    </div>
-    <div *ngIf="currentStep === 1">
-        <p-button label="Back" (click)="updateSelectedItem(null)"></p-button>
-        <p>Select the Grid</p>
-        <div class="container">
-            <div *ngFor="let grid of availableGrids">
-                <img [src]="grid.thumb" alt="Grid" (click)="selectGrid(grid.image)">
-            </div>
-        </div>
-    </div>
-
-    <div *ngIf="currentStep === 2">
-        <p>Select the Hero</p>
-        <div class="container">
-            <div *ngFor="let hero of availableHeroes">
-                <img [src]="hero.thumb" alt="Hero" class="hero" (click)="selectHero(hero.image)">
-            </div>
-        </div>
-    </div>
-
-    <div *ngIf="currentStep === 3">
-        <p>Select the Logo</p>
-        <div class="container">
-            <div *ngFor="let logo of availableLogos">
-                <img [src]="logo.thumb" alt="Logo" (click)="selectLogo(logo.image)">
-            </div>
-        </div>
-    </div>
-    <div *ngIf="currentStep === 4">
-        <p>Select the Icon</p>
-        <div class="container">
-            <div *ngFor="let icon of availableIcons">
-                <img [src]="icon.thumb" alt="Icon" (click)="selectIcon(icon.image)">
-            </div>
-        </div>
-    </div>
-
-    <p-button *ngIf="currentStep === 4" label="Save" (click)="send()"></p-button>
-
+	<h1>Steam Grid DB</h1>
+	<p-stepper (activeStepChange)="onStepChange($event)">
+		<p-stepperPanel header="Game">
+			<ng-template
+				pTemplate="content"
+				let-nextCallback="nextCallback"
+				let-index="index"
+			>
+				<div style="width: 100%">
+					<div [style]="{ margin: '20px' }">
+						<h2>Select the game you want to add</h2>
+						<p *ngIf="message">{{ message }}</p>
+						<div *ngIf="!message">
+							<p-listbox
+								[options]="searchedGames"
+								(ngModelChange)="updateSelectedItem($event)"
+								[(ngModel)]="selectedItem"
+								optionLabel="name"
+							></p-listbox>
+						</div>
+					</div>
+				</div>
+				<div style="display: flex; justify-content: flex-end">
+					<p-button
+						label="Next"
+						icon="pi pi-arrow-right"
+						iconPos="right"
+						(onClick)="nextCallback.emit()"
+					/>
+				</div>
+			</ng-template>
+		</p-stepperPanel>
+		<p-stepperPanel header="Grid">
+			<ng-template
+				pTemplate="content"
+				let-prevCallback="prevCallback"
+				let-nextCallback="nextCallback"
+				let-index="index"
+			>
+				<div style="width: 100%">
+					<div [style]="{ margin: '20px' }">
+						<h2>Select the Grid</h2>
+						<div class="container">
+							<div *ngFor="let grid of availableGrids; let i = index">
+								<img
+									[src]="grid.thumb"
+									alt="Grid"
+									class="grid"
+									id="grid-{{ i }}"
+									(click)="selectGrid(grid.image, i)"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div style="display: flex; justify-content: space-evenly">
+					<p-button
+						label="Back"
+						icon="pi pi-arrow-left"
+						(onClick)="prevCallback.emit()"
+					/>
+					<p-button
+						label="Next"
+						icon="pi pi-arrow-right"
+						iconPos="right"
+						(onClick)="nextCallback.emit()"
+					/>
+				</div>
+			</ng-template> </p-stepperPanel
+		><p-stepperPanel header="Hero">
+			<ng-template
+				pTemplate="content"
+				let-prevCallback="prevCallback"
+				let-nextCallback="nextCallback"
+				let-index="index"
+			>
+				<div style="width: 100%">
+					<div [style]="{ margin: '20px' }">
+						<h2>Select the Hero</h2>
+						<div class="container">
+							<div *ngFor="let hero of availableHeroes; let i = index">
+								<img
+									[src]="hero.thumb"
+									alt="Hero"
+									id="hero-{{ i }}"
+									class="hero"
+									(click)="selectHero(hero.image, i)"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div style="display: flex; justify-content: space-evenly">
+					<p-button
+						label="Back"
+						icon="pi pi-arrow-left"
+						(onClick)="prevCallback.emit()"
+					/>
+					<p-button
+						label="Next"
+						icon="pi pi-arrow-right"
+						iconPos="right"
+						(onClick)="nextCallback.emit()"
+					/>
+				</div>
+			</ng-template>
+		</p-stepperPanel>
+		<p-stepperPanel header="Logo">
+			<ng-template
+				pTemplate="content"
+				let-prevCallback="prevCallback"
+				let-nextCallback="nextCallback"
+				let-index="index"
+			>
+				<div style="width: 100%">
+					<div [style]="{ margin: '20px' }">
+						<h2>Select the Logo</h2>
+						<div class="container">
+							<div *ngFor="let logo of availableLogos; let i = index">
+								<img
+									[src]="logo.thumb"
+									alt="Logo"
+									class="logo"
+									id="logo-{{ i }}"
+									(click)="selectLogo(logo.image, i)"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div style="display: flex; justify-content: space-evenly">
+					<p-button
+						label="Back"
+						icon="pi pi-arrow-left"
+						(onClick)="prevCallback.emit()"
+					/>
+					<p-button
+						label="Next"
+						icon="pi pi-arrow-right"
+						iconPos="right"
+						(onClick)="nextCallback.emit()"
+					/>
+				</div>
+			</ng-template>
+		</p-stepperPanel>
+		<p-stepperPanel header="Icon">
+			<ng-template
+				pTemplate="content"
+				let-prevCallback="prevCallback"
+				let-index="index"
+			>
+				<div style="width: 100%">
+					<p>Select the Icon</p>
+					<div class="container">
+						<div *ngFor="let icon of availableIcons; let i = index">
+							<img
+								[src]="icon.thumb"
+								alt="Icon"
+								class="icon"
+								id="icon-{{ i }}"
+								(click)="selectIcon(icon.image, i)"
+							/>
+						</div>
+					</div>
+				</div>
+				<div style="display: flex; justify-content: space-evenly">
+					<p-button
+						label="Back"
+						icon="pi pi-arrow-left"
+						(onClick)="prevCallback.emit()"
+					/>
+					<p-button label="Save" icon="pi pi-save" (click)="send()"></p-button>
+				</div>
+			</ng-template>
+		</p-stepperPanel>
+	</p-stepper>
 </div>

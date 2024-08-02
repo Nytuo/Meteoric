@@ -1,9 +1,10 @@
 <div class="container">
-    <app-sidebar/>
-    <app-topbar/>
-    <div class="content" (click)="closeOverlay()">
-        <p class="warning-dev">UNDER DEVELOPMENT : YOU MAY NEED TO REFRESH AND EXPECT SOME ISSUES</p>
-        <router-outlet></router-outlet>
-    </div>
-    <app-loading-bar></app-loading-bar>
+	<p-toast />
+	<app-blocking-overlay />
+	<app-sidebar />
+	<app-topbar />
+	<div class="content" (click)="closeOverlay()">
+		<router-outlet></router-outlet>
+	</div>
+	<app-loading-bar></app-loading-bar>
 </div>

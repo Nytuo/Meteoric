@@ -1,0 +1,8 @@
+<div class="overlayLoading" *ngIf="loading">
+	<p>Something that cannot be interrupted is happening...</p>
+	<p-progressBar
+		mode="indeterminate"
+		[style]="{ height: '6px', zIndex: 99999999, width: '400px' }"
+		*ngIf="loading"
+	></p-progressBar>
+</div>
