@@ -86,9 +86,13 @@ export class TopbarComponent implements OnInit {
 			'',
 		);
 	}
-	addToCategory(id: string) {
+	toggleCategory($event: any, id: string) {
 		let gameID = this.gameID;
 		if (!gameID) {
+			return;
+		}
+		if (!$event.target.checked) {
+			this.categoryService.removeGameFromCategory(gameID, id);
 			return;
 		}
 		this.categoryService.addGameToCategory(gameID, id);

@@ -22,9 +22,10 @@
 				<label class="form-control" for="addtocat">
 					<input
 						type="checkbox"
+                        id="addtocat"
 						name="addtocat"
 						[defaultChecked]="isCategoryChecked(cat.id)"
-						(change)="addToCategory(cat.id)"
+						(change)="toggleCategory($event,cat.id)"
 					/>
 					{{ cat.name }}
 				</label>

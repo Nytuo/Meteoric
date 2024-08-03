@@ -101,6 +101,29 @@ pub(crate) fn add_game_to_category_db(
     Ok(())
 }
 
+pub(crate) fn remove_game_from_category_db(
+    conn: &Connection,
+    game_id: String,
+    category_id: String,
+) -> rusqlite::Result<()> {
+    let games: String = conn
+        .query_row(
+            "SELECT games FROM universe WHERE id = ?1",
+            params![category_id],
+            |row| row.get(0),
+        )
+        .unwrap_or_default();
+    let games: Vec<&str> = games.split(',').collect();
+    let games: Vec<String> = games.iter().map(|s| s.to_string()).collect();
+    let games: Vec<String> = games.into_iter().filter(|s| s != &game_id).collect();
+    let games: String = games.join(",");
+    conn.execute(
+        "UPDATE universe SET games = ?1 WHERE id = ?2",
+        params![games, category_id],
+    )?;
+    Ok(())
+}
+
 fn update_data(
     conn: &Connection,
     id: i32,

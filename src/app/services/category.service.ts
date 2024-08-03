@@ -167,4 +167,10 @@ export class CategoryService {
 	getCategoriesObservable() {
 		return this.catSubject.asObservable();
 	}
+
+	removeGameFromCategory(gameID: string, id: string) {
+		this.db.removeGameFromCategory(gameID, id).then(() => {
+			this.getCategoriesFromDB();
+		});
+	}
 }

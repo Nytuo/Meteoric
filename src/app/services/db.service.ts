@@ -181,4 +181,8 @@ export class DBService {
                 });
         });
     }
+
+    removeGameFromCategory(gameID: string, id: string) {
+        return invoke("remove_game_from_category", { gameId: gameID, categoryId: id });
+    }
 }
