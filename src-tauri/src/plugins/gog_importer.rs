@@ -3,9 +3,8 @@ use std::io::Read;
 use std::io::Write;
 
 use directories::ProjectDirs;
-use gog::token::Token;
 use gog::Gog;
-use tokio::runtime::Handle;
+use gog::token::Token;
 use tokio::{sync::Mutex, task};
 
 use crate::database::establish_connection;
@@ -40,13 +39,13 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
             parsed_token = Token::from_login_code(token.to_string()).unwrap();
             let mut file = File::create(file_path).unwrap();
             let json = serde_json::to_string(&parsed_token).unwrap();
-            write!(file, "{}", json);
+            write!(file, "{}", json).expect("Unable to write to file");
         }
 
         let gog = Gog::new(parsed_token);
-        let mut games = gog.get_games().unwrap();
+        let games = gog.get_games().unwrap();
         for game_id in games {
-            let mut games_detailled = gog.get_game_details(game_id);
+            let games_detailled = gog.get_game_details(game_id);
             match games_detailled {
                 Ok(game) => {
                     let mut igame: IGame = IGame::new();
@@ -60,7 +59,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                     igame.tags = tags.join(",");
                     igame.platforms = "GOG".to_string();
                     let conn = establish_connection().unwrap();
-                    update_game(&conn, igame);
+                    update_game(&conn, igame).expect("Failed to update game");
                 }
                 Err(_) => println!("failed to get game details"),
             }
@@ -77,6 +76,6 @@ pub async fn set_credentials(creds: Vec<String>) {
 }
 
 pub async fn get_games_from_user() -> Result<(), Box<dyn std::error::Error>> {
-    get_games().await;
+    get_games().await.expect("Failed to get games");
     Ok(())
 }

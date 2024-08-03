@@ -1,8 +1,9 @@
-use crate::IGame;
-use chrono::format;
-use directories::ProjectDirs;
-use rusqlite::{params, Connection, OptionalExtension};
 use std::collections::HashMap;
+
+use directories::ProjectDirs;
+use rusqlite::{Connection, params};
+
+use crate::IGame;
 
 pub(crate) fn query_data(
     conn: &Connection,
@@ -10,7 +11,7 @@ pub(crate) fn query_data(
     fields: Vec<&str>,
     conditions: Vec<(&str, &str)>,
     is_list: bool,
-) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
+) -> Result<Vec<HashMap<String, String>>, rusqlite::Error> {
     let sql;
     if is_list {
         sql = format!(
@@ -43,7 +44,7 @@ pub(crate) fn query_data(
 pub(crate) fn query_all_data(
     conn: &Connection,
     table: &str,
-) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
+) -> Result<Vec<HashMap<String, String>>, rusqlite::Error> {
     let mut stmt = conn.prepare(&format!("SELECT * FROM {}", table))?;
     let json = make_a_json_from_db(&mut stmt)?;
     Ok(json)
@@ -210,7 +211,7 @@ fn create_table(
 
 fn make_a_json_from_db(
     stmt: &mut rusqlite::Statement,
-) -> std::result::Result<Vec<HashMap<String, String>>, rusqlite::Error> {
+) -> Result<Vec<HashMap<String, String>>, rusqlite::Error> {
     let col_count = stmt.column_count();
     let col_names = stmt
         .column_names()
@@ -284,7 +285,7 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
 }
 
 pub(crate) fn get_all_fields(conn: &Connection) -> Result<Vec<String>, rusqlite::Error> {
-    let mut stmt = conn.prepare(&format!("SELECT * FROM games LIMIT 1"))?;
+    let stmt = conn.prepare(&"SELECT * FROM games LIMIT 1".to_string())?;
     let col_names = stmt
         .column_names()
         .into_iter()

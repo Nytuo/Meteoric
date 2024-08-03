@@ -1,12 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { RouterLink } from "@angular/router";
-import { NgForOf, NgIf } from "@angular/common";
-import { CategoryService } from "../../services/category.service";
-import { appWindow } from "@tauri-apps/api/window";
-import { TagModule } from 'primeng/tag';
-import { SettingsOverlayComponent } from "../settings-overlay/settings-overlay.component";
-import { SidebarModule } from 'primeng/sidebar';
-import { GenericService } from '../../services/generic.service';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {RouterLink} from "@angular/router";
+import {NgForOf, NgIf} from "@angular/common";
+import {CategoryService} from "../../services/category.service";
+import {appWindow} from "@tauri-apps/api/window";
+import {TagModule} from 'primeng/tag';
+import {SettingsOverlayComponent} from "../settings-overlay/settings-overlay.component";
+import {SidebarModule} from 'primeng/sidebar';
+import {GenericService} from '../../services/generic.service';
 
 @Component({
     selector: 'app-sidebar',
@@ -25,14 +25,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     settingsOpen = false;
     showSidebar = true;
+    categories: any[] = [];
+    currentCategory = "0";
+    protected readonly appWindow = appWindow;
+
+    constructor(private categoryService: CategoryService, private genericService: GenericService) {
+    }
+
     openSettings() {
         this.settingsOpen = true;
     }
-
-    categories: any[] = [
-    ];
-
-    currentCategory = "0";
 
     ngOnInit() {
         this.categoryService.getCategories();
@@ -50,18 +52,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.categoryService.setCurrentCategory(id);
     }
 
-
-
     ngOnDestroy() {
 
     }
-    constructor(private categoryService: CategoryService, private genericService: GenericService) {
-    }
 
-
-    protected readonly appWindow = appWindow;
-
-    async toogleFullscreen() {
+    async toggleFullscreen() {
         if (await this.appWindow.isFullscreen()) {
             await this.appWindow.setFullscreen(false);
         } else {

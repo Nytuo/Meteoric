@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { CardComponent } from "../card/card.component";
-import { NgForOf, NgIf } from "@angular/common";
+import {Component, OnInit} from '@angular/core';
+import {CardComponent} from "../card/card.component";
+import {NgForOf, NgIf} from "@angular/common";
 import IGame from "../../../interfaces/IGame";
-import { GameService } from "../../services/game.service";
-import { GenericService } from "../../services/generic.service";
-import { CategoryService } from '../../services/category.service';
+import {GameService} from "../../services/game.service";
+import {GenericService} from "../../services/generic.service";
 
 @Component({
     selector: 'app-card-list',
@@ -18,11 +17,11 @@ import { CategoryService } from '../../services/category.service';
 })
 export class CardListComponent implements OnInit {
 
-    constructor(private gameService: GameService, private genericService: GenericService, private categoryService: CategoryService) {
-    }
-
     games: IGame[] = [];
     gap: any;
+
+    constructor(private gameService: GameService, private genericService: GenericService) {
+    }
 
     ngOnInit() {
         this.genericService.getGap().subscribe(gap => {

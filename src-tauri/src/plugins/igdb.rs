@@ -1,13 +1,13 @@
+use std::collections::HashMap;
+use std::sync::Mutex;
+
 use chrono::{DateTime, NaiveDateTime, Utc};
 use reqwest::header::HeaderMap;
-use std::collections::{HashMap, HashSet};
-use std::sync::Mutex;
 use tokio::task;
 
-use crate::database::{establish_connection, query_all_data, update_game};
-use crate::file_operations::{create_extra_dirs, get_extra_dirs, save_media_to_external_storage};
-use crate::tauri_commander::download_youtube_video;
-use crate::{send_message_to_frontend, to_title_case, IGame, Metadata};
+use crate::{IGame, Metadata, to_title_case};
+use crate::database::{establish_connection, update_game};
+use crate::file_operations::save_media_to_external_storage;
 
 pub async fn calculate_igdb_token(
     client_id: String,
@@ -36,13 +36,13 @@ pub(crate) async fn search_game_igdb(
     let mut access_token = ACCESS_TOKEN.lock().unwrap();
     let mut expiration = TOKEN_EXPIRATION.lock().unwrap();
     if expiration.is_empty()
-        || chrono::Utc::now()
-            > chrono::DateTime::parse_from_rfc3339(&*expiration)?.with_timezone(&chrono::Utc)
+        || Utc::now()
+            > chrono::DateTime::parse_from_rfc3339(&*expiration)?.with_timezone(&Utc)
     {
         let d: HashMap<String, serde_json::Value> =
             calculate_igdb_token(client_id.clone(), client_secret.clone()).await?;
         *access_token = d["access_token"].to_string().replace("\"", "");
-        *expiration = chrono::Utc::now()
+        *expiration = Utc::now()
             .checked_add_signed(chrono::Duration::seconds(d["expires_in"].as_i64().unwrap()))
             .unwrap()
             .to_rfc3339();
@@ -58,8 +58,9 @@ pub(crate) async fn search_game_igdb(
         format!("Bearer {}", access_token).parse().unwrap(),
     );
     headers.insert("Accept", "application/json".parse().unwrap());
-    let mut game_reaquest;
-    if (routine_mode) {
+    let game_reaquest;
+
+    if routine_mode {
         game_reaquest = reqwest::Client::new()
             .post(request_url)
             .body(format!(

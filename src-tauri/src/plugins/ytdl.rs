@@ -1,7 +1,8 @@
+use std::collections::HashSet;
+
 use reqwest::Client;
 use serde_json::json;
 use serde_json::Value;
-use std::collections::HashSet;
 use tokio::task;
 
 #[derive(Debug)]

@@ -1,38 +1,39 @@
 .container > div > img {
-	width: 12rem;
-	height: auto;
-	cursor: pointer;
+    width: 12rem;
+    height: auto;
+    cursor: pointer;
 }
 
 .container {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 10px;
-	flex-direction: row;
-	justify-content: space-around;
-	height: 40vh;
-	overflow: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex-direction: row;
+    justify-content: space-around;
+    height: 40vh;
+    overflow: auto;
 }
 
 .container > div > img.hero {
-	width: 30rem !important;
-	height: auto !important;
+    width: 30rem !important;
+    height: auto !important;
 }
 
 ::ng-deep .p-stepper-panels {
-	height: 55vh;
-	max-height: 55vh;
+    height: 55vh;
+    max-height: 55vh;
 }
 
 ::ng-deep .p-stepper-content {
-	height: 55vh;
-	max-height: 55vh;
+    height: 55vh;
+    max-height: 55vh;
 }
+
 .selected {
-	border: 2px solid #00ff00;
-	border-radius: 5px;
-	padding: 5px;
-	margin: 5px;
-	background-color: #000000;
-	color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+    background-color: #000000;
+    color: #00ff00;
 }

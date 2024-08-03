@@ -1,5 +1,3 @@
-import IGame from "./IGame";
-
 export default interface ICategory {
     id: string;
     name: string;

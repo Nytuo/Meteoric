@@ -1,15 +1,16 @@
-<div class="game" id="{{gameId}}" [style.width]="width"  [routerLink]="['/game', gameId]">
-    <img src="assets/logo.gif"
-         class="image" alt="{{gameName}}" #imageElement>
+<div [routerLink]="['/game', gameId]" [style.width]="width" class="game" id="{{gameId}}">
+    <img #imageElement
+         [ngSrc]="gameImage ? gameImage : 'assets/logo.gif'" alt="{{gameName}}" class="image" height="600" priority
+         width="800"/>
     <div style="margin-top: 10px;">
-        <p class="text" *ngIf="displayInfo == 'name'">{{ gameName }}</p>
-        <p class="italic" *ngIf="displayInfo == 'platforms'">{{ gamePlatforms }}</p>
+        <p *ngIf="displayInfo == 'name'" class="text">{{ gameName }}</p>
+        <p *ngIf="displayInfo == 'platforms'" class="italic">{{ gamePlatforms }}</p>
         <div *ngIf="displayInfo == 'rating'">
-            <p-rating readonly [(ngModel)]="gameRating" [cancel]="false" [style]="{'margin-right': '10px'}"></p-rating>
+            <p-rating [(ngModel)]="gameRating" [cancel]="false" [style]="{'margin-right': '10px'}" readonly></p-rating>
         </div>
         <div *ngIf="displayInfo == 'tags'">
-            <p-tag icon="pi pi-tag" *ngFor="let tag of parsedTags" [value]="tag" [style]="{'margin-right': '10px'}"></p-tag>
+            <p-tag *ngFor="let tag of parsedTags" [style]="{'margin-right': '10px'}" [value]="tag"
+                   icon="pi pi-tag"></p-tag>
         </div>
     </div>
-
 </div>

@@ -1,16 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
-import { CardListComponent } from "./Components/card-list/card-list.component";
-import { GameService } from "./services/game.service";
-import { SidebarComponent } from "./Components/sidebar/sidebar.component";
-import { TopbarComponent } from "./Components/topbar/topbar.component";
-import { CategoryService } from "./services/category.service";
-import { GenericService } from "./services/generic.service";
-import { LoadingBarComponent } from "./Components/loading-bar/loading-bar.component";
-import { ConfirmationService, MessageService, PrimeNGConfig } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
-import { BlockingOverlayComponent } from "./Components/blocking-overlay/blocking-overlay.component";
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterOutlet} from '@angular/router';
+import {CardListComponent} from "./Components/card-list/card-list.component";
+import {GameService} from "./services/game.service";
+import {SidebarComponent} from "./Components/sidebar/sidebar.component";
+import {TopbarComponent} from "./Components/topbar/topbar.component";
+import {CategoryService} from "./services/category.service";
+import {GenericService} from "./services/generic.service";
+import {LoadingBarComponent} from "./Components/loading-bar/loading-bar.component";
+import {ConfirmationService, MessageService, PrimeNGConfig} from 'primeng/api';
+import {ToastModule} from 'primeng/toast';
+import {BlockingOverlayComponent} from "./Components/blocking-overlay/blocking-overlay.component";
 
 @Component({
     selector: 'app-root',
@@ -23,15 +23,17 @@ import { BlockingOverlayComponent } from "./Components/blocking-overlay/blocking
 })
 export class AppComponent implements OnInit {
 
-    constructor(private gameService: GameService, private categroyService: CategoryService, private genericService: GenericService, private primengConfig: PrimeNGConfig, private confirmationService: ConfirmationService, private messageService: MessageService) { }
+    constructor(private gameService: GameService, private categoryService: CategoryService, private genericService: GenericService, private primengConfig: PrimeNGConfig) {
+    }
 
 
     ngOnInit() {
         this.gameService.getGames();
-        this.categroyService.refreshCategories();
+        this.categoryService.refreshCategories();
         this.genericService.startRoutine();
         this.primengConfig.ripple = true;
     }
+
     closeOverlay() {
         let overlay = document.getElementById("overlay");
         console.log(overlay);

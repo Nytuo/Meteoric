@@ -1,8 +1,8 @@
 <div id="loading_bar">
-<p-progressBar
- [value]="value">
-    <ng-template pTemplate="content" let-value> 
-    <span>{{value_text}} {{normal_value}}/{{total}}</span>    
-    </ng-template>
-</p-progressBar>
+    <p-progressBar
+            [value]="value">
+        <ng-template let-value pTemplate="content">
+            <span>{{ value_text }} {{ normal_value }}/{{ total }}</span>
+        </ng-template>
+    </p-progressBar>
 </div>

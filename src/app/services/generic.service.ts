@@ -1,16 +1,23 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from "rxjs";
-import { NavigationEnd, Router } from "@angular/router";
-import { CategoryService } from "./category.service";
-import { invoke } from "@tauri-apps/api/tauri";
-import { MessageService } from 'primeng/api';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject} from "rxjs";
+import {NavigationEnd, Router} from "@angular/router";
+import {invoke} from "@tauri-apps/api/tauri";
 
 @Injectable({
     providedIn: 'root',
 })
 export class GenericService {
 
+    isAuthorizedToBookmark = false;
     private audio: HTMLAudioElement | null = null;
+    private zoom: BehaviorSubject<number> = new BehaviorSubject<number>(12);
+    private gap: BehaviorSubject<number> = new BehaviorSubject<number>(1);
+    private displayInfo: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+    private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private gameLaunchAnimation: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private blockUI: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private sidebarOpen: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+    private audioInterval: string | number | NodeJS.Timeout | undefined;
 
     constructor(protected router: Router) {
         this.router.events.subscribe((event) => {
@@ -20,16 +27,6 @@ export class GenericService {
 
         });
     }
-
-    isAuthorizedToBookmark = false;
-
-    private zoom: BehaviorSubject<number> = new BehaviorSubject<number>(12);
-    private gap: BehaviorSubject<number> = new BehaviorSubject<number>(1);
-    private displayInfo: BehaviorSubject<any> = new BehaviorSubject<any>(null);
-    private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-    private gameLaunchAnimation: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-    private blockUI: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-    private sidebarOpen: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
 
     changeSidebarOpen(sidebarOpen: boolean) {
         this.sidebarOpen.next(sidebarOpen);
@@ -91,8 +88,6 @@ export class GenericService {
         return this.displayBookmark.asObservable();
     }
 
-    private audioInterval: string | number | NodeJS.Timeout | undefined;
-
     playBackgroundMusic(backgroundMusic: string) {
         console.log('Playing background music');
         console.log(backgroundMusic);
@@ -137,7 +132,7 @@ export class GenericService {
     }
 
     async downloadYTAudio(url: string, id: string) {
-        return await invoke<string>("download_yt_audio", { url, id }).then((response) => {
+        return await invoke<string>("download_yt_audio", {url, id}).then((response) => {
             console.log(response);
         });
     }
@@ -145,7 +140,7 @@ export class GenericService {
     async launchGame(gameId: string) {
         this.gameLaunchAnimation.next(true);
         setTimeout(() => {
-            invoke('launch_game', { gameId }).then((response) => {
+            invoke('launch_game', {gameId}).then((response) => {
                 console.log(response);
             });
             this.stopAllAudio();
@@ -156,7 +151,7 @@ export class GenericService {
     }
 
     async killGame(gamePID: number) {
-        invoke('kill_game', { pid: gamePID }).then((response) => {
+        invoke('kill_game', {pid: gamePID}).then((response) => {
             console.log(response);
         });
     }

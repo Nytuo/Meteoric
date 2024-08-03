@@ -1,5 +1,5 @@
 <div
-	style="
+        style="
 		width: 100%;
 		display: flex;
 		align-items: center;
@@ -7,26 +7,26 @@
 		gap: 20px;
 	"
 >
-	<h1>Youtube Background Music Downloader</h1>
-	<p *ngIf="message">{{ message }}</p>
-	<div *ngIf="!message" style="width: 100%">
-		<p-listbox
-			[options]="searchedGames"
-			(ngModelChange)="updateSelectedItem($event)"
-			[(ngModel)]="selectedItem"
-			optionLabel="name"
-		></p-listbox>
-	</div>
-	<iframe
-		*ngIf="selectedItem"
-		width="560"
-		height="315"
-		[src]="parseURL"
-		title="YouTube video player"
-		frameborder="0"
-		allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-		referrerpolicy="strict-origin-when-cross-origin"
-		allowfullscreen
-	>
-	</iframe>
+    <h1>Youtube Background Music Downloader</h1>
+    <p *ngIf="message">{{ message }}</p>
+    <div *ngIf="!message" style="width: 100%">
+        <p-listbox
+                (ngModelChange)="updateSelectedItem($event)"
+                [(ngModel)]="selectedItem"
+                [options]="searchedGames"
+                optionLabel="name"
+        ></p-listbox>
+    </div>
+    <iframe
+            *ngIf="selectedItem"
+            [src]="parseURL"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            frameborder="0"
+            height="315"
+            referrerpolicy="strict-origin-when-cross-origin"
+            title="YouTube video player"
+            width="560"
+    >
+    </iframe>
 </div>

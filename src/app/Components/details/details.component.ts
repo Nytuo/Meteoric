@@ -1,19 +1,18 @@
-import { Component, NgIterable, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from "@angular/router";
-import { GameService } from "../../services/game.service";
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ActivatedRoute} from "@angular/router";
+import {GameService} from "../../services/game.service";
 import IGame from "../../../interfaces/IGame";
-import { NgForOf, NgOptimizedImage, NgStyle } from "@angular/common";
-import { RatingModule } from "primeng/rating";
-import { FormsModule } from "@angular/forms";
-import { TagModule } from "primeng/tag";
-import { SplitterModule } from "primeng/splitter";
-import { DividerModule } from "primeng/divider";
-import { TableModule } from "primeng/table";
-import { CarouselModule, CarouselResponsiveOptions } from "primeng/carousel";
-import { ButtonModule } from "primeng/button";
-import { appWindow } from "@tauri-apps/api/window";
-import { GalleriaModule } from "primeng/galleria";
-import { GenericService } from "../../services/generic.service";
+import {NgForOf, NgOptimizedImage, NgStyle} from "@angular/common";
+import {RatingModule} from "primeng/rating";
+import {FormsModule} from "@angular/forms";
+import {TagModule} from "primeng/tag";
+import {SplitterModule} from "primeng/splitter";
+import {DividerModule} from "primeng/divider";
+import {TableModule} from "primeng/table";
+import {CarouselModule, CarouselResponsiveOptions} from "primeng/carousel";
+import {ButtonModule} from "primeng/button";
+import {GalleriaModule} from "primeng/galleria";
+import {GenericService} from "../../services/generic.service";
 
 @Component({
     selector: 'app-details',
@@ -37,30 +36,10 @@ import { GenericService } from "../../services/generic.service";
 })
 export class DetailsComponent implements OnInit, OnDestroy {
 
-    private id: number = 0;
-    protected friends: {
-        player: string;
-        trophies: number;
-        timePlayed: number;
-        lastTimePlayed: string;
-        totalTrohpies: number;
-    }[] = [
-            { player: 'John', trophies: 3, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10 },
-            { player: 'Doe', trophies: 5, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10 },
-            { player: 'Jane', trophies: 7, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10 }
-        ];
-
     friendsTrohpiesAvg: number = 0;
     friendsTimePlayedAvg: number = 0;
-
     allPlayersTrophyAvg: number = 0;
     allPlayersTimePlayedAvg: number = 0;
-
-    constructor(private route: ActivatedRoute, private gameService: GameService, private genericService: GenericService) {
-
-    }
-
-    protected game: IGame | undefined;
     gameRating: any;
     gameTags: any = ["No tags"];
     media: any = {
@@ -93,67 +72,36 @@ export class DetailsComponent implements OnInit, OnDestroy {
             "content": "Reached 785 hours"
         }
     ];
+    protected friends: {
+        player: string;
+        trophies: number;
+        timePlayed: number;
+        lastTimePlayed: string;
+        totalTrohpies: number;
+    }[] = [
+        {player: 'John', trophies: 3, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10},
+        {player: 'Doe', trophies: 5, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10},
+        {player: 'Jane', trophies: 7, timePlayed: 785, lastTimePlayed: '2021-09-01', totalTrohpies: 10}
+    ];
+    protected game: IGame | undefined;
+    private id: number = 0;
+
+    constructor(private route: ActivatedRoute, private gameService: GameService, private genericService: GenericService) {
+
+    }
 
     ngOnInit(): void {
         this.route.params.subscribe(params => {
             this.id = params['id'];
             this.game = this.gameService.getGame(this.id.toString()) as IGame;
-            this.gameTags = this.game?.tags.split(',');
-            this.gameRating = this.game?.rating;
-            if (this.game.tags === "") this.gameTags = ["No tags"];
-            this.media.images = this.game?.screenshots;
-            this.media.videos = this.game?.videos;
-            console.log(this.media);
-            this.responsiveOptions = [];
-            for (let i = 0; i < this.media.length; i++) {
-                this.responsiveOptions.push({
-                    breakpoint: '1024px',
-                    numVisible: i,
-                    numScroll: i
-                });
-            }
-            let html = document.querySelector('html');
-            if (this.game === undefined || html === null) {
-                return;
-            }
-            html.style.backgroundImage = `url(${this.game?.background})`;
-            let image = document.getElementById("bg") as HTMLImageElement;
-            if (image === null) {
-                return;
-            }
-            image.src = this.game.background;
+            this.handleRefreshMetadata(this.game);
         });
 
-        this.gameService.getGameObservable(this.id.toString()).subscribe(game => {
-            if (game === undefined) {
+        this.gameService.getGameObservable().subscribe(game => {
+            this.handleRefreshMetadata(game);
+            if (this.game === undefined) {
                 return;
             }
-            this.game = game;
-            console.log(this.game);
-            this.gameTags = this.game?.tags.split(',');
-            this.gameRating = this.game?.rating;
-            if (this.game.tags === "") this.gameTags = ["No tags"];
-            this.media.images = this.game?.screenshots;
-            this.media.videos = this.game?.videos;
-            console.log(this.media);
-            this.responsiveOptions = [];
-            for (let i = 0; i < this.media.length; i++) {
-                this.responsiveOptions.push({
-                    breakpoint: '1024px',
-                    numVisible: i,
-                    numScroll: i
-                });
-            }
-            let html = document.querySelector('html');
-            if (this.game === undefined || html === null) {
-                return;
-            }
-            html.style.backgroundImage = `url(${this.game?.background})`;
-            let image = document.getElementById("bg") as HTMLImageElement;
-            if (image === null) {
-                return;
-            }
-            image.src = this.game.background;
             if (this.game.backgroundMusic && !this.genericService.isBackgroundMusicPlaying()) {
                 this.genericService.playBackgroundMusic(this.game.backgroundMusic);
             }
@@ -167,8 +115,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
             }
         });
     }
-
-
 
     ngOnDestroy() {
         this.genericService.stopBackgroundMusic();
@@ -208,7 +154,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
     }
 
-
     launchAnimation() {
         document.getElementsByClassName('gameInfo')[0].scrollTo(0, 0);
         document.querySelector("#gameContent")?.classList.add("hidden");
@@ -228,4 +173,34 @@ export class DetailsComponent implements OnInit, OnDestroy {
         document.querySelector('#bg')?.classList.remove('bgLaunch');
     }
 
+    onImageLoad($event: Event) {
+        let id = ($event.target as HTMLImageElement).id;
+        (document.getElementById(id) as HTMLImageElement).style.visibility = "visible";
+    }
+
+    private handleRefreshMetadata(game: IGame) {
+        if (game === undefined) {
+            return;
+        }
+        this.game = game;
+        this.gameTags = this.game?.tags.split(',');
+        this.gameRating = this.game?.rating;
+        if (this.game.tags === "") this.gameTags = ["No tags"];
+        this.media.images = this.game?.screenshots;
+        this.media.videos = this.game?.videos;
+        console.log(this.media);
+        this.responsiveOptions = [];
+        for (let i = 0; i < this.media.length; i++) {
+            this.responsiveOptions.push({
+                breakpoint: '1024px',
+                numVisible: i,
+                numScroll: i
+            });
+        }
+        let html = document.querySelector('html');
+        if (this.game === undefined || html === null) {
+            return;
+        }
+        html.style.backgroundImage = `url(${this.game?.background})`;
+    }
 }

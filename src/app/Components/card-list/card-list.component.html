@@ -1,16 +1,16 @@
 <div class="gameList">
-	<div class="griddy" [style.gap]="gap">
-		<h1 *ngIf="games.length === 0">No games found</h1>
-		<app-card
-			class="griddy__item"
-			*ngFor="let card of games"
-			[gameName]="card.name"
-			[gameImage]="card.jaquette"
-			[gameId]="card.id"
-			[gamePlatforms]="card.platforms"
-			[gameTags]="card.tags"
-			[gameRating]="card.rating"
-		>
-		</app-card>
-	</div>
+    <div [style.gap]="gap" class="griddy">
+        <h1 *ngIf="games.length === 0">No games found</h1>
+        <app-card
+                *ngFor="let card of games"
+                [gameId]="card.id"
+                [gameImage]="card.jaquette"
+                [gameName]="card.name"
+                [gamePlatforms]="card.platforms"
+                [gameRating]="card.rating"
+                [gameTags]="card.tags"
+                class="griddy__item"
+        >
+        </app-card>
+    </div>
 </div>

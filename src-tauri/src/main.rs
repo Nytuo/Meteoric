@@ -4,27 +4,27 @@
 extern crate directories;
 extern crate rusqlite;
 
-use database::{establish_connection, query_all_data};
-use directories::ProjectDirs;
-use file_operations::{have_no_metadata, is_folder_empty_recursive};
-use lazy_static::lazy_static;
-use plugins::igdb;
-use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::path::Path;
-use std::sync::{Arc, Mutex};
-use std::{env, fs};
+use std::env;
+use std::sync::Mutex;
+
+use directories::ProjectDirs;
+use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, State, Window};
-use tokio::process::Child;
+
+use database::{establish_connection, query_all_data};
+use file_operations::have_no_metadata;
+use plugins::igdb;
 
 use crate::plugins::steam_grid::{
     steamgrid_get_grid, steamgrid_get_hero, steamgrid_get_icon, steamgrid_get_logo,
 };
 use crate::tauri_commander::{
-    create_category, delete_element, download_yt_audio, get_all_categories, get_all_fields_from_db,
-    get_all_games, get_all_images_location, get_all_videos_location, get_games_by_category,
-    import_library, kill_game, launch_game, post_game, save_media_to_external_storage,
-    search_metadata, startup_routine, upload_csv_to_db, upload_file,add_game_to_category,remove_game_from_category
+    add_game_to_category, create_category, delete_element, download_yt_audio, get_all_categories,
+    get_all_fields_from_db, get_all_games, get_all_images_location, get_all_videos_location,
+    get_games_by_category, import_library, kill_game, launch_game, post_game,
+    remove_game_from_category, save_media_to_external_storage, search_metadata, startup_routine, upload_csv_to_db, upload_file
 };
 
 mod database;

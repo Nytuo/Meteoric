@@ -1,46 +1,46 @@
 .image {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	border-radius: 10px;
-	transition: all 0.3s;
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .game {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	border-radius: 10px;
-	transition: all 0.3s;
-	width: 12rem;
-	height: auto;
-	cursor: pointer;
-	animation: fadeIn 0.2s;
-	aspect-ratio: 2/3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.3s;
+    width: 12rem;
+    height: auto;
+    cursor: pointer;
+    animation: fadeIn 0.2s;
+    aspect-ratio: 2/3;
 }
 
 .image:hover {
-	transition: all 0.3s;
-	transform: scale(1.1);
-	box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-	filter: brightness(0.8);
+    transition: all 0.3s;
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    filter: brightness(0.8);
 }
 
 .image.color:hover {
-	box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
 @keyframes fadeIn {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .italic {
-	font-style: italic;
+    font-style: italic;
 }

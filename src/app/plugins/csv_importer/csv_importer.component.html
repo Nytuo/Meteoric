@@ -1,43 +1,43 @@
 <div class="card">
-	<h2>CSV to Database Importer</h2>
-	<p-fileUpload
-		mode="basic"
-		chooseIcon="pi pi-upload"
-		name="csv"
-		accept=".csv"
-		maxFileSize="1000000"
-		(onSelect)="onFileSelect($event)"
-	></p-fileUpload>
+    <h2>CSV to Database Importer</h2>
+    <p-fileUpload
+            (onSelect)="onFileSelect($event)"
+            accept=".csv"
+            chooseIcon="pi pi-upload"
+            maxFileSize="1000000"
+            mode="basic"
+            name="csv"
+    ></p-fileUpload>
 
-	<div *ngIf="csvData.length">
-		<h2>Bind CSV Columns to Database Columns:</h2>
+    <div *ngIf="csvData.length">
+        <h2>Bind CSV Columns to Database Columns:</h2>
 
-		<div *ngFor="let csvHeader of csvHeaders; let i = index">
-			<label style="margin-right: 15px">{{ csvHeader }}:</label>
-			<p-dropdown
-				[(ngModel)]="columnMapping[csvHeader]"
-				[options]="dbColumns"
-			/>
-		</div>
-		<br />
-		<button
-			pButton
-			type="button"
-			label="Import to Database"
-			(click)="importData()"
-		></button>
-		<h2>The File</h2>
-		<p-table [value]="csvData">
-			<ng-template pTemplate="header">
-				<tr>
-					<th *ngFor="let header of csvHeaders">{{ header }}</th>
-				</tr>
-			</ng-template>
-			<ng-template pTemplate="body" let-row>
-				<tr>
-					<td *ngFor="let header of csvHeaders">{{ row[header] }}</td>
-				</tr>
-			</ng-template>
-		</p-table>
-	</div>
+        <div *ngFor="let csvHeader of csvHeaders; let i = index">
+            <label style="margin-right: 15px">{{ csvHeader }}:</label>
+            <p-dropdown
+                    [(ngModel)]="columnMapping[csvHeader]"
+                    [options]="dbColumns"
+            />
+        </div>
+        <br/>
+        <button
+                (click)="importData()"
+                label="Import to Database"
+                pButton
+                type="button"
+        ></button>
+        <h2>The File</h2>
+        <p-table [value]="csvData">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th *ngFor="let header of csvHeaders">{{ header }}</th>
+                </tr>
+            </ng-template>
+            <ng-template let-row pTemplate="body">
+                <tr>
+                    <td *ngFor="let header of csvHeaders">{{ row[header] }}</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
 </div>

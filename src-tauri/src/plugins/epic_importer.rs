@@ -4,7 +4,7 @@ use std::io::Write;
 
 use directories::ProjectDirs;
 use egs_api::EpicGames;
-use tokio::{sync::Mutex, task};
+use tokio::sync::Mutex;
 
 use crate::database::establish_connection;
 use crate::database::update_game;
@@ -46,7 +46,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         let user_details = client.user_details();
         let mut file = File::create(file_path)?;
         let json = serde_json::to_string(&user_details)?;
-        write!(file, "{}", json);
+        write!(file, "{}", json).expect("Unable to write to file");
         client.login().await;
     }
 
@@ -68,7 +68,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         igame.name = game.clone();
         igame.platforms = "Epic".to_string();
         let conn = establish_connection().unwrap();
-        update_game(&conn, igame);
+        update_game(&conn, igame).expect("Failed to update game");
     }
     Ok(())
 }
@@ -80,6 +80,6 @@ pub async fn set_credentials(creds: Vec<String>) {
 }
 
 pub async fn get_games_from_user() -> Result<(), Box<dyn std::error::Error>> {
-    get_games().await;
+    get_games().await.expect("Failed to get games");
     Ok(())
 }

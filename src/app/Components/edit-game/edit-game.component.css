@@ -1,66 +1,58 @@
 .formDisplay {
-	margin-top: 20px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 25px;
-	margin-right: 10px;
-}
-.formDisplayAlt {
-	margin-top: 20px;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	gap: 30px;
-	margin-right: 10px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    margin-right: 10px;
 }
 
 ::ng-deep .formDisplay > p-float-label {
-	width: 100% !important;
+    width: 100% !important;
 }
 
 input {
-	width: 100%;
+    width: 100%;
 }
 
 .ng-star-inserted,
 form {
-	width: 100%;
+    width: 100%;
 }
+
 .content {
 }
 
 #providers {
-	height: 100vh;
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: start;
-	align-items: baseline;
-	overflow: scroll;
-	padding: 0 20px 100px 20px;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: baseline;
+    overflow: scroll;
+    padding: 0 20px 100px 20px;
 }
 
 #gameInfo {
-	height: 100vh;
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: start;
-	align-items: baseline;
-	overflow-y: auto;
-	padding: 0 20px 100px 20px;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: baseline;
+    overflow-y: auto;
+    padding: 0 20px 100px 20px;
 }
 
 .posBL {
-	position: fixed;
-	bottom: 40px;
-	right: 40px;
-	z-index: 100;
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    z-index: 100;
 }
 
 ::ng-deep .posBL > button {
-	width: 150px !important;
+    width: 150px !important;
 }

@@ -1,29 +1,31 @@
-<img id="bg" alt="" class="gameImage" src=""/>
-<div class="gameInfo" (scroll)="onScroll($event)">
-
-    <div class="gameHeader">
-        <img id="logo" alt="" class="gameLogo" [src]="game?.logo"/>
-        <img id="logo-top" alt="" class="gameLogo absTopRight" [src]="game?.logo"/>
-        <h1 id="title" class="gameTitle">{{ game?.name }}</h1>
+<img *ngIf="game" [src]="game.background" alt="" class="gameImage" id="bg"/>
+<div (scroll)="onScroll($event)" class="gameInfo">
+    <div *ngIf="game" class="gameHeader">
+        <img (load)="onImageLoad($event)" *ngIf="game.logo"
+             [ngSrc]="game.logo" alt="" class="gameLogo" height="250" id="logo" priority width="500"/>
+        <img (load)="onImageLoad($event)" *ngIf="game.logo" [ngSrc]="game.logo" alt="" class="gameLogo absTopRight"
+             height="125" id="logo-top" width="250"/>
+        <h1 class="gameTitle" id="title">{{ game?.name }}</h1>
         <div id="gameHeaderOptional" style="display: flex; flex-direction: column; align-items: flex-start;">
             <div class="gameTopHeader">
-            <p-rating [(ngModel)]="gameRating" [cancel]="false" [style]="{'margin-right': '10px'}"></p-rating>
-            <p-tag icon="pi pi-tag" *ngFor="let tag of gameTags" [value]="tag"
-                   [style]="{'margin-right': '10px'}"></p-tag>
+                <p-rating [(ngModel)]="gameRating" [cancel]="false" [style]="{'margin-right': '10px'}"></p-rating>
+                <p-tag *ngFor="let tag of gameTags" [style]="{'margin-right': '10px'}" [value]="tag"
+                       icon="pi pi-tag"></p-tag>
             </div>
-            <p-tag icon="pi pi-clock" [value]="game?.time_played" [style]="{'margin-right': '10px'}"></p-tag>
-            <p-tag icon="pi pi-trophy" [value]="game?.trophies_unlocked" [style]="{'margin-right': '10px'}"></p-tag>
-            <p-tag icon="pi pi-calendar" [value]="game?.last_time_played" [style]="{'margin-right': '10px'}"></p-tag>
+            <p-tag [style]="{'margin-right': '10px'}" [value]="game?.time_played" icon="pi pi-clock"></p-tag>
+            <p-tag [style]="{'margin-right': '10px'}" [value]="game?.trophies_unlocked" icon="pi pi-trophy"></p-tag>
+            <p-tag [style]="{'margin-right': '10px'}" [value]="game?.last_time_played" icon="pi pi-calendar"></p-tag>
         </div>
     </div>
 
 
-    <div style="display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: space-between; align-content: start; width: 100%; margin-top: 5rem; margin-bottom: 5rem;"  style="display: none;">
+    <div style="display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: space-between; align-content: start; width: 100%; margin-top: 5rem; margin-bottom: 5rem;"
+         style="display: none;">
         <div class="leftPanel">
             <div class="activity">
                 <p class="fadedText">Activity</p>
-                <p-divider align="center" type="solid" layout="horizontal"></p-divider>
-                <p-table [value]="activities" [tableStyle]="{ 'min-width': '10rem' }">
+                <p-divider align="center" layout="horizontal" type="solid"></p-divider>
+                <p-table [tableStyle]="{ 'min-width': '10rem' }" [value]="activities">
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Player</th>
@@ -32,7 +34,7 @@
                             <th>Date</th>
                         </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-activity>
+                    <ng-template let-activity pTemplate="body">
                         <tr>
                             <td>{{ activity.player }}</td>
                             <td>{{ activity.type }}</td>
@@ -43,12 +45,12 @@
                 </p-table>
             </div>
         </div>
-        <p-divider align="center" type="solid" layout="vertical"></p-divider>
+        <p-divider align="center" layout="vertical" type="solid"></p-divider>
         <div class="rightPanel">
             <p class="fadedText">Friends And You</p>
-            <p-divider align="center" type="solid" layout="horizontal"></p-divider>
+            <p-divider align="center" layout="horizontal" type="solid"></p-divider>
 
-            <p-table [value]="friends" [tableStyle]="{ 'min-width': '35rem' }">
+            <p-table [tableStyle]="{ 'min-width': '35rem' }" [value]="friends">
                 <ng-template pTemplate="header">
                     <tr>
                         <th>Player</th>
@@ -58,7 +60,7 @@
 
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-friend>
+                <ng-template let-friend pTemplate="body">
                     <tr>
                         <td>{{ friend.player }}</td>
                         <td>{{ friend.totalTrohpies - friend.trophies }}</td>
@@ -81,7 +83,7 @@
         </div>
     </div>
     <div id="gameContent">
-        <p id="description" class="gameDescription">{{ game?.description }}</p>
+        <p class="gameDescription" id="description">{{ game?.description }}</p>
         <div class="gameDetails">
             <div class="gameDetail">
                 <p class="fadedText">Critics Score : <span class="whiterized">{{ game?.critic_score }}</span></p>
@@ -93,20 +95,20 @@
                 <p class="fadedText">Status : <span class="whiterized">{{ game?.status }}</span></p>
             </div>
         </div>
-        <p-galleria [value]="media.images" [showItemNavigators]="true" [responsiveOptions]="responsiveOptions"
-                    [circular]="true" [numVisible]="5" [containerStyle]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto' }">
-            <ng-template pTemplate="item" ngFor let-item [ngForOf]="media.images">
-                <img [src]="item" height="400" width="500" style="display: block; object-fit: contain"/>
-            </ng-template>
-            <ng-template pTemplate="thumbnail" ngFor let-item [ngForOf]="media.images">
-                <div class="grid grid-nogutter justify-content-center">
-                    <img [src]="item" style="display: block" height="auto" width="45px"/>
-                </div>
+        <p-galleria [circular]="true"
+                    [containerStyle]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto' }"
+                    [numVisible]="5" [responsiveOptions]="responsiveOptions"
+
+                    [showItemNavigators]="true" [showThumbnails]="false"
+                    [value]="media.images">
+            <ng-template [ngForOf]="media.images" let-item ngFor pTemplate="item">
+                <img [ngSrc]="item" alt="screen" height="400" style="display: block; object-fit: contain" width="500"/>
             </ng-template>
         </p-galleria>
-        <p-carousel [value]="media.videos" [numVisible]="1" [numScroll]="1" [circular]="false"
-                    [responsiveOptions]="responsiveOptions" [style]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto'  }">
-            <ng-template pTemplate="item" let-item>
+        <p-carousel [circular]="false" [numScroll]="1" [numVisible]="1" [responsiveOptions]="responsiveOptions"
+                    [showIndicators]="false"
+                    [style]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto', 'margin-bottom': '5vh' } " [value]="media.videos">
+            <ng-template let-item pTemplate="item">
                 <video controls style="width: 500px; display: block; height: 400px; object-fit: contain">
                     <source [src]="item" type="video/mp4">
                 </video>

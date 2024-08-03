@@ -1,11 +1,6 @@
-use std::fs::File;
-use std::io::Read;
-use std::io::Write;
-
-use directories::ProjectDirs;
-use steam_rs::steam_id::SteamId;
 use steam_rs::Steam;
-use tokio::{sync::Mutex, task};
+use steam_rs::steam_id::SteamId;
+use tokio::sync::Mutex;
 
 use crate::database::establish_connection;
 use crate::database::update_game;
@@ -47,6 +42,6 @@ pub async fn set_credentials(creds: Vec<String>) {
 }
 
 pub async fn get_games_from_user() -> Result<(), Box<dyn std::error::Error>> {
-    get_games().await;
+    get_games().await.expect("Failed to get games");
     Ok(())
 }

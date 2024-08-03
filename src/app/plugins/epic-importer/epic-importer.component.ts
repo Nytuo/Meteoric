@@ -1,14 +1,14 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ButtonModule } from "primeng/button";
-import { ListboxModule } from "primeng/listbox";
-import { NgIf } from "@angular/common";
-import { FormsModule } from "@angular/forms";
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { invoke } from '@tauri-apps/api/tauri';
-import { StepperModule } from 'primeng/stepper';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { InputTextModule } from 'primeng/inputtext';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {ButtonModule} from "primeng/button";
+import {ListboxModule} from "primeng/listbox";
+import {NgIf} from "@angular/common";
+import {FormsModule} from "@angular/forms";
+import {FloatLabelModule} from 'primeng/floatlabel';
+import {invoke} from '@tauri-apps/api/tauri';
+import {StepperModule} from 'primeng/stepper';
+import {ConfirmDialogModule} from 'primeng/confirmdialog';
+import {ConfirmationService} from 'primeng/api';
+import {InputTextModule} from 'primeng/inputtext';
 
 @Component({
     selector: 'app-epic-importer',
@@ -26,10 +26,6 @@ import { InputTextModule } from 'primeng/inputtext';
     providers: [ConfirmationService]
 })
 export class EpicImporterComponent {
-    openLinkInBrowser(link: string) {
-        window.open(link, '_blank');
-    }
-
     @Input() message: string = '';
     @Input() searchedGames: any[] = [];
     @Output() selectItem: EventEmitter<any> = new EventEmitter<any>();
@@ -37,6 +33,13 @@ export class EpicImporterComponent {
     @Input() selectedItem: any = null;
     @Output() selectedItemChange: EventEmitter<string> = new EventEmitter<string>();
     authCode: any;
+
+    constructor(private confirmationService: ConfirmationService) {
+    }
+
+    openLinkInBrowser(link: string) {
+        window.open(link, '_blank');
+    }
 
     async loginAndSync() {
         console.log(this.authCode);
@@ -51,7 +54,6 @@ export class EpicImporterComponent {
             pluginName: "epic_importer", creds: ['']
         });
     }
-    constructor(private confirmationService: ConfirmationService) { }
 
     confirm() {
         this.confirmationService.confirm({

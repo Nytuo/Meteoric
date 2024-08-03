@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ButtonModule } from "primeng/button";
-import { ListboxModule } from "primeng/listbox";
-import { NgFor, NgIf } from "@angular/common";
-import { FormsModule } from "@angular/forms";
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {ButtonModule} from "primeng/button";
+import {ListboxModule} from "primeng/listbox";
+import {NgFor, NgIf, NgOptimizedImage} from "@angular/common";
+import {FormsModule} from "@angular/forms";
 
 @Component({
     selector: 'app-igdb',
@@ -11,7 +11,7 @@ import { FormsModule } from "@angular/forms";
         ButtonModule,
         ListboxModule,
         NgIf,
-        FormsModule, NgFor
+        FormsModule, NgFor, NgOptimizedImage
     ],
     templateUrl: './igdb.component.html',
     styleUrl: './igdb.component.css'

@@ -1,27 +1,24 @@
+use std::collections::HashMap;
+use std::env;
+use std::path::PathBuf;
+use std::time::Duration;
+
+use rusty_ytdl::{
+    Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions,
+};
+use tokio::process::Command;
+use tokio::task;
+use tokio::time::Instant;
+
+use crate::{IGame, routine, send_message_to_frontend};
 use crate::database::{
-    add_category, add_game_to_category_db, establish_connection, get_all_fields, query_all_data, query_data, update_game,remove_game_from_category_db
+    add_category, add_game_to_category_db, establish_connection, get_all_fields, query_all_data, query_data, remove_game_from_category_db, update_game,
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
     remove_file,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
-use crate::{routine, send_message_to_frontend, IGame};
-use chrono::format;
-use rusty_ytdl::{
-    DownloadOptions, Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions,
-};
-use std::collections::HashMap;
-use std::env;
-use std::hash::Hash;
-use std::os::windows::process;
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::process::{Child, Command};
-use tokio::sync::Mutex;
-use tokio::task;
-use tokio::time::Instant;
 
 #[tauri::command]
 pub fn get_all_games() -> String {
@@ -331,7 +328,7 @@ pub async fn search_metadata(game_name: String, plugin_name: String, strict: boo
             format!("{:?}", result)
         }
         _ => {
-            format!("Plugin not found")
+            "Plugin not found".to_string()
         }
     }
 }
@@ -342,7 +339,7 @@ pub async fn import_library(plugin_name: String, creds: Vec<String>) {
     match plugin_name.as_str() {
         "epic_importer" => {
             epic_importer::set_credentials(creds).await;
-            epic_importer::get_games_from_user().await;
+            epic_importer::get_games_from_user().await.expect("Failed to get games");
         }
         "steam_importer" => {
             let api_key = env::var("STEAM_API_KEY").expect("STEAM_API_KEY not found");
@@ -352,11 +349,11 @@ pub async fn import_library(plugin_name: String, creds: Vec<String>) {
             }
             creds_temp.push(api_key.clone());
             steam_importer::set_credentials(creds_temp).await;
-            steam_importer::get_games_from_user().await;
+            steam_importer::get_games_from_user().await.expect("Failed to get games");
         }
         "gog_importer" => {
             gog_importer::set_credentials(creds).await;
-            gog_importer::get_games_from_user().await;
+            gog_importer::get_games_from_user().await.expect("Failed to get games");
         }
         _ => {
             eprintln!("Unsupported plugin: {}", plugin_name);
@@ -447,7 +444,7 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
         game_timer.start();
         let _ = cmd.wait().await;
         game_timer.stop();
-        let played_time_u128: u128 = game_timer.get_total_time_played().as_millis() as u128;
+        let played_time_u128: u128 = game_timer.get_total_time_played().as_millis();
         let time_played_db: u128 = game_object.time_played.parse().unwrap_or(0);
         let time_played = time_played_db + played_time_u128;
         game_object.time_played = time_played.to_string();
@@ -461,7 +458,7 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
 
 #[tauri::command]
 pub async fn kill_game(pid: u32) -> Result<(), String> {
-    let os = std::env::consts::OS;
+    let os = env::consts::OS;
     if os == "windows" {
         kill_game_windows(pid)?;
     } else if os == "linux" {
@@ -564,7 +561,7 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                         get_nb_of_screenshots = get_nb_of_screenshots + 1;
                         let file_path = game_dir.join("screenshots").join(
                             "screenshot-".to_string()
-                                + &(get_nb_of_screenshots).to_string()
+                                + &get_nb_of_screenshots.to_string()
                                 + ".jpg",
                         );
                         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
@@ -583,14 +580,14 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                         let video_path = game_dir.join("videos");
                         let file_path = game_dir
                             .join("videos")
-                            .join("video-".to_string() + &(get_nb_of_videos).to_string() + ".mp4");
+                            .join("video-".to_string() + &get_nb_of_videos.to_string() + ".mp4");
                         let is_youtube = url.contains("youtube.com");
 
                         if is_youtube {
                             match download_youtube_video(
                                 url,
                                 video_path.to_str().unwrap().to_string(),
-                                "video-".to_string() + &(get_nb_of_videos).to_string(),
+                                "video-".to_string() + &get_nb_of_videos.to_string(),
                             )
                             .await
                             {

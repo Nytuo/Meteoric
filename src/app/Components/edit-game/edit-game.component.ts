@@ -1,35 +1,33 @@
-import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { ButtonModule } from "primeng/button";
-import { DialogModule } from "primeng/dialog";
-import { DropdownModule } from "primeng/dropdown";
-import { FloatLabelModule } from "primeng/floatlabel";
-import { InputTextModule } from "primeng/inputtext";
-import { KeyValuePipe, NgForOf, NgIf } from "@angular/common";
-import { ListboxModule } from "primeng/listbox";
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { MessageService, SharedModule } from "primeng/api";
-import { TabViewModule } from "primeng/tabview";
+import {KeyValuePipe, NgForOf, NgIf} from '@angular/common';
+import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
+import {ButtonModule} from "primeng/button";
+import {DialogModule} from "primeng/dialog";
+import {DropdownModule} from "primeng/dropdown";
+import {FloatLabelModule} from "primeng/floatlabel";
+import {InputTextModule} from "primeng/inputtext";
+import {ListboxModule} from "primeng/listbox";
+import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {MessageService, SharedModule} from "primeng/api";
+import {TabViewModule} from "primeng/tabview";
 import IGame from "../../../interfaces/IGame";
-import { DBService } from "../../services/db.service";
-import { GameService } from "../../services/game.service";
-import { GenericService } from "../../services/generic.service";
-import { invoke } from "@tauri-apps/api/tauri";
+import {DBService} from "../../services/db.service";
+import {GameService} from "../../services/game.service";
+import {GenericService} from "../../services/generic.service";
 import simpleSvgPlaceholder from "@cloudfour/simple-svg-placeholder";
-import { NavigationEnd, Router } from "@angular/router";
-import { BehaviorSubject } from "rxjs";
-import { IGDBComponent } from "../../plugins/igdb/igdb.component";
-import { YtdlComponent } from "../../plugins/ytdl/ytdl.component";
-import { SteamGridComponent } from "../../plugins/steam_grid/steam_grid.component";
-import { CSVImporter } from "../../plugins/csv_importer/csv_importer.component";
-import { EpicImporterComponent } from "../../plugins/epic-importer/epic-importer.component";
-import { SteamImporterComponent } from "../../plugins/steam-importer/steam-importer.component";
-import { GogImporterComponent } from "../../plugins/gog-importer/gog-importer.component";
-import { open } from '@tauri-apps/api/dialog';
-import { dirname, documentDir } from '@tauri-apps/api/path';
-import { PanelMenuModule } from 'primeng/panelmenu';
-import { CheckboxModule } from 'primeng/checkbox';
-import { SidebarModule } from 'primeng/sidebar';
+import {Router} from "@angular/router";
+import {IGDBComponent} from "../../plugins/igdb/igdb.component";
+import {YtdlComponent} from "../../plugins/ytdl/ytdl.component";
+import {SteamGridComponent} from "../../plugins/steam_grid/steam_grid.component";
+import {CSVImporter} from "../../plugins/csv_importer/csv_importer.component";
+import {EpicImporterComponent} from "../../plugins/epic-importer/epic-importer.component";
+import {SteamImporterComponent} from "../../plugins/steam-importer/steam-importer.component";
+import {GogImporterComponent} from "../../plugins/gog-importer/gog-importer.component";
+import {open} from '@tauri-apps/api/dialog';
+import {dirname} from '@tauri-apps/api/path';
+import {PanelMenuModule} from 'primeng/panelmenu';
+import {CheckboxModule} from 'primeng/checkbox';
+import {SidebarModule} from 'primeng/sidebar';
+
 @Component({
     selector: 'app-edit-game',
     standalone: true,
@@ -64,8 +62,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 
     currentGame: IGame | undefined;
     currentGameID: string | undefined;
-    YTURL: string = '';
-    isAudioMetadata: boolean = false;
+    ytUrl: string = '';
     selectedItem: any = undefined;
     selectedProvider: any = undefined;
     searchMode = false;
@@ -75,6 +72,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
     strict: boolean = false;
     hideSelectBtn: boolean = false;
     statuses: any = ['Not started', 'In progress', 'Completed', 'On hold', 'Dropped', 'Platinum'];
+    // ADD API HERE
+    hideSearch: boolean = false;
     items = [{
         label: 'Game information',
         icon: 'pi pi-info-circle',
@@ -119,48 +118,92 @@ export class EditGameComponent implements OnInit, OnDestroy {
             }
         ]
     },
-    {
-        label: 'Metadata Providers',
-        icon: 'pi pi-pencil',
-        expanded: true,
-        items: [
-            {
-                label: 'Youtube Background Music Provider',
-                icon: 'pi pi-youtube',
-                command: () => {
-                    this.selectedProvider = 'ytdl';
-                    this.searchedGames = [];
-                    this.hideSearch = true;
-                    this.hideSelectBtn = true;
-                }
-            },
-            {
-                label: 'Steam Grid DB Provider',
-                icon: 'pi pi-desktop',
-                command: () => {
-                    this.selectedProvider = 'steam_grid';
-                    this.searchedGames = [];
-                    this.hideSearch = true;
-                    this.hideSelectBtn = false;
+        {
+            label: 'Metadata Providers',
+            icon: 'pi pi-pencil',
+            expanded: true,
+            items: [
+                {
+                    label: 'Youtube Background Music Provider',
+                    icon: 'pi pi-youtube',
+                    command: () => {
+                        this.selectedProvider = 'ytdl';
+                        this.searchedGames = [];
+                        this.hideSearch = true;
+                        this.hideSelectBtn = true;
+                    }
+                },
+                {
+                    label: 'Steam Grid DB Provider',
+                    icon: 'pi pi-desktop',
+                    command: () => {
+                        this.selectedProvider = 'steam_grid';
+                        this.searchedGames = [];
+                        this.hideSearch = true;
+                        this.hideSelectBtn = false;
 
-                }
-            },
-            {
-                label: 'IGDB Provider',
-                icon: 'pi pi-desktop',
-                command: () => {
-                    this.selectedProvider = 'igdb';
-                    this.searchedGames = [];
-                    this.hideSearch = true;
-                    this.hideSelectBtn = true;
+                    }
+                },
+                {
+                    label: 'IGDB Provider',
+                    icon: 'pi pi-desktop',
+                    command: () => {
+                        this.selectedProvider = 'igdb';
+                        this.searchedGames = [];
+                        this.hideSearch = true;
+                        this.hideSelectBtn = true;
 
+                    }
                 }
-            }
-        ]
-    }
+            ]
+        }
     ];
-    // ADD API HERE
-    hideSearch: boolean = false;
+    displayInfo: FormGroup = new FormGroup({
+        name: new FormControl(''),
+        rating: new FormControl(''),
+        platforms: new FormControl(''),
+        tags: new FormControl('')
+    });
+    info: FormGroup = new FormGroup({
+        name: new FormControl(''),
+        sort_name: new FormControl(''),
+        rating: new FormControl(''),
+        platforms: new FormControl(''),
+        tags: new FormControl(''),
+        description: new FormControl(''),
+        critic_score: new FormControl(''),
+        genres: new FormControl(''),
+        styles: new FormControl(''),
+        release_date: new FormControl(''),
+        developers: new FormControl(''),
+        editors: new FormControl(''),
+    });
+    stat: FormGroup = new FormGroup({
+        status: new FormControl(''),
+        time_played: new FormControl(''),
+        trophies_unlocked: new FormControl(''),
+        last_time_played: new FormControl(''),
+    });
+    exec: FormGroup = new FormGroup({
+        exec_file: new FormControl(''),
+        game_dir: new FormControl(''),
+        exec_args: new FormControl(''),
+    });
+
+    constructor(private db: DBService, private gameService: GameService, private elementRef: ElementRef, protected genericService: GenericService, protected router: Router, private messageService: MessageService) {
+    }
+
+    get generalKeys() {
+        return Object.keys(this.info.controls);
+    }
+
+    get statKeys() {
+        return Object.keys(this.stat.controls);
+    }
+
+    get execKeys() {
+        return Object.keys(this.exec.controls);
+    }
 
     ngOnInit(): void {
         this.currentGame = {
@@ -279,121 +322,6 @@ export class EditGameComponent implements OnInit, OnDestroy {
     }
 
 
-    constructor(private db: DBService, private gameService: GameService, private elementRef: ElementRef, protected genericService: GenericService, protected router: Router, private messageService: MessageService) { }
-
-    openSearchMode() {
-        this.searchMode = true;
-    }
-
-
-
-
-    async searchGameInAPI() {
-        let gameName = this.searchingGame;
-        let provider = this.selectedProvider;
-        let strict = this.strict;
-        console.log(gameName, provider, strict);
-        await invoke<string>("search_metadata", { gameName: gameName, pluginName: provider, strict: strict }).then((games) => {
-            console.log(games);
-            this.message = "";
-            if (games === undefined || games.length === 0 || games === '[]') {
-                this.message = "No games found";
-                this.messageService.add({ severity: 'error', summary: 'No games found', detail: 'No games found', life: 3000 });
-                return;
-            }
-            if (games === "No credentials found") {
-                this.message = "No credentials found, please check your configuration";
-                this.messageService.add({ severity: 'error', summary: 'No credentials found', detail: 'No credentials found, please check your configuration', life: 3000 });
-                return;
-            }
-
-            if (provider === "steam_grid") {
-                let array = JSON.parse(JSON.parse(games));
-                this.searchedGames = array;
-                return;
-            }
-
-            let type = JSON.parse(games) && JSON.parse(JSON.parse(games)[0]);
-            type = type.url ? "audio" : "game";
-            console.log(type);
-            if (this.message !== "") {
-                return;
-            }
-            if (type === "audio") {
-                this.searchedGames = JSON.parse(games);
-                let parsedGames: any[] = [];
-                this.searchedGames.forEach((audio) => {
-                    audio = JSON.parse(audio);
-                    let newAudio = {
-                        name: audio.name ? audio.name : '',
-                        url: audio.url ? audio.url : '',
-                        jaquette: audio.jaquette ? audio.jaquette : '',
-                    };
-                    parsedGames.push(newAudio);
-                });
-                this.searchedGames = parsedGames;
-                this.isAudioMetadata = true;
-                return;
-            }
-            let parsedGames: IGame[] = [];
-            this.searchedGames = JSON.parse(games);
-            this.searchedGames.forEach((api_game) => {
-
-                let oldGame: any = this.currentGame;
-                api_game = JSON.parse(api_game);
-                api_game = eval(api_game);
-                //merge the two objects with priority to the new one
-                if (oldGame !== undefined) {
-                    delete oldGame.jaquette;
-                    delete oldGame.background;
-                    delete oldGame.logo;
-                    delete oldGame.icon;
-                    delete oldGame.backgroundMusic;
-                    for (let key in oldGame) {
-                        if (oldGame.hasOwnProperty(key)) {
-                            if (api_game[key] === undefined) {
-                                api_game[key] = oldGame[key];
-                            }
-                        }
-                    }
-                }
-
-                let newGame = {
-                    id: api_game.id ? api_game.id : '-1',
-                    trophies: api_game.trophies ? api_game.trophies : '',
-                    name: api_game.name ? api_game.name : '',
-                    sort_name: api_game.name ? api_game.name : '',
-                    rating: api_game.rating ? api_game.rating : '',
-                    platforms: api_game.platforms ? api_game.platforms : '',
-                    tags: api_game.tags ? api_game.tags : '',
-                    description: api_game.description ? api_game.description : '',
-                    critic_score: api_game.critic_score ? Math.round(api_game.critic_score).toString() : '',
-                    genres: api_game.genres ? api_game.genres : '',
-                    styles: api_game.styles ? api_game.styles : '',
-                    release_date: api_game.release_date ? api_game.release_date : '',
-                    developers: api_game.developers ? api_game.developers : '',
-                    editors: api_game.editors ? api_game.editors : '',
-                    status: api_game.status ? api_game.status : '',
-                    time_played: api_game.time_played ? api_game.time_played : '',
-                    trophies_unlocked: api_game.trophies_unlocked ? api_game.trophies_unlocked : '',
-                    last_time_played: api_game.last_time_played ? api_game.last_time_played : '',
-                    jaquette: api_game.cover ? api_game.cover : '',
-                    background: api_game.background ? api_game.background : '',
-                    logo: api_game.logo ? api_game.logo : '',
-                    icon: api_game.icon ? api_game.icon : '',
-                    backgroundMusic: api_game.backgroundMusic ? api_game.backgroundMusic : '',
-                    exec_file: api_game.exec_file ? api_game.exec_file : '',
-                    exec_args: api_game.exec_args ? api_game.exec_args : '',
-                    game_dir: api_game.game_dir ? api_game.game_dir : '',
-                    screenshots: api_game.screenshots ? api_game.screenshots : [],
-                    videos: api_game.videos ? api_game.videos : [],
-                };
-                console.log(newGame);
-                parsedGames.push(newGame);
-            });
-            this.searchedGames = parsedGames;
-        });
-    }
 
     onFileSelected(event: any, type: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette") {
         const file = event.target.files[0];
@@ -436,10 +364,16 @@ export class EditGameComponent implements OnInit, OnDestroy {
         }
         let id = this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
         id = id.toString().split("video-")[1].split(".")[0];
-        this.db.deleteElement("video", this.currentGame.id, id.toString());
+        this.db.deleteElement("video", this.currentGame.id, id.toString()).then(() => {
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Video deleted',
+                detail: 'The video has been deleted',
+                life: 3000
+            });
+        });
         delete this.currentGame.videos[this.currentGame.videos.indexOf(path)];
         this.gameService.setGame(this.currentGameID, this.currentGame);
-        this.messageService.add({ severity: 'info', summary: 'Video deleted', detail: 'The video has been deleted', life: 3000 });
     }
 
     deleteScreenshot(path: any) {
@@ -448,10 +382,16 @@ export class EditGameComponent implements OnInit, OnDestroy {
         }
         let id = this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
         id = id.toString().split("screenshot-")[1].split(".")[0];
-        this.db.deleteElement("screenshot", this.currentGame.id, id);
+        this.db.deleteElement("screenshot", this.currentGame.id, id).then(() => {
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Screenshot deleted',
+                detail: 'The screenshot has been deleted',
+                life: 3000
+            });
+        })
         delete this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
         this.gameService.setGame(this.currentGameID, this.currentGame);
-        this.messageService.add({ severity: 'info', summary: 'Screenshot deleted', detail: 'The screenshot has been deleted', life: 3000 });
     }
 
     deleteBackgroundMusic() {
@@ -459,36 +399,17 @@ export class EditGameComponent implements OnInit, OnDestroy {
             return;
         }
         this.db.deleteElement("audio", this.currentGame.id).then(() => {
-            this.messageService.add({ severity: 'info', summary: 'Audio deleted', detail: 'The audio has been deleted', life: 3000 });
-        });
-    }
-
-    private saveMediaToExternalStorage() {
-        if (this.currentGame === undefined) {
-            return;
-        }
-        this.db.saveMediaToExternalStorage(this.currentGame).then(() => {
-            if (this.currentGame === undefined) {
-                return;
-            }
-            this.db.refreshGameLinks(this.currentGame).then((game) => {
-                this.currentGame = game;
-                this.gameService.getGames().then(() => {
-                    if (this.currentGameID === undefined || this.currentGame === undefined) {
-                        return;
-                    }
-                    this.gameService.setGame(this.currentGameID, this.gameService.getGame(this.currentGameID) as IGame);
-                    this.gameService.setGameObservable(this.currentGame);
-                    this.messageService.add({ severity: 'info', summary: 'Metadata saved', detail: 'The metadata has been saved for : ' + this.currentGame.name, life: 3000 });
-                    this.genericService.changeBlockUI(false);
-                });
-                this.isAudioMetadata = false;
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Audio deleted',
+                detail: 'The audio has been deleted',
+                life: 3000
             });
         });
     }
 
     searchYT4BGMusic() {
-        let url = this.YTURL;
+        let url = this.ytUrl;
         if (url === '' || this.currentGame === undefined) {
             return;
         }
@@ -504,17 +425,9 @@ export class EditGameComponent implements OnInit, OnDestroy {
                 this.currentGame = game;
                 this.gameService.setGame(this.currentGameID, this.currentGame);
                 this.gameService.setGameObservable(this.currentGame);
-                this.isAudioMetadata = false;
             });
         });
     }
-
-    displayInfo: FormGroup = new FormGroup({
-        name: new FormControl(''),
-        rating: new FormControl(''),
-        platforms: new FormControl(''),
-        tags: new FormControl('')
-    });
 
     selectItem() {
         this.genericService.changeBlockUI(true);
@@ -525,7 +438,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
         this.selectedItem.id = this.currentGameID;
         this.currentGame = this.selectedItem;
         if (this.selectedItem === 'ytdl') {
-            this.YTURL = this.selectedItem.url;
+            this.ytUrl = this.selectedItem.url;
             this.searchYT4BGMusic();
             return;
         }
@@ -580,7 +493,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
             for (let key of this.execKeys) {
                 game[key] = this.exec.get(key)?.value;
             }
-            this.db.postGame(game).then(r => this.gameService.getGames());
+            this.db.postGame(game).then(() => this.gameService.getGames());
             return;
         }
         if (this.currentGameID === undefined) {
@@ -594,7 +507,14 @@ export class EditGameComponent implements OnInit, OnDestroy {
         for (let key of this.execKeys) {
             game[key] = this.exec.get(key)?.value;
         }
-        this.db.postGame(game).then(r => this.gameService.getGames().then(() => { this.messageService.add({ severity: 'info', summary: 'Saved', detail: 'The change has been saved', life: 3000 }); }));
+        this.db.postGame(game).then(() => this.gameService.getGames().then(() => {
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Saved',
+                detail: 'The change has been saved',
+                life: 3000
+            });
+        }));
         this.gameService.setGame(this.currentGameID, game);
     }
 
@@ -608,7 +528,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
             for (let key of this.generalKeys) {
                 game[key] = this.info.get(key)?.value;
             }
-            this.db.postGame(game).then(r => this.gameService.getGames());
+            this.db.postGame(game).then(() => this.gameService.getGames());
             return;
         }
         if (this.currentGameID === undefined) {
@@ -623,8 +543,13 @@ export class EditGameComponent implements OnInit, OnDestroy {
             game[key] = this.info.get(key)?.value;
         }
 
-        this.db.postGame(game).then(r => this.gameService.getGames().then(() => {
-            this.messageService.add({ severity: 'info', summary: 'Saved', detail: 'The change has been saved', life: 3000 });
+        this.db.postGame(game).then(() => this.gameService.getGames().then(() => {
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Saved',
+                detail: 'The change has been saved',
+                life: 3000
+            });
             this.saveMediaToExternalStorage();
         }));
     }
@@ -638,7 +563,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
             for (let key of this.statKeys) {
                 game[key] = this.stat.get(key)?.value;
             }
-            this.db.postGame(game).then(r => this.gameService.getGames());
+            this.db.postGame(game).then(() => this.gameService.getGames());
             return;
         }
         if (this.currentGameID === undefined) {
@@ -653,48 +578,15 @@ export class EditGameComponent implements OnInit, OnDestroy {
             game[key] = this.stat.get(key)?.value;
         }
 
-        this.db.postGame(game).then(r => this.gameService.getGames().then(() => { this.messageService.add({ severity: 'info', summary: 'Saved', detail: 'The change has been saved', life: 3000 }); }));
+        this.db.postGame(game).then(() => this.gameService.getGames().then(() => {
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Saved',
+                detail: 'The change has been saved',
+                life: 3000
+            });
+        }));
         this.gameService.setGame(this.currentGameID, game);
-    }
-
-    info: FormGroup = new FormGroup({
-        name: new FormControl(''),
-        sort_name: new FormControl(''),
-        rating: new FormControl(''),
-        platforms: new FormControl(''),
-        tags: new FormControl(''),
-        description: new FormControl(''),
-        critic_score: new FormControl(''),
-        genres: new FormControl(''),
-        styles: new FormControl(''),
-        release_date: new FormControl(''),
-        developers: new FormControl(''),
-        editors: new FormControl(''),
-    });
-
-    stat: FormGroup = new FormGroup({
-        status: new FormControl(''),
-        time_played: new FormControl(''),
-        trophies_unlocked: new FormControl(''),
-        last_time_played: new FormControl(''),
-    });
-
-    exec: FormGroup = new FormGroup({
-        exec_file: new FormControl(''),
-        game_dir: new FormControl(''),
-        exec_args: new FormControl(''),
-    });
-
-    get generalKeys() {
-        return Object.keys(this.info.controls);
-    }
-
-    get statKeys() {
-        return Object.keys(this.stat.controls);
-    }
-
-    get execKeys() {
-        return Object.keys(this.exec.controls);
     }
 
     async linkGame() {
@@ -721,11 +613,61 @@ export class EditGameComponent implements OnInit, OnDestroy {
                 game.exec_args = execs.exec_args;
                 await this.db.postGame(game!);
                 this.gameService.setGame(this.currentGameID, game!);
-                this.messageService.add({ severity: 'info', summary: 'Game Linked', detail: 'The game has been linked', life: 3000 });
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Game Linked',
+                    detail: 'The game has been linked',
+                    life: 3000
+                });
             }
         }
         return;
     }
 
+    private saveMediaToExternalStorage() {
+        if (this.currentGame === undefined) {
+            return;
+        }
+        this.db.saveMediaToExternalStorage(this.currentGame).then(() => {
+            if (this.currentGame === undefined) {
+                return;
+            }
+            this.db.refreshGameLinks(this.currentGame).then((game) => {
+                this.currentGame = game;
+                this.gameService.getGames().then(() => {
+                    if (this.currentGameID === undefined || this.currentGame === undefined) {
+                        return;
+                    }
+                    this.gameService.setGame(this.currentGameID, this.gameService.getGame(this.currentGameID) as IGame);
+                    this.gameService.setGameObservable(this.currentGame);
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Metadata saved',
+                        detail: 'The metadata has been saved for : ' + this.currentGame.name,
+                        life: 3000
+                    });
+                    this.genericService.changeBlockUI(false);
+                });
+            });
+        });
+    }
+
+    searchGameInAPI() {
+        this.gameService.searchGameInAPI(this.searchingGame, this.selectedProvider, this.strict, this.currentGame).then((result) => {
+            if (result === undefined) {
+                return;
+            }
+            if (typeof result === 'string') {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: result,
+                    life: 3000
+                });
+                return;
+            }
+            this.searchedGames = result;
+        });
+    }
 }
 

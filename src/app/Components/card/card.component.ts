@@ -1,12 +1,11 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { NgForOf, NgIf, NgStyle } from "@angular/common";
-import { GenericService } from "../../services/generic.service";
-import { RouterLink } from "@angular/router";
-import simpleSvgPlaceholder from "@cloudfour/simple-svg-placeholder";
-import { SkeletonModule } from "primeng/skeleton";
-import { TagModule } from "primeng/tag";
-import { RatingModule } from "primeng/rating";
-import { FormsModule } from "@angular/forms";
+import {Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
+import {NgForOf, NgIf, NgOptimizedImage, NgStyle} from "@angular/common";
+import {GenericService} from "../../services/generic.service";
+import {RouterLink} from "@angular/router";
+import {SkeletonModule} from "primeng/skeleton";
+import {TagModule} from "primeng/tag";
+import {RatingModule} from "primeng/rating";
+import {FormsModule} from "@angular/forms";
 
 @Component({
     selector: 'app-card',
@@ -20,6 +19,7 @@ import { FormsModule } from "@angular/forms";
         TagModule,
         RatingModule,
         FormsModule,
+        NgOptimizedImage,
     ],
     templateUrl: './card.component.html',
     styleUrl: './card.component.css'
@@ -33,15 +33,13 @@ export class CardComponent implements OnInit, OnChanges {
     @Input() gamePlatforms: string | undefined;
 
     @ViewChild('imageElement') img: any;
-
+    width: string = "1rem";
+    displayInfo: any = null;
+    height: string = "auto";
     protected parsedTags: string[] = [];
 
     constructor(private genericService: GenericService) {
     }
-
-    width: string = "1rem";
-    displayInfo: any = null;
-    height: string = "auto";
 
     ngOnInit(): void {
         if (this.gameName === undefined) {
@@ -64,24 +62,7 @@ export class CardComponent implements OnInit, OnChanges {
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['gameImage']) {
-            this.tryToLoadImage(changes['gameImage'].currentValue);
+            // this.tryToLoadImage(changes['gameImage'].currentValue);
         }
     }
-
-
-    tryToLoadImage(img: any) {
-        try {
-            let image = new Image();
-            image.src = img as string;
-            image.onload = () => {
-                this.img.nativeElement.src = image.src;
-            };
-            image.onerror = () => {
-                console.log("Image not found");
-            };
-        } catch (error) {
-            console.log('Error while loading image', error);
-        }
-    }
-
 }

@@ -1,14 +1,14 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ButtonModule } from "primeng/button";
-import { ListboxModule } from "primeng/listbox";
-import { NgIf } from "@angular/common";
-import { FormsModule } from "@angular/forms";
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { invoke } from '@tauri-apps/api/tauri';
-import { ConfirmationService } from 'primeng/api';
-import { StepperModule } from 'primeng/stepper';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { InputTextModule } from 'primeng/inputtext';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {ButtonModule} from "primeng/button";
+import {ListboxModule} from "primeng/listbox";
+import {NgIf} from "@angular/common";
+import {FormsModule} from "@angular/forms";
+import {FloatLabelModule} from 'primeng/floatlabel';
+import {invoke} from '@tauri-apps/api/tauri';
+import {ConfirmationService} from 'primeng/api';
+import {StepperModule} from 'primeng/stepper';
+import {ConfirmDialogModule} from 'primeng/confirmdialog';
+import {InputTextModule} from 'primeng/inputtext';
 
 @Component({
     selector: 'app-gog-importer',
@@ -35,6 +35,9 @@ export class GogImporterComponent {
     @Output() selectedItemChange: EventEmitter<string> = new EventEmitter<string>();
     authCode: any;
 
+    constructor(private confirmationService: ConfirmationService) {
+    }
+
     async loginAndSync() {
         console.log(this.authCode);
         await invoke('import_library', {
@@ -49,7 +52,6 @@ export class GogImporterComponent {
         });
     }
 
-    constructor(private confirmationService: ConfirmationService) { }
     openLinkInBrowser(link: string) {
         window.open(link, '_blank');
     }

@@ -1,13 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { NgFor, NgIf } from '@angular/common';
-import { TableModule } from 'primeng/table';
-import { FileUploadModule } from 'primeng/fileupload';
-import { HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
-import { invoke } from '@tauri-apps/api/tauri';
+import {Component, OnInit} from '@angular/core';
+import {HttpClientModule} from '@angular/common/http';
+import {NgFor, NgIf} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {FileUploadModule} from 'primeng/fileupload';
+import {FormsModule} from '@angular/forms';
+import {invoke} from '@tauri-apps/api/tauri';
 import * as Papa from 'papaparse';
-import { DropdownModule } from 'primeng/dropdown';
+import {DropdownModule} from 'primeng/dropdown';
 
 @Component({
     imports: [
@@ -29,7 +28,9 @@ export class CSVImporter implements OnInit {
     dbColumns: string[] = [];
     columnMapping: { [key: string]: string; } = {};
 
-    constructor(private http: HttpClient) { }
+    constructor() {
+    }
+
     ngOnInit(): void {
         this.getDatabaseFields();
     }
@@ -74,6 +75,6 @@ export class CSVImporter implements OnInit {
             return mappedRow;
         });
 
-        await invoke('upload_csv_to_db', { data: mappedData });
+        await invoke('upload_csv_to_db', {data: mappedData});
     }
-};
+}

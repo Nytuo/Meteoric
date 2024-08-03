@@ -1,12 +1,11 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
-import { ListboxModule } from 'primeng/listbox';
-import { NgIf, NgFor } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {ButtonModule} from 'primeng/button';
+import {ListboxModule} from 'primeng/listbox';
+import {NgFor, NgIf, NgOptimizedImage} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import ISGDB from './ISGDB';
-import { invoke } from '@tauri-apps/api/tauri';
-import IGame from '../../../interfaces/IGame';
-import { StepperModule } from 'primeng/stepper';
+import {invoke} from '@tauri-apps/api/tauri';
+import {StepperModule} from 'primeng/stepper';
 
 @Component({
     selector: 'app-steam-grid',
@@ -18,20 +17,18 @@ import { StepperModule } from 'primeng/stepper';
         NgFor,
         FormsModule,
         StepperModule,
+        NgOptimizedImage,
     ],
     templateUrl: './steam_grid.component.html',
     styleUrl: './steam_grid.component.css',
 })
 export class SteamGridComponent implements OnInit {
-    ngOnInit(): void {
-    }
     @Input() message: string = '';
     @Input() searchedGames: any[] = [];
     @Output() selectItem: EventEmitter<any> = new EventEmitter<any>();
     @Output() back: EventEmitter<void> = new EventEmitter<void>();
     @Input() selectedItem: any = null;
     @Output() selectedItemChange: EventEmitter<any> = new EventEmitter<any>();
-
     availableGrids: any[] = [];
     availableHeroes: any[] = [];
     availableLogos: any[] = [];
@@ -50,6 +47,13 @@ export class SteamGridComponent implements OnInit {
         logo: '',
         icon: '',
     };
+    selectGridIndex = 0;
+    selectHeroIndex = 0;
+    selectLogoIndex = 0;
+    selectIconIndex = 0;
+
+    ngOnInit(): void {
+    }
 
     onStepChange($event: any) {
         console.log($event);
@@ -134,11 +138,6 @@ export class SteamGridComponent implements OnInit {
             };
         });
     }
-
-    selectGridIndex = 0;
-    selectHeroIndex = 0;
-    selectLogoIndex = 0;
-    selectIconIndex = 0;
 
     applySelectionOn(item: string, index: number) {
         console.log('applySelectionOn', item, index);

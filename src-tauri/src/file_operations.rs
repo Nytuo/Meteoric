@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 use std::path::Path;
 
@@ -7,36 +6,36 @@ use directories::ProjectDirs;
 
 use crate::database::establish_connection;
 use crate::database::query_all_data;
-use crate::tauri_commander::download_youtube_video;
 use crate::IGame;
 use crate::Metadata;
+use crate::tauri_commander::download_youtube_video;
 
 pub fn create_extra_dirs(id: &str) -> Result<(), Box<dyn std::error::Error>> {
     let id = id;
     let extra_content_dir = create_extra_content_dir()?;
     let game_dir = extra_content_dir.join(id);
     if !game_dir.exists() {
-        std::fs::create_dir_all(game_dir.clone()).unwrap();
+        fs::create_dir_all(game_dir.clone()).unwrap();
     }
     let screenshots_dir = game_dir.join("screenshots");
     if !screenshots_dir.exists() {
-        std::fs::create_dir_all(screenshots_dir).unwrap();
+        fs::create_dir_all(screenshots_dir).unwrap();
     }
 
     let videos_dir = game_dir.join("videos");
     if !videos_dir.exists() {
-        std::fs::create_dir_all(videos_dir).unwrap();
+        fs::create_dir_all(videos_dir).unwrap();
     }
 
     let music_dir = game_dir.join("musics");
     if !music_dir.exists() {
-        std::fs::create_dir_all(music_dir).unwrap();
+        fs::create_dir_all(music_dir).unwrap();
     }
     Ok(())
 }
 
 pub fn remove_file(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    match std::fs::remove_file(file_path) {
+    match fs::remove_file(file_path) {
         Ok(_) => Ok(()),
         Err(e) => Err(format!("Error removing file: {}", e).into()),
     }
@@ -68,7 +67,7 @@ pub fn read_extra_dirs_for(
 fn get_all_files_in_dir(
     dir: &std::path::PathBuf,
 ) -> Result<Vec<std::path::PathBuf>, Box<dyn std::error::Error>> {
-    match std::fs::read_dir(dir) {
+    match fs::read_dir(dir) {
         Ok(files) => {
             let mut files_vec = Vec::new();
             for file in files {
@@ -113,7 +112,7 @@ fn create_extra_content_dir() -> Result<std::path::PathBuf, Box<dyn std::error::
     let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
     let extra_content_dir = proj_dirs.config_dir().join("universe_extra_content");
     if !extra_content_dir.exists() {
-        std::fs::create_dir_all(extra_content_dir.clone()).unwrap();
+        fs::create_dir_all(extra_content_dir.clone()).unwrap();
     }
     Ok(extra_content_dir)
 }
@@ -172,10 +171,10 @@ pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Resul
     create_extra_dirs(&id).unwrap();
     let game_dir = get_extra_dirs(&id).unwrap();
 
-    let mut get_nb_of_screenshots = std::fs::read_dir(&game_dir.clone().join("screenshots"))
+    let mut get_nb_of_screenshots = fs::read_dir(&game_dir.clone().join("screenshots"))
         .unwrap()
         .count();
-    let mut get_nb_of_videos = std::fs::read_dir(&game_dir.clone().join("videos"))
+    let mut get_nb_of_videos = fs::read_dir(&game_dir.clone().join("videos"))
         .unwrap()
         .count();
 
@@ -195,11 +194,11 @@ pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Resul
                         get_nb_of_screenshots = get_nb_of_screenshots + 1;
                         let file_path = game_dir.join("screenshots").join(
                             "screenshot-".to_string()
-                                + &(get_nb_of_screenshots).to_string()
+                                + &get_nb_of_screenshots.to_string()
                                 + ".jpg",
                         );
                         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
-                        if let Err(e) = std::fs::write(&file_path, &file_content) {
+                        if let Err(e) = fs::write(&file_path, &file_content) {
                             return Err(format!("Error writing file: {:?}", e));
                         }
                     }
@@ -214,14 +213,14 @@ pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Resul
                         let video_path = game_dir.join("videos");
                         let file_path = game_dir
                             .join("videos")
-                            .join("video-".to_string() + &(get_nb_of_videos).to_string() + ".mp4");
+                            .join("video-".to_string() + &get_nb_of_videos.to_string() + ".mp4");
                         let is_youtube = url.contains("youtube.com");
 
                         if is_youtube {
                             match download_youtube_video(
                                 url,
                                 video_path.to_str().unwrap().to_string(),
-                                "video-".to_string() + &(get_nb_of_videos).to_string(),
+                                "video-".to_string() + &get_nb_of_videos.to_string(),
                             )
                             .await
                             {
@@ -231,7 +230,7 @@ pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Resul
                         } else {
                             let file_content =
                                 cl.get(url).send().await.unwrap().bytes().await.unwrap();
-                            if let Err(e) = std::fs::write(&file_path, &file_content) {
+                            if let Err(e) = fs::write(&file_path, &file_content) {
                                 return Err(format!("Error writing file: {:?}", e));
                             }
                         }
@@ -261,7 +260,7 @@ pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Resul
                     "icon" => game_dir_clone.join("icon.png"),
                     _ => game_dir_clone,
                 };
-                if let Err(e) = std::fs::write(&file_path, &file_content) {
+                if let Err(e) = fs::write(&file_path, &file_content) {
                     return Err(format!("Error writing file: {:?}", e));
                 }
             }

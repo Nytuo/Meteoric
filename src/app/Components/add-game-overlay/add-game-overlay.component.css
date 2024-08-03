@@ -1,24 +1,5 @@
-.formDisplay{
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    margin-right: 10px;
-}
-.formDisplayAlt{
-    margin-top: 20px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    margin-right: 10px;
-}
-
-.overlayLoading{
-    position:absolute;
+.overlayLoading {
+    position: absolute;
     top: 0;
     left: 0;
     display: flex;
@@ -32,6 +13,6 @@
     z-index: 1000;
 }
 
-::ng-deep .formDisplay>p-float-label{
+::ng-deep .formDisplay > p-float-label {
     width: 100% !important;
 }

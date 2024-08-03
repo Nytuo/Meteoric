@@ -1,23 +1,23 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { IGDBComponent } from './igdb.component';
+import {IGDBComponent} from './igdb.component';
 
 describe('IGDBComponent', () => {
-  let component: IGDBComponent;
-  let fixture: ComponentFixture<IGDBComponent>;
+    let component: IGDBComponent;
+    let fixture: ComponentFixture<IGDBComponent>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [IGDBComponent]
-    })
-    .compileComponents();
-    
-    fixture = TestBed.createComponent(IGDBComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [IGDBComponent]
+        })
+            .compileComponents();
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+        fixture = TestBed.createComponent(IGDBComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
+
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });

@@ -1,9 +1,9 @@
+use steamgriddb_api::Client;
 use steamgriddb_api::images::Image;
 use steamgriddb_api::query_parameters::QueryType::Grid;
 use steamgriddb_api::query_parameters::QueryType::Hero;
 use steamgriddb_api::query_parameters::QueryType::Icon;
 use steamgriddb_api::query_parameters::QueryType::Logo;
-use steamgriddb_api::Client;
 use tokio::sync::Mutex;
 use tokio::task;
 

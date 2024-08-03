@@ -1,10 +1,10 @@
 <div class="container">
-	<p-toast />
-	<app-blocking-overlay />
-	<app-sidebar />
-	<app-topbar />
-	<div class="content" (click)="closeOverlay()">
-		<router-outlet></router-outlet>
-	</div>
-	<app-loading-bar></app-loading-bar>
+    <p-toast/>
+    <app-blocking-overlay/>
+    <app-sidebar/>
+    <app-topbar/>
+    <div (click)="closeOverlay()" class="content">
+        <router-outlet></router-outlet>
+    </div>
+    <app-loading-bar></app-loading-bar>
 </div>

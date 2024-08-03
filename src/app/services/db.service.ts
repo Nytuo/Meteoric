@@ -1,10 +1,9 @@
-import { Injectable } from '@angular/core';
-import { convertFileSrc, invoke } from "@tauri-apps/api/tauri";
+import {Injectable} from '@angular/core';
+import {convertFileSrc, invoke} from "@tauri-apps/api/tauri";
 import IGame from "../../interfaces/IGame";
-import { configDir } from "@tauri-apps/api/path";
+import {configDir} from "@tauri-apps/api/path";
 import ICategory from "../../interfaces/ICategory";
-import { platform } from "@tauri-apps/api/os";
-import { FormGroup } from "@angular/forms";
+import {platform} from "@tauri-apps/api/os";
 
 @Injectable({
     providedIn: 'root'
@@ -39,20 +38,7 @@ export class DBService {
             game.background = convertFileSrc(configDirPath + id + "/background.jpg");
             game.logo = convertFileSrc(configDirPath + id + "/logo.png");
             game.icon = convertFileSrc(configDirPath + id + "/icon.png");
-            let allImagesLocation = await invoke<string>("get_all_images_location", { id: id });
-            let allImagesLocationParsed = JSON.parse(allImagesLocation);
-            game.screenshots = [];
-            for (let i = 0; i < allImagesLocationParsed.length; i++) {
-                game.screenshots[i] = convertFileSrc(configDirPath + allImagesLocationParsed[i]);
-            }
-            game.videos = [];
-            let allVideosLocation = await invoke<string>("get_all_videos_location", { id: id });
-            allVideosLocation = JSON.parse(allVideosLocation);
-            for (let i = 0; i < allVideosLocation.length; i++) {
-                game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
-            }
-            game.backgroundMusic = convertFileSrc(configDirPath + id + "/musics/theme.mp3");
-            return game;
+            return await this.get_all_img_and_video(id, game, configDirPath);
         });
         return gamesArray;
     }
@@ -70,20 +56,7 @@ export class DBService {
         game.background = convertFileSrc(configDirPath + id + "/background.jpg") + "?" + new Date().getTime();
         game.logo = convertFileSrc(configDirPath + id + "/logo.png") + "?" + new Date().getTime();
         game.icon = convertFileSrc(configDirPath + id + "/icon.png") + "?" + new Date().getTime();
-        let allImagesLocation = await invoke<string>("get_all_images_location", { id: id });
-        let allImagesLocationParsed = JSON.parse(allImagesLocation);
-        game.screenshots = [];
-        for (let i = 0; i < allImagesLocationParsed.length; i++) {
-            game.screenshots[i] = convertFileSrc(configDirPath + allImagesLocationParsed[i]);
-        }
-        game.videos = [];
-        let allVideosLocation = await invoke<string>("get_all_videos_location", { id: id });
-        allVideosLocation = JSON.parse(allVideosLocation);
-        for (let i = 0; i < allVideosLocation.length; i++) {
-            game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
-        }
-        game.backgroundMusic = convertFileSrc(configDirPath + id + "/musics/theme.mp3");
-        return game;
+        return await this.get_all_img_and_video(id, game, configDirPath);
     }
 
     async getCategories() {
@@ -92,12 +65,19 @@ export class DBService {
     }
 
     async createCategory(name: string, icon: string, games: string[], filters: string[], views: string[], background: string) {
-        await invoke("create_category", { name: name, icon: icon, games: games, filters: filters, views: views, background: background });
+        await invoke("create_category", {
+            name: name,
+            icon: icon,
+            games: games,
+            filters: filters,
+            views: views,
+            background: background
+        });
     }
 
     async addGameToCategory(gameID: string, categoryID: string) {
         console.log("Adding game to category", gameID, categoryID);
-        await invoke("add_game_to_category", { gameId: gameID, categoryId: categoryID });
+        await invoke("add_game_to_category", {gameId: gameID, categoryId: categoryID});
     }
 
     async getGames(): Promise<IGame[]> {
@@ -113,8 +93,8 @@ export class DBService {
     }
 
     async getGamesByCategory(category: string) {
-        return new Promise<void | IGame[]>((resolve, reject) => {
-            invoke<string>("get_games_by_category", { category }).then(games => {
+        return new Promise<void | IGame[]>((resolve) => {
+            invoke<string>("get_games_by_category", {category}).then(games => {
                 resolve(this.JSONParserForGames(games));
             });
         });
@@ -123,33 +103,32 @@ export class DBService {
     async postGame(game: IGame) {
         console.log(game);
         console.log(JSON.stringify(game));
-        let promise = new Promise<string>((resolve, reject) => {
-            invoke("post_game", { game: JSON.stringify(game) }).then((id) => {
+        return new Promise<string>((resolve, reject) => {
+            invoke("post_game", {game: JSON.stringify(game)}).then((id) => {
                 console.log("Game posted with id", id);
                 resolve(id as string);
             }).catch((error) => {
                 reject(error);
             });
         });
-        return promise;
     }
 
     async uploadFile(file: any, typeOf: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette", id: string) {
         let fileContent = Array.from(new Uint8Array(file));
-        return invoke("upload_file", { fileContent, typeOf, id });
+        return invoke("upload_file", {fileContent, typeOf, id});
     }
 
     async deleteElement(typeOf: "screenshot" | "video" | "audio", gameID: string, elementToDelete?: string) {
         console.log("Deleting element", typeOf, gameID, elementToDelete);
         if (elementToDelete === undefined) {
-            return invoke("delete_element", { typeOf, id: gameID, elementToDelete: "" });
+            return invoke("delete_element", {typeOf, id: gameID, elementToDelete: ""});
         }
-        return invoke("delete_element", { typeOf, id: gameID, elementToDelete });
+        return invoke("delete_element", {typeOf, id: gameID, elementToDelete});
     }
 
     async getGame(id: string) {
-        return new Promise<void | IGame[]>((resolve, reject) => {
-            invoke<string>("get_game", { id }).then(games => {
+        return new Promise<void | IGame[]>((resolve) => {
+            invoke<string>("get_game", {id}).then(games => {
                 resolve(this.JSONParserForGames(games));
             });
         });
@@ -170,7 +149,7 @@ export class DBService {
 
             let exportGameString = JSON.stringify(exportGame);
 
-            invoke("save_media_to_external_storage", { id: currentGame.id, game: exportGameString }).then(() => {
+            invoke("save_media_to_external_storage", {id: currentGame.id, game: exportGameString}).then(() => {
                 setTimeout(() => {
                     console.log("Media saved to external storage");
                     resolve();
@@ -183,6 +162,23 @@ export class DBService {
     }
 
     removeGameFromCategory(gameID: string, id: string) {
-        return invoke("remove_game_from_category", { gameId: gameID, categoryId: id });
+        return invoke("remove_game_from_category", {gameId: gameID, categoryId: id});
+    }
+
+    private async get_all_img_and_video(id: string, game: IGame, configDirPath: string) {
+        let allImagesLocation = await invoke<string>("get_all_images_location", {id: id});
+        let allImagesLocationParsed = JSON.parse(allImagesLocation);
+        game.screenshots = [];
+        for (let i = 0; i < allImagesLocationParsed.length; i++) {
+            game.screenshots[i] = convertFileSrc(configDirPath + allImagesLocationParsed[i]);
+        }
+        game.videos = [];
+        let allVideosLocation = await invoke<string>("get_all_videos_location", {id: id});
+        allVideosLocation = JSON.parse(allVideosLocation);
+        for (let i = 0; i < allVideosLocation.length; i++) {
+            game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
+        }
+        game.backgroundMusic = convertFileSrc(configDirPath + id + "/musics/theme.mp3");
+        return game;
     }
 }

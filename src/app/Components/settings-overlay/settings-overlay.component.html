@@ -1,84 +1,84 @@
 <p-dialog
-	header="Settings"
-	modal="true"
-	[(visible)]="visible"
-	resizable="false"
-	draggable="false"
-	[style]="{ maxWidth: '90%', width: '90%', height: '90%', maxHeight: '90%' }"
-	(onHide)="hide()"
+        (onHide)="hide()"
+        [(visible)]="visible"
+        [style]="{ maxWidth: '90%', width: '90%', height: '90%', maxHeight: '90%' }"
+        draggable="false"
+        header="Settings"
+        modal="true"
+        resizable="false"
 >
-	<div class="sideBySide">
-		<div>
-			<p-panelMenu [model]="items" styleClass="w-full md:w-20rem" />
-		</div>
-		<div style="width: 100%">
-			<div id="content">
-				<div id="themes" *ngIf="activeItem === 'Themes'">
-					<h3>Themes</h3>
-					<p>Choose a theme:</p>
-					<p-dropdown
-						[(ngModel)]="selectedTheme"
-						[options]="themes"
-						(onChange)="changeTheme()"
-						optionLabel="label"
-						placeholder="Change Theme"
-					/>
-				</div>
-				<div id="languages" *ngIf="activeItem === 'Languages'">
-					<h3>Languages</h3>
-					<p>Choose a language:</p>
-					<p-dropdown
-						[(ngModel)]="selectedLanguage"
-						[options]="languages"
-						(onChange)="changeLanguage()"
-						optionLabel="label"
-						placeholder="Change language"
-					/>
-				</div>
-				<app-csv-importer
-					*ngIf="activeItem === 'CSV Importer'"
-				></app-csv-importer>
+    <div class="sideBySide">
+        <div>
+            <p-panelMenu [model]="items" styleClass="w-full md:w-20rem"/>
+        </div>
+        <div style="width: 100%">
+            <div id="content">
+                <div *ngIf="activeItem === 'Themes'" id="themes">
+                    <h3>Themes</h3>
+                    <p>Choose a theme:</p>
+                    <p-dropdown
+                            (onChange)="changeTheme()"
+                            [(ngModel)]="selectedTheme"
+                            [options]="themes"
+                            optionLabel="label"
+                            placeholder="Change Theme"
+                    />
+                </div>
+                <div *ngIf="activeItem === 'Languages'" id="languages">
+                    <h3>Languages</h3>
+                    <p>Choose a language:</p>
+                    <p-dropdown
+                            (onChange)="changeLanguage()"
+                            [(ngModel)]="selectedLanguage"
+                            [options]="languages"
+                            optionLabel="label"
+                            placeholder="Change language"
+                    />
+                </div>
+                <app-csv-importer
+                        *ngIf="activeItem === 'CSV Importer'"
+                ></app-csv-importer>
 
-				<app-epic-importer
-					*ngIf="activeItem === 'Epic Games Importer'"
-				></app-epic-importer>
-				<app-steam-importer
-					*ngIf="activeItem === 'Steam Importer'"
-				></app-steam-importer>
-				<app-gog-importer
-					*ngIf="activeItem === 'GOG Importer'"
-				></app-gog-importer>
-				<div id="about" *ngIf="activeItem === 'About'">
-					<h3>About</h3>
-					<img
-						src="assets/logo.png"
-						alt="Universe Desktop Logo"
-						style="width: 100px; height: 100px"
-					/>
-					<p>Universe Collector Desktop</p>
-					<p>Version: {{ appVersion }}</p>
-					<br />
-					<p>
-						This is a project by <a href="https://github.com/Nytuo">Nytuo</a>
-					</p>
-					<p>
-						It is a work in progress, expect some issues. In some case you may
-						need to manually refresh / restart the launcher.
-					</p>
-					<p>
-						For any issues, please report them on the
-						<a href="https://github.com/Nytuo/UniverseDesktop/issues"
-							>GitHub page</a
-						>
-					</p>
-					<p>
-						For any feature requests, please report them on the
-						<a href="https://github.com/Nytuo/UniverseDesktop/issues"
-							>GitHub page</a
-						>
-					</p>
-				</div>
-			</div>
-		</div>
-	</div>
+                <app-epic-importer
+                        *ngIf="activeItem === 'Epic Games Importer'"
+                ></app-epic-importer>
+                <app-steam-importer
+                        *ngIf="activeItem === 'Steam Importer'"
+                ></app-steam-importer>
+                <app-gog-importer
+                        *ngIf="activeItem === 'GOG Importer'"
+                ></app-gog-importer>
+                <div *ngIf="activeItem === 'About'" id="about">
+                    <h3>About</h3>
+                    <img
+                            alt="Universe Desktop Logo"
+                            height="235"
+                            ngSrc="assets/logo.png"
+                            style="width: 100px; height: 100px" width="240"/>
+                    <p>Universe Collector Desktop</p>
+                    <p>Version: {{ appVersion }}</p>
+                    <br/>
+                    <p>
+                        This is a project by <a href="https://github.com/Nytuo">Nytuo</a>
+                    </p>
+                    <p>
+                        It is a work in progress, expect some issues. In some case you may
+                        need to manually refresh / restart the launcher.
+                    </p>
+                    <p>
+                        For any issues, please report them on the
+                        <a href="https://github.com/Nytuo/UniverseDesktop/issues"
+                        >GitHub page</a
+                        >
+                    </p>
+                    <p>
+                        For any feature requests, please report them on the
+                        <a href="https://github.com/Nytuo/UniverseDesktop/issues"
+                        >GitHub page</a
+                        >
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </p-dialog>

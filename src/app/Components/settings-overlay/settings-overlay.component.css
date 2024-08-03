@@ -1,16 +1,16 @@
 .sideBySide {
-	display: flex;
-	justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
 }
 
 #content {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	padding: 0 40px 0 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0 40px 0 40px;
 }
 
 #themes,
 #languages {
-	height: 45vh;
+    height: 45vh;
 }

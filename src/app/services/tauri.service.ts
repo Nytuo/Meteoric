@@ -1,55 +1,56 @@
-import { Injectable } from '@angular/core';
-import { listen } from '@tauri-apps/api/event';
-import { BehaviorSubject } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {listen} from '@tauri-apps/api/event';
+import {BehaviorSubject} from 'rxjs';
 import IGameLaunchedMessage from '../../interfaces/IGameLaunchMessage';
+
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class TauriService {
-  message: any = '';
-  messageForLoadingBar: BehaviorSubject<string> = new BehaviorSubject('');
-  messageForGameLaunched: BehaviorSubject<IGameLaunchedMessage> = new BehaviorSubject({ gamePID: 0 });
+    message: any = '';
+    messageForLoadingBar: BehaviorSubject<string> = new BehaviorSubject('');
+    messageForGameLaunched: BehaviorSubject<IGameLaunchedMessage> = new BehaviorSubject({gamePID: 0});
 
-  possibleMessages = ['ROUTINE_IGDB_TOTAL', 'ROUTINE_IGDB_STATUS', 'ROUTINE_IGDB_NAME'];
+    possibleMessages = ['ROUTINE_IGDB_TOTAL', 'ROUTINE_IGDB_STATUS', 'ROUTINE_IGDB_NAME'];
 
-  get getPossibleMessages(): string[] {
-    return this.possibleMessages;
-  }
+    constructor() {
+        this.listenForMessages();
+    }
 
-  get getMessage(): string {
-    return this.message;
-  }
+    get getPossibleMessages(): string[] {
+        return this.possibleMessages;
+    }
 
-  getMessagesForLoadingBar() {
-    return this.messageForLoadingBar.asObservable();
-  }
+    get getMessage(): string {
+        return this.message;
+    }
 
-  getMessagesForGameLaunched() {
-    return this.messageForGameLaunched.asObservable();
-  }
+    getMessagesForLoadingBar() {
+        return this.messageForLoadingBar.asObservable();
+    }
 
-  constructor() {
-    this.listenForMessages();
-  }
+    getMessagesForGameLaunched() {
+        return this.messageForGameLaunched.asObservable();
+    }
 
-  private listenForMessages(): void {
-    listen('frontend-message', (event) => {
-      this.message = event.payload;
-      if ((this.message as string).startsWith('ROUTINE_IGDB')) {
-        this.messageForLoadingBar.next(this.message);
-      }
-      if ((this.message as string).includes('-GL-')) {
-        const end = (this.message as string).includes('END');
-        let gamePID = parseInt((this.message as string).split('-GL-')[1], 10);
-        const error = (this.message as string).startsWith('E-');
-        if (end && !error) {
-          gamePID = 0;
-        }
-        let message: IGameLaunchedMessage = { gamePID: gamePID, isEnded: end, isError: error };
-        this.messageForGameLaunched.next(message);
-      }
-    }).catch((error) => {
-      console.error('Error listening to message-event', error);
-    });
-  }
+    private listenForMessages(): void {
+        listen('frontend-message', (event) => {
+            this.message = event.payload;
+            if ((this.message as string).startsWith('ROUTINE_IGDB')) {
+                this.messageForLoadingBar.next(this.message);
+            }
+            if ((this.message as string).includes('-GL-')) {
+                const end = (this.message as string).includes('END');
+                let gamePID = parseInt((this.message as string).split('-GL-')[1], 10);
+                const error = (this.message as string).startsWith('E-');
+                if (end && !error) {
+                    gamePID = 0;
+                }
+                let message: IGameLaunchedMessage = {gamePID: gamePID, isEnded: end, isError: error};
+                this.messageForGameLaunched.next(message);
+            }
+        }).catch((error) => {
+            console.error('Error listening to message-event', error);
+        });
+    }
 }

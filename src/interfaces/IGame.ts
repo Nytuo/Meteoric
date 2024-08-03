@@ -10,7 +10,6 @@ interface ITrophy {
 }
 
 export default interface IGame {
-    [key: string]: any;
     id: string;
     name: string;
     sort_name: string;
@@ -39,4 +38,6 @@ export default interface IGame {
     trophies: string;
     trophies_unlocked: string;
     last_time_played: string;
+
+    [key: string]: any;
 }
