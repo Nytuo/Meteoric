@@ -5,6 +5,8 @@ use rusqlite::{Connection, params};
 
 use crate::IGame;
 
+mod test;
+
 pub(crate) fn query_data(
     conn: &Connection,
     tables: Vec<&str>,
@@ -45,9 +47,7 @@ pub(crate) fn query_all_data(
     conn: &Connection,
     table: &str,
 ) -> Result<Vec<HashMap<String, String>>, rusqlite::Error> {
-    let mut stmt = conn.prepare(&format!("SELECT * FROM {}", table))?;
-    let json = make_a_json_from_db(&mut stmt)?;
-    Ok(json)
+    query_data(conn, vec![table], vec!["*"], vec![("1", "1")], false)
 }
 
 pub(crate) fn add_category(
@@ -132,19 +132,14 @@ fn update_data(
     value: &str,
     table: &str,
 ) -> rusqlite::Result<()> {
-    conn.execute(
+    let result = conn.execute(
         &format!("UPDATE {} SET {} = ?1 WHERE id = ?2", table, field),
         params![value, id],
-    )?;
-    Ok(())
-}
-
-fn insert_data(conn: &Connection, id: i32, name: &str) -> rusqlite::Result<()> {
-    conn.execute(
-        "INSERT INTO user (id, name) VALUES (?1, ?2)",
-        params![id, name],
-    )?;
-    Ok(())
+    );
+    match result {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
 }
 
 fn modify_table_add_missing_columns(
@@ -391,3 +386,4 @@ pub fn get_game_id_by_name(conn: &Connection, name: &str) -> Result<String, Stri
         Err("No game found with the given name".to_string())
     }
 }
+
