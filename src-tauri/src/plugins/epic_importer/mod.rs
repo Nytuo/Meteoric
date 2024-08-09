@@ -10,6 +10,8 @@ use crate::database::establish_connection;
 use crate::database::update_game;
 use crate::IGame;
 
+mod test;
+
 lazy_static::lazy_static! {
     static ref AUTHCODE: Mutex<String> = Mutex::new("".to_string());
     static ref EPIC: Mutex<EpicGames> = Mutex::new(EpicGames::new());
@@ -17,7 +19,6 @@ lazy_static::lazy_static! {
 
 pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     let authcode = AUTHCODE.lock().await;
-    println!("arrived at GETGAMES {}", authcode);
     let mut client = EPIC.lock().await;
 
     let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
@@ -83,3 +84,4 @@ pub async fn get_games_from_user() -> Result<(), Box<dyn std::error::Error>> {
     get_games().await.expect("Failed to get games");
     Ok(())
 }
+
