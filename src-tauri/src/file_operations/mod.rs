@@ -1,14 +1,17 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use std::path::PathBuf;
 
 use directories::ProjectDirs;
 
 use crate::database::establish_connection;
 use crate::database::query_all_data;
+use crate::tauri_commander::download_youtube_video;
 use crate::IGame;
 use crate::Metadata;
-use crate::tauri_commander::download_youtube_video;
+
+mod test;
 
 pub fn create_extra_dirs(id: &str) -> Result<(), Box<dyn std::error::Error>> {
     let id = id;
@@ -138,6 +141,123 @@ pub fn is_folder_empty_recursive(dir: &Path) -> bool {
     true
 }
 
+pub async fn download_media_files(id: &str, game: HashMap<String, serde_json::Value>) -> Result<(), String> {
+    let game_dir = get_extra_dirs(id).unwrap();
+    let cl = reqwest::Client::new();
+
+    for (key, value) in game.iter() {
+        if value.is_null() || key.is_empty() {
+            continue;
+        }
+
+        if value.is_array() {
+            if key == "screenshots" {
+                download_screenshots(&game_dir, &cl, value.as_array().unwrap()).await?;
+            } else if key == "videos" {
+                download_videos(&game_dir, &cl, value.as_array().unwrap()).await?;
+            }
+        } else {
+            download_single_file(&game_dir, &cl, key, value).await?;
+        }
+    }
+
+    println!("Game saved");
+    Ok(())
+}
+
+async fn download_screenshots(
+    game_dir: &PathBuf,
+    cl: &reqwest::Client,
+    screenshots: &Vec<serde_json::Value>,
+) -> Result<(), String> {
+    let mut get_nb_of_screenshots = fs::read_dir(&game_dir.clone().join("screenshots"))
+        .unwrap()
+        .count();
+    for i in screenshots {
+        println!("Downloading: {}", i);
+        let url = i.as_str().unwrap();
+        get_nb_of_screenshots = get_nb_of_screenshots + 1;
+        let file_path = game_dir
+            .join("screenshots")
+            .join("screenshot-".to_string() + &get_nb_of_screenshots.to_string() + ".jpg");
+        let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
+        if let Err(e) = fs::write(&file_path, &file_content) {
+            return Err(format!("Error writing file: {:?}", e));
+        }
+    }
+
+    Ok(())
+}
+
+async fn download_videos(
+    game_dir: &PathBuf,
+    cl: &reqwest::Client,
+    videos: &Vec<serde_json::Value>,
+) -> Result<(), String> {
+    let mut get_nb_of_videos = fs::read_dir(&game_dir.clone().join("videos"))
+        .unwrap()
+        .count();
+    for i in videos {
+        let url = i.as_str().unwrap();
+        get_nb_of_videos = get_nb_of_videos + 1;
+        let video_path = game_dir.join("videos");
+        let file_path = game_dir
+            .join("videos")
+            .join("video-".to_string() + &get_nb_of_videos.to_string() + ".mp4");
+        let is_youtube = url.contains("youtube.com");
+
+        if is_youtube {
+            match download_youtube_video(
+                url,
+                video_path.to_str().unwrap().to_string(),
+                "video-".to_string() + &get_nb_of_videos.to_string(),
+            )
+            .await
+            {
+                Ok(_) => println!("Youtube video downloaded"),
+                Err(e) => println!("Error downloading youtube video: {:?}", e),
+            }
+        } else {
+            let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
+            if let Err(e) = fs::write(&file_path, &file_content) {
+                return Err(format!("Error writing file: {:?}", e));
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn download_single_file(
+    game_dir: &PathBuf,
+    cl: &reqwest::Client,
+    key: &str,
+    value: &serde_json::Value,
+) -> Result<(), String> {
+    let url = value.as_str().unwrap();
+
+    if key == "audio" || key == "background" || key == "jaquette" || key == "logo" || key == "icon"
+    {
+        println!("Downloading: {}", url);
+        if url.is_empty() {
+            return Err("Url is empty".to_string());
+        }
+        let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
+        let game_dir_clone = game_dir.clone();
+        let file_path = match key {
+            "audio" => game_dir_clone.join("musics").join("theme.mp3"),
+            "background" => game_dir_clone.join("background.jpg"),
+            "jaquette" => game_dir_clone.join("jaquette.jpg"),
+            "logo" => game_dir_clone.join("logo.png"),
+            "icon" => game_dir_clone.join("icon.png"),
+            _ => game_dir_clone,
+        };
+        if let Err(e) = fs::write(&file_path, &file_content) {
+            return Err(format!("Error writing file: {:?}", e));
+        }
+    }
+    Ok(())
+}
+
 pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Result<(), String> {
     let game: HashMap<String, serde_json::Value> =
         serde_json::from_str(&serde_json::to_string(&game).unwrap()).map_err(|e| e.to_string())?;
@@ -169,103 +289,9 @@ pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Resul
     }
 
     create_extra_dirs(&id).unwrap();
-    let game_dir = get_extra_dirs(&id).unwrap();
 
-    let mut get_nb_of_screenshots = fs::read_dir(&game_dir.clone().join("screenshots"))
-        .unwrap()
-        .count();
-    let mut get_nb_of_videos = fs::read_dir(&game_dir.clone().join("videos"))
-        .unwrap()
-        .count();
+    download_media_files(&id, game).await?;
 
-    let cl = reqwest::Client::new();
-
-    for (key, value) in game.iter() {
-        println!("Key: {}, Value: {}", key, value);
-        if value.is_null() || key.is_empty() {
-            continue;
-        }
-        if value.is_array() {
-            if key == "screenshots" {
-                if let Some(str_value) = value.as_array() {
-                    for i in str_value {
-                        println!("Downloading: {}", i);
-                        let url = i.as_str().unwrap();
-                        get_nb_of_screenshots = get_nb_of_screenshots + 1;
-                        let file_path = game_dir.join("screenshots").join(
-                            "screenshot-".to_string()
-                                + &get_nb_of_screenshots.to_string()
-                                + ".jpg",
-                        );
-                        let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
-                        if let Err(e) = fs::write(&file_path, &file_content) {
-                            return Err(format!("Error writing file: {:?}", e));
-                        }
-                    }
-                }
-            }
-
-            if key == "videos" {
-                if let Some(str_value) = value.as_array() {
-                    for i in str_value {
-                        let url = i.as_str().unwrap();
-                        get_nb_of_videos = get_nb_of_videos + 1;
-                        let video_path = game_dir.join("videos");
-                        let file_path = game_dir
-                            .join("videos")
-                            .join("video-".to_string() + &get_nb_of_videos.to_string() + ".mp4");
-                        let is_youtube = url.contains("youtube.com");
-
-                        if is_youtube {
-                            match download_youtube_video(
-                                url,
-                                video_path.to_str().unwrap().to_string(),
-                                "video-".to_string() + &get_nb_of_videos.to_string(),
-                            )
-                            .await
-                            {
-                                Ok(_) => println!("Youtube video downloaded"),
-                                Err(e) => println!("Error downloading youtube video: {:?}", e),
-                            }
-                        } else {
-                            let file_content =
-                                cl.get(url).send().await.unwrap().bytes().await.unwrap();
-                            if let Err(e) = fs::write(&file_path, &file_content) {
-                                return Err(format!("Error writing file: {:?}", e));
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            let url = value.as_str().unwrap();
-
-            if key == "audio"
-                || key == "background"
-                || key == "jaquette"
-                || key == "logo"
-                || key == "icon"
-            {
-                println!("Downloading: {}", url);
-                if url.is_empty() {
-                    continue;
-                }
-                let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
-                let game_dir_clone = game_dir.clone();
-                let file_path = match key.as_str() {
-                    "audio" => game_dir_clone.join("musics").join("theme.mp3"),
-                    "background" => game_dir_clone.join("background.jpg"),
-                    "jaquette" => game_dir_clone.join("jaquette.jpg"),
-                    "logo" => game_dir_clone.join("logo.png"),
-                    "icon" => game_dir_clone.join("icon.png"),
-                    _ => game_dir_clone,
-                };
-                if let Err(e) = fs::write(&file_path, &file_content) {
-                    return Err(format!("Error writing file: {:?}", e));
-                }
-            }
-        }
-    }
     println!("Game saved");
     Ok(())
 }
