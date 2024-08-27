@@ -75,7 +75,7 @@ pub(crate) fn add_game_to_category_db(
             |row| row.get::<_, Option<String>>(0),
         )
         .unwrap_or_default()
-        .is_none();
+        .map_or(true, |games| games.is_empty());
     let is_already_present: bool = conn
         .query_row(
             "SELECT games FROM universe WHERE id = ?1",
@@ -84,7 +84,7 @@ pub(crate) fn add_game_to_category_db(
         )
         .unwrap_or_default()
         .unwrap_or_default()
-        .contains(&game_id);
+        .contains(&format!(",{}," , game_id));
     if is_already_present {
         return Ok(());
     }
@@ -276,7 +276,21 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
     modify_table_add_missing_columns(&conn, "games", required_columns_games.clone())?;
     create_table(&conn, "universe", required_columns_universe.clone())?;
     modify_table_add_missing_columns(&conn, "universe", required_columns_universe.clone())?;
+    create_favorites_category(&conn)?;
     Ok(conn)
+}
+
+fn create_favorites_category(conn: &Connection) -> Result<(), rusqlite::Error> {
+    let categories = query_all_data(&conn, "universe")
+        .unwrap()
+        .iter()
+        .map(|row| format!("{:?}", row))
+        .collect::<Vec<String>>();
+    let categories: String = categories.join(",");
+    if !categories.contains(&"Favorites".to_string()) {
+        add_category(conn, "Favorites".to_string(), "star".to_string(), vec![], vec![], vec![], "".to_string()).map_err(|e| e.to_string());
+    }
+    Ok(())
 }
 
 pub(crate) fn get_all_fields(conn: &Connection) -> Result<Vec<String>, rusqlite::Error> {

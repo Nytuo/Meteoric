@@ -10,6 +10,11 @@
                 [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
                 icon="pi pi-bookmark"
         ></p-button>
+        <p-button
+                (onClick)="toggleFavorites()"
+                [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
+                [icon]="isFavoritesChecked() ? 'pi pi-star-fill' : 'pi pi-star'"
+        ></p-button>
         <p-overlayPanel #op>
             <input
                     [style]="{ marginRight: '10px' }"

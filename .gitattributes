@@ -1,4 +1,11 @@
-# Auto detect text files and perform LF normalization
-* text=auto
-# force LF normalization for all files
-* text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.rs text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.xml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf

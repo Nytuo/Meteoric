@@ -118,6 +118,26 @@ export class TopbarComponent implements OnInit {
         this.categoryService.addGameToCategory(gameID, id);
     }
 
+    toggleFavorites() {
+        let gameID = this.gameID;
+        if (!gameID) {
+            return;
+        }
+        let favCatId = this.categoryService.getCategoryIdByName('Favorites');
+        if (!favCatId) {
+            return;
+        }
+        if (this.isFavoritesChecked()) {
+            this.categoryService.removeGameFromCategory(gameID, favCatId);
+            return;
+        }
+        this.categoryService.addGameToCategory(gameID, favCatId);
+    }
+
+    isFavoritesChecked(): boolean {
+        return this.currentGameCategories.some((cat) => cat.name === 'Favorites');
+    }
+
     toggleOverlay(overlay_name: string = 'filter') {
         switch (overlay_name) {
             case 'filter':
@@ -138,7 +158,7 @@ export class TopbarComponent implements OnInit {
             this.isBookmarkAllowed = value;
         });
         this.categoryService.getCategoriesObservable().subscribe((value) => {
-            let exclusion = ['All', 'Installed', 'Steam', 'Epic Games', 'GOG'];
+            let exclusion = ['All', 'Installed', 'Steam', 'Epic Games', 'GOG', 'Favorites'];
             value = value.filter((cat) => !exclusion.includes(cat.name));
             this.allCategories = value;
             this.currentGameCategories = this.categoryService.getCategoriesForGame(this.gameID);

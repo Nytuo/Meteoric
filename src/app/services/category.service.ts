@@ -87,6 +87,7 @@ export class CategoryService {
     getCategoriesFromDB() {
         this.db.getCategories().then((categories) => {
             this.categories = this.categories_static.concat(categories);
+            this.categories = this.categories.sort((a, b) => a.name === 'Favorites' ? -1 : b.name === 'Favorites' ? 1 : 0);
             this.getCategories();
         });
     }
@@ -166,5 +167,9 @@ export class CategoryService {
         this.db.removeGameFromCategory(gameID, id).then(() => {
             this.getCategoriesFromDB();
         });
+    }
+
+    getCategoryIdByName(name: string) {
+        return this.categories.find((cat) => cat.name === name)?.id;
     }
 }
