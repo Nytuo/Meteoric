@@ -62,6 +62,7 @@ import {CheckboxModule} from 'primeng/checkbox';
     styleUrl: './topbar.component.css',
 })
 export class TopbarComponent implements OnInit {
+
     overlayVisible: boolean = false;
     onGamePage: boolean = false;
     isBookmarkAllowed: boolean = false;
@@ -81,6 +82,7 @@ export class TopbarComponent implements OnInit {
     ];
     gameOpt: any = true;
     gameFromUrl: BehaviorSubject<string> = new BehaviorSubject<string>('');
+    searchQuery: string = '';
     protected readonly appWindow = appWindow;
 
     constructor(
@@ -283,5 +285,10 @@ export class TopbarComponent implements OnInit {
             this.loading = true;
             await this.genericService.launchGame(this.gameID);
         }
+    }
+
+    
+    searchGame() {
+        this.gameService.searchGame(this.searchQuery);
     }
 }

@@ -272,4 +272,8 @@ export class GameService {
             videos: api_game.videos ? api_game.videos : [],
         };
     }
+
+    public searchGame(gameName: string) : void {
+        this.gamesObservable.next(this.games.filter(game => game.name.toLowerCase().includes(gameName.toLowerCase())));
+    }
 }

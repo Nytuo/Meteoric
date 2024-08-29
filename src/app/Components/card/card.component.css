@@ -23,7 +23,7 @@
 
 .image:hover {
     transition: all 0.3s;
-    transform: scale(1.1);
+    transform: perspective(1000px) rotateX(20deg);
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
     filter: brightness(0.8);
 }

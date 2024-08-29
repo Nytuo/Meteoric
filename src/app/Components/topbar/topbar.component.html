@@ -39,7 +39,7 @@
     </div>
     <div *ngIf="!onGamePage" class="main">
         <div class="searchBar">
-            <input placeholder="Search" type="text"/>
+            <input [(ngModel)]="searchQuery" (input)="searchGame()" placeholder="Search" type="text"/>
             <span class="material-symbols-outlined"> search </span>
         </div>
         <div class="addGame">
