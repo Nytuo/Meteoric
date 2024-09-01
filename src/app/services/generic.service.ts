@@ -2,6 +2,8 @@ import {Injectable} from '@angular/core';
 import {BehaviorSubject} from "rxjs";
 import {NavigationEnd, Router} from "@angular/router";
 import {invoke} from "@tauri-apps/api/tauri";
+import ISettings from "../../interfaces/ISettings";
+import {DBService} from "./db.service";
 
 @Injectable({
     providedIn: 'root',
@@ -18,13 +20,19 @@ export class GenericService {
     private blockUI: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private sidebarOpen: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
     private audioInterval: string | number | NodeJS.Timeout | undefined;
+    private settings: BehaviorSubject<ISettings> = new BehaviorSubject<ISettings>({});
 
-    constructor(protected router: Router) {
+    constructor(protected router: Router, protected db: DBService) {
         this.router.events.subscribe((event) => {
             if (event instanceof NavigationEnd && this.isAuthorizedToBookmark) {
                 this.changeDisplayBookmark(false);
             }
 
+        });
+
+        this.db.getSettings().then((settings) => {
+            console.log(settings);
+            this.settings.next(settings);
         });
     }
 
@@ -154,5 +162,14 @@ export class GenericService {
         invoke('kill_game', {pid: gamePID}).then((response) => {
             console.log(response);
         });
+    }
+
+    changeSettings(settings: ISettings) {
+        this.settings.next(settings);
+        this.db.setSettings(settings);
+    }
+
+    getSettings() {
+        return this.settings.asObservable();
     }
 }

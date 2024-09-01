@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterOutlet} from '@angular/router';
-import {CardListComponent} from "./Components/card-list/card-list.component";
+import {CardViewComponent} from "./Components/views/card-view/card-view.component";
 import {GameService} from "./services/game.service";
 import {SidebarComponent} from "./Components/sidebar/sidebar.component";
 import {TopbarComponent} from "./Components/topbar/topbar.component";
@@ -17,7 +17,7 @@ import {BlockingOverlayComponent} from "./Components/blocking-overlay/blocking-o
     standalone: true,
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
-    imports: [CommonModule, RouterOutlet, CardListComponent, SidebarComponent, TopbarComponent, LoadingBarComponent, ToastModule, BlockingOverlayComponent],
+    imports: [CommonModule, RouterOutlet, CardViewComponent, SidebarComponent, TopbarComponent, LoadingBarComponent, ToastModule, BlockingOverlayComponent],
     providers: [ConfirmationService, MessageService]
 
 })

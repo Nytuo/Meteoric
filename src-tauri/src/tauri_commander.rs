@@ -12,7 +12,7 @@ use tokio::time::Instant;
 
 use crate::{IGame, routine, send_message_to_frontend};
 use crate::database::{
-    add_category, add_game_to_category_db, establish_connection, get_all_fields, query_all_data, query_data, remove_game_from_category_db, update_game,
+    add_category, add_game_to_category_db, establish_connection, get_all_fields, query_all_data, query_data, remove_game_from_category_db, update_game, set_settings_db
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
@@ -113,6 +113,31 @@ pub fn get_all_videos_location(id: String) -> String {
         create_extra_dirs(&id).unwrap();
     }
     get_all_files_in_dir_for_parsed(&id, "videos")
+}
+
+#[tauri::command]
+pub fn get_settings() -> String {
+    let conn = establish_connection().unwrap();
+    let settings = query_all_data(&conn, "settings")
+        .unwrap()
+        .iter()
+        .map(|row| format!("{:?}", row))
+        .collect::<Vec<String>>()
+        .join(",");
+    format!("[{}]", settings)
+}
+
+#[tauri::command]
+pub fn set_settings(settings: String) -> Result<(), String> {
+    let conn = establish_connection().unwrap();
+    println!("{:?}", settings);
+    let settings: Vec<HashMap<String, String>> = serde_json::from_str(&settings).map_err(|e| e.to_string())?;
+    for setting in settings {
+        let name = setting.get("name").unwrap();
+        let value = setting.get("value").unwrap();
+        set_settings_db(&conn, name, value).unwrap();
+    }
+    Ok(())
 }
 
 #[tauri::command]

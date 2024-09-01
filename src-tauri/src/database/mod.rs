@@ -272,10 +272,16 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("filters", "TEXT"),
         ("views", "TEXT"),
     ];
+    let required_columns_settings = vec![
+        ("name", "TEXT NOT NULL PRIMARY KEY"),
+        ("value", "TEXT NOT NULL"),
+    ];
     create_table(&conn, "games", required_columns_games.clone())?;
     modify_table_add_missing_columns(&conn, "games", required_columns_games.clone())?;
     create_table(&conn, "universe", required_columns_universe.clone())?;
     modify_table_add_missing_columns(&conn, "universe", required_columns_universe.clone())?;
+    create_table(&conn, "settings", required_columns_settings.clone())?;
+    modify_table_add_missing_columns(&conn, "settings", required_columns_settings.clone())?;
     create_favorites_category(&conn)?;
     Ok(conn)
 }
@@ -401,3 +407,8 @@ pub fn get_game_id_by_name(conn: &Connection, name: &str) -> Result<String, Stri
     }
 }
 
+pub fn set_settings_db(conn: &Connection, name: &str, value: &str) -> Result<(), String> {
+    let sql = format!("INSERT OR REPLACE INTO settings (name, value) VALUES ('{}', '{}')", name, value);
+    conn.execute(&sql, []).map_err(|e| e.to_string())?;
+    Ok(())
+}

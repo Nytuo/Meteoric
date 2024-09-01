@@ -1,9 +1,8 @@
 import {Routes} from "@angular/router";
-import {CardListComponent} from "./Components/card-list/card-list.component";
 import {DetailsComponent} from "./Components/details/details.component";
 import {SplashComponent} from "./Components/splash/splash.component";
 import {EditGameComponent} from "./Components/edit-game/edit-game.component";
-
+import {DisplaymanagerComponent} from "./Components/displaymanager/displaymanager.component";
 export const routes: Routes = [
     {
         path: "",
@@ -11,7 +10,7 @@ export const routes: Routes = [
     },
     {
         path: "games",
-        component: CardListComponent
+        component: DisplaymanagerComponent
     },
     {
         path: "game/:id",

@@ -4,6 +4,8 @@ import IGame from "../../interfaces/IGame";
 import {configDir} from "@tauri-apps/api/path";
 import ICategory from "../../interfaces/ICategory";
 import {platform} from "@tauri-apps/api/os";
+import ISettings from "../../interfaces/ISettings";
+import {keyframes} from "@angular/animations";
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +26,6 @@ export class DBService {
             console.error("Failed to parse games JSON:", error);
             return [];
         }
-        console.log(gamesArray);
         gamesArray.map(async game => {
             let id = game.id;
             let configDirPath = await configDir();
@@ -75,6 +76,24 @@ export class DBService {
         });
     }
 
+    async getSettings(): Promise<ISettings> {
+        let db_settings = await invoke<string>("get_settings");
+        let parsedSettings = JSON.parse(db_settings);
+        let settings: ISettings = {};
+        parsedSettings.forEach((setting: { name: string, value: string }) => {
+            settings[setting.name as keyof ISettings] = setting.value;
+        });
+        return settings;
+    }
+
+    async setSettings(settings: ISettings) {
+        let settingsArray = [];
+        for (let key in settings) {
+            settingsArray.push({name: key, value: settings[key as keyof ISettings]});
+        }
+        await invoke("set_settings", {settings: JSON.stringify(settingsArray)});
+    }
+
     async addGameToCategory(gameID: string, categoryID: string) {
         console.log("Adding game to category", gameID, categoryID);
         await invoke("add_game_to_category", {gameId: gameID, categoryId: categoryID});
@@ -101,8 +120,6 @@ export class DBService {
     }
 
     async postGame(game: IGame) {
-        console.log(game);
-        console.log(JSON.stringify(game));
         return new Promise<string>((resolve, reject) => {
             invoke("post_game", {game: JSON.stringify(game)}).then((id) => {
                 console.log("Game posted with id", id);

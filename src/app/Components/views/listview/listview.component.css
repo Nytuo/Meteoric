@@ -1,0 +1,60 @@
+.listview{
+    width: 80vw;
+    height: 100vh;
+    overflow: auto;
+    padding-top: 20vh;
+    padding-bottom: 10vh;
+    transition: all 0.3s;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.image {
+    width: 100px;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0;
+    padding: 0;
+}
+
+th:first-child, td:first-child {
+    width: auto;
+    white-space: nowrap;
+}
+
+th {
+    background-color: rgba(0, 0, 0, 0.18);
+    color: white;
+}
+
+th, td {
+    border-top: 1px solid rgba(242, 242, 242, 0.34);
+    border-bottom: 1px solid rgba(242, 242, 242, 0.34);
+    padding: 8px;
+    text-align: left;
+}
+
+tr{
+    transition: all 0.3s;
+}
+
+tr:hover {
+    background-color: rgba(0, 0, 0, 0.18);
+}

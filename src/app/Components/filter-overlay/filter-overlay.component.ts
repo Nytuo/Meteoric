@@ -7,6 +7,8 @@ import {SelectButtonModule} from "primeng/selectbutton";
 import {SliderModule} from "primeng/slider";
 import {GenericService} from "../../services/generic.service";
 import {FormControl, FormGroup, FormsModule} from "@angular/forms";
+import {BehaviorSubject} from "rxjs";
+import ISettings from "../../../interfaces/ISettings";
 
 @Component({
     selector: 'app-filter-overlay',
@@ -30,10 +32,10 @@ export class FilterOverlayComponent {
 
     zoomLevel: any = this.genericService.getZoomValue();
     gapLevel: any = this.genericService.getGapValue();
-    viewState: any = 'list';
+    viewState: any = 'card';
     stateOptions: any[] | undefined = [
         {label: 'List', value: 'list'},
-        {label: 'Grid', value: 'grid'},
+        {label: 'Grid', value: 'card'},
     ];
     displayInfo: FormGroup = new FormGroup({
         name: new FormControl(''),
@@ -41,8 +43,19 @@ export class FilterOverlayComponent {
         platforms: new FormControl(''),
         tags: new FormControl('')
     });
+    settings: BehaviorSubject<ISettings> = new BehaviorSubject<ISettings>({});
 
     constructor(protected genericService: GenericService) {
+        this.genericService.getSettings().subscribe(settings => {
+            this.settings.next(settings);
+            this.viewState = settings.view || 'card';
+        });
+    }
+
+    changeView(){
+        let settings = this.settings.getValue();
+        settings.view = this.viewState;
+        this.genericService.changeSettings(settings);
     }
 
     updateVisible() {

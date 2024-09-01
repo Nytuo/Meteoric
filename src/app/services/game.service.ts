@@ -38,7 +38,6 @@ export class GameService {
                 console.log("getGames: no games found");
                 return;
             }
-            console.log("getGames: games found");
             this.games = games;
             this.gamesObservable.next(this.games);
         });
@@ -110,7 +109,6 @@ export class GameService {
                     return;
                 }
                 if (count) {
-                    console.log("getGames: games found");
                     resolve(games.filter(game => game.platforms.includes(platform)).length);
                     return;
                 }
@@ -144,7 +142,6 @@ export class GameService {
                 pluginName: "igdb",
                 strict: true
             }).then((games) => {
-                console.log(games);
                 if (games === undefined) {
                     reject("No games found");
                 }
@@ -176,7 +173,6 @@ export class GameService {
                 pluginName: provider,
                 strict: strict
             }).then((games) => {
-                console.log(games);
                 let searchedGames: any[] = [];
                 if (games === undefined || games.length === 0 || games === '[]') {
                     reject("No games found")

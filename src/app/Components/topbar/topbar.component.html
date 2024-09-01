@@ -56,12 +56,6 @@
         </div>
     </div>
     <div *ngIf="onGamePage" class="main">
-        <p-selectButton
-                [(ngModel)]="gameOpt"
-                [options]="gameOptions"
-                optionLabel="label"
-                optionValue="value"
-        />
         <div class="launchGame">
             <p-button
                     (click)="playGame()"

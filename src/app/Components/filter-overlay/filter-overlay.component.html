@@ -1,6 +1,6 @@
 <p-dialog (visibleChange)="updateVisible()" [style]="{ width: '250px' }" [visible]="visible">
     <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
-        <p-selectButton [(ngModel)]="viewState" [options]="stateOptions" optionLabel="label"
+        <p-selectButton [(ngModel)]="viewState" (onChange)="changeView()" [options]="stateOptions" optionLabel="label"
                         optionValue="value"></p-selectButton>
         <div>
             <div>Zoom</div>
