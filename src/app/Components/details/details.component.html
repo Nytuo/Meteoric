@@ -107,7 +107,8 @@
         </p-galleria>
         <p-carousel [circular]="false" [numScroll]="1" [numVisible]="1" [responsiveOptions]="responsiveOptions"
                     [showIndicators]="false"
-                    [style]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto', 'margin-bottom': '5vh' } " [value]="media.videos">
+                    [style]="{ 'max-width': '640px', 'margin-left': 'auto', 'margin-right': 'auto', 'margin-bottom': '5vh' } "
+                    [value]="media.videos">
             <ng-template let-item pTemplate="item">
                 <video controls style="width: 500px; display: block; height: 400px; object-fit: contain">
                     <source [src]="item" type="video/mp4">

@@ -32,7 +32,6 @@
 }
 
 html {
-    background-image: url('assets/default_bg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

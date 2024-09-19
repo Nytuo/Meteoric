@@ -12,9 +12,6 @@ export class GenericService {
 
     isAuthorizedToBookmark = false;
     private audio: HTMLAudioElement | null = null;
-    private zoom: BehaviorSubject<number> = new BehaviorSubject<number>(12);
-    private gap: BehaviorSubject<number> = new BehaviorSubject<number>(1);
-    private displayInfo: BehaviorSubject<any> = new BehaviorSubject<any>(null);
     private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private gameLaunchAnimation: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private blockUI: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -31,6 +28,21 @@ export class GenericService {
         });
 
         this.db.getSettings().then((settings) => {
+            console.log(settings);
+            if (settings.gap) {
+                if (Number.isNaN(settings.gap)) {
+                    settings.gap = '1';
+                }
+                settings.gap = settings.gap.toString();
+
+            }
+            if (settings.zoom) {
+                if (Number.isNaN(settings.gap)) {
+                    settings.zoom = '10';
+                }
+                settings.zoom = settings.zoom.toString();
+
+            }
             console.log(settings);
             this.settings.next(settings);
         });
@@ -52,40 +64,9 @@ export class GenericService {
         return this.blockUI.asObservable();
     }
 
-    changeZoom(zoom: number) {
-        this.zoom.next(zoom);
-    }
 
     getGameLaunchAnimationObservable() {
         return this.gameLaunchAnimation.asObservable();
-    }
-
-    getZoom() {
-        return this.zoom.asObservable();
-    }
-
-    changeGap(gap: number) {
-        this.gap.next(gap);
-    }
-
-    getGap() {
-        return this.gap.asObservable();
-    }
-
-    getZoomValue() {
-        return this.zoom.value;
-    }
-
-    getGapValue() {
-        return this.gap.value;
-    }
-
-    changeDisplayInfo(displayInfo: any) {
-        this.displayInfo.next(displayInfo);
-    }
-
-    getDisplayInfo() {
-        return this.displayInfo.asObservable();
     }
 
     changeDisplayBookmark(displayBookmark: boolean) {
@@ -165,6 +146,10 @@ export class GenericService {
     }
 
     changeSettings(settings: ISettings) {
+        this.settings.next(settings);
+    }
+
+    applySettings(settings: ISettings) {
         this.settings.next(settings);
         this.db.setSettings(settings);
     }

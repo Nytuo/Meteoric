@@ -2,8 +2,8 @@
     <h1 *ngIf="games.length === 0">No games found</h1>
 
     <div
-            style="cursor: pointer;"
             *ngIf="games.length > 0"
+            style="cursor: pointer;"
     >
         <table>
             <tr>
@@ -25,8 +25,8 @@
                                   readonly></p-rating>
                     </div>
                     <div *ngIf="displayInfo == 'tags'">
-                        <p-tag *ngIf="game.tags.length === 0" [style]="{'margin-right': '10px'}" value="No tag"
-                               icon="pi pi-tag"></p-tag>
+                        <p-tag *ngIf="game.tags.length === 0" [style]="{'margin-right': '10px'}" icon="pi pi-tag"
+                               value="No tag"></p-tag>
                         <p-tag *ngFor="let tag of game.tags" [style]="{'margin-right': '10px'}" [value]="tag"
                                icon="pi pi-tag"></p-tag>
                     </div>

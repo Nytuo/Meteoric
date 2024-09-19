@@ -6,6 +6,7 @@ import {SkeletonModule} from "primeng/skeleton";
 import {TagModule} from "primeng/tag";
 import {RatingModule} from "primeng/rating";
 import {FormsModule} from "@angular/forms";
+import ISettings from "../../../interfaces/ISettings";
 
 @Component({
     selector: 'app-card',
@@ -33,6 +34,8 @@ export class CardComponent implements OnInit, OnChanges {
     @Input() gamePlatforms: string | undefined;
 
     @ViewChild('imageElement') img: any;
+
+    settings: ISettings = {};
     width: string = "1rem";
     displayInfo: any = null;
     height: string = "auto";
@@ -46,18 +49,18 @@ export class CardComponent implements OnInit, OnChanges {
             this.gameName = "Game Name";
         }
 
-        this.genericService.getZoom().subscribe(zoom => {
-            this.width = (zoom) + "rem";
-        });
-
-        this.genericService.getDisplayInfo().subscribe(displayInfo => {
-            this.displayInfo = displayInfo;
+        this.genericService.getSettings().subscribe(settings => {
+            this.settings = settings;
+            this.displayInfo = settings.displayInfo;
+            this.width = (settings.zoom) + "rem";
         });
 
         this.parsedTags = this.gameTags.split(',') || ["No tags"];
         if (this.gameTags === "") {
             this.parsedTags = ["No tags"];
         }
+
+
     }
 
     ngOnChanges(changes: SimpleChanges): void {

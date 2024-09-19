@@ -322,7 +322,6 @@ export class EditGameComponent implements OnInit, OnDestroy {
     }
 
 
-
     onFileSelected(event: any, type: "screenshot" | "video" | "audio" | "background" | "icon" | "logo" | "jaquette") {
         const file = event.target.files[0];
         if (file === undefined || file === null || this.currentGame === undefined) {
@@ -624,6 +623,24 @@ export class EditGameComponent implements OnInit, OnDestroy {
         return;
     }
 
+    searchGameInAPI() {
+        this.gameService.searchGameInAPI(this.searchingGame, this.selectedProvider, this.strict, this.currentGame).then((result) => {
+            if (result === undefined) {
+                return;
+            }
+            if (typeof result === 'string') {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: result,
+                    life: 3000
+                });
+                return;
+            }
+            this.searchedGames = result;
+        });
+    }
+
     private saveMediaToExternalStorage() {
         if (this.currentGame === undefined) {
             return;
@@ -649,24 +666,6 @@ export class EditGameComponent implements OnInit, OnDestroy {
                     this.genericService.changeBlockUI(false);
                 });
             });
-        });
-    }
-
-    searchGameInAPI() {
-        this.gameService.searchGameInAPI(this.searchingGame, this.selectedProvider, this.strict, this.currentGame).then((result) => {
-            if (result === undefined) {
-                return;
-            }
-            if (typeof result === 'string') {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: result,
-                    life: 3000
-                });
-                return;
-            }
-            this.searchedGames = result;
         });
     }
 }

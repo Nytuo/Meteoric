@@ -5,7 +5,6 @@ import {configDir} from "@tauri-apps/api/path";
 import ICategory from "../../interfaces/ICategory";
 import {platform} from "@tauri-apps/api/os";
 import ISettings from "../../interfaces/ISettings";
-import {keyframes} from "@angular/animations";
 
 @Injectable({
     providedIn: 'root'
@@ -81,6 +80,10 @@ export class DBService {
         let parsedSettings = JSON.parse(db_settings);
         let settings: ISettings = {};
         parsedSettings.forEach((setting: { name: string, value: string }) => {
+            if (setting.name === "gap" || setting.name === "zoom") {
+                settings[setting.name as keyof ISettings] = parseInt(setting.value);
+                return;
+            }
             settings[setting.name as keyof ISettings] = setting.value;
         });
         return settings;

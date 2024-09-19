@@ -287,7 +287,7 @@ export class TopbarComponent implements OnInit {
         }
     }
 
-    
+
     searchGame() {
         this.gameService.searchGame(this.searchQuery);
     }

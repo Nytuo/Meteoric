@@ -12,8 +12,8 @@
         ></p-button>
         <p-button
                 (onClick)="toggleFavorites()"
-                [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
                 [icon]="isFavoritesChecked() ? 'pi pi-star-fill' : 'pi pi-star'"
+                [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
         ></p-button>
         <p-overlayPanel #op>
             <input
@@ -39,7 +39,7 @@
     </div>
     <div *ngIf="!onGamePage" class="main">
         <div class="searchBar">
-            <input [(ngModel)]="searchQuery" (input)="searchGame()" placeholder="Search" type="text"/>
+            <input (input)="searchGame()" [(ngModel)]="searchQuery" placeholder="Search" type="text"/>
             <span class="material-symbols-outlined"> search </span>
         </div>
         <div class="addGame">

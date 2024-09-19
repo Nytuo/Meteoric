@@ -1,4 +1,4 @@
-.listview{
+.listview {
     width: 80vw;
     height: 100vh;
     overflow: auto;
@@ -51,7 +51,7 @@ th, td {
     text-align: left;
 }
 
-tr{
+tr {
     transition: all 0.3s;
 }
 

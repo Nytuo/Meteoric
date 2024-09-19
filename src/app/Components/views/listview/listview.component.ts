@@ -6,6 +6,7 @@ import {RatingModule} from "primeng/rating";
 import {TagModule} from "primeng/tag";
 import {GenericService} from "../../../services/generic.service";
 import {FormsModule} from "@angular/forms";
+import ISettings from "../../../../interfaces/ISettings";
 
 @Component({
     selector: 'app-listview',
@@ -26,11 +27,14 @@ export class ListViewComponent implements OnInit, OnChanges {
 
     @Input() games: IGame[] = [];
     displayInfo: any = null;
-    constructor(private genericService: GenericService) {}
+    settings: ISettings = {};
+
+    constructor(private genericService: GenericService) {
+    }
 
     ngOnInit(): void {
-        this.genericService.getDisplayInfo().subscribe(displayInfo => {
-            this.displayInfo = displayInfo;
+        this.genericService.getSettings().subscribe(settings => {
+            this.displayInfo = settings.displayInfo;
         });
     }
 

@@ -236,6 +236,10 @@ export class GameService {
         });
     }
 
+    public searchGame(gameName: string): void {
+        this.gamesObservable.next(this.games.filter(game => game.name.toLowerCase().includes(gameName.toLowerCase())));
+    }
+
     private create_new_game(api_game: any): IGame {
         return {
             id: api_game.id ? api_game.id : '-1',
@@ -267,9 +271,5 @@ export class GameService {
             screenshots: api_game.screenshots ? api_game.screenshots : [],
             videos: api_game.videos ? api_game.videos : [],
         };
-    }
-
-    public searchGame(gameName: string) : void {
-        this.gamesObservable.next(this.games.filter(game => game.name.toLowerCase().includes(gameName.toLowerCase())));
     }
 }

@@ -130,8 +130,8 @@ pub fn get_settings() -> String {
 #[tauri::command]
 pub fn set_settings(settings: String) -> Result<(), String> {
     let conn = establish_connection().unwrap();
-    println!("{:?}", settings);
     let settings: Vec<HashMap<String, String>> = serde_json::from_str(&settings).map_err(|e| e.to_string())?;
+    println!("{:?}", settings);
     for setting in settings {
         let name = setting.get("name").unwrap();
         let value = setting.get("value").unwrap();

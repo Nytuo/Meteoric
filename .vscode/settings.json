@@ -1,13 +1,13 @@
 {
-    "angular-schematics.schematicsDefaultOptions": {
-        "angular-*": {
-            "externalTemplate": true
-        },
-        "angular-component": {
-            "ngOnInit": true
-        },
-        "angular-page": {
-            "skipNgOnInit": true
-        }
+  "angular-schematics.schematicsDefaultOptions": {
+    "angular-*": {
+      "externalTemplate": true
+    },
+    "angular-component": {
+      "ngOnInit": true
+    },
+    "angular-page": {
+      "skipNgOnInit": true
     }
+  }
 }

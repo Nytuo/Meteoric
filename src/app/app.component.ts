@@ -32,6 +32,13 @@ export class AppComponent implements OnInit {
         this.categoryService.refreshCategories();
         this.genericService.startRoutine();
         this.primengConfig.ripple = true;
+        this.changeBackground();
+    }
+
+    changeBackground() {
+        const number_of_images = 3;
+        let html = document.getElementsByTagName("html")[0];
+        html.style.backgroundImage = "url('assets/backgrounds/" + Math.floor(Math.random() * number_of_images) + ".jpg')";
     }
 
     closeOverlay() {
