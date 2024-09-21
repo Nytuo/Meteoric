@@ -1,5 +1,5 @@
-use steam_rs::Steam;
 use steam_rs::steam_id::SteamId;
+use steam_rs::Steam;
 use tokio::sync::Mutex;
 
 use crate::database::establish_connection;
@@ -25,7 +25,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         igame.id = "-1".to_string();
         igame.name = game.name;
         igame.time_played = (game.playtime_forever / 60).to_string();
-        igame.platforms = "steam".to_string();
+        igame.platforms = "Steam".to_string();
         let conn = establish_connection().unwrap();
         update_game(&conn, igame)?;
     }

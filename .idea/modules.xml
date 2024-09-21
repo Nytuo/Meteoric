@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/UniverseCollectorDesktop.iml" filepath="$PROJECT_DIR$/.idea/UniverseCollectorDesktop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Meteoric.iml" filepath="$PROJECT_DIR$/.idea/Meteoric.iml" />
     </modules>
   </component>
 </project>

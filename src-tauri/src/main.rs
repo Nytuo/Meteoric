@@ -254,17 +254,17 @@ pub fn send_message_to_frontend(message: &str) {
 }
 
 fn initialize() {
-    if let Some(proj_dirs) = ProjectDirs::from("fr", "Nytuo", "universe") {
+    if let Some(proj_dirs) = ProjectDirs::from("fr", "Nytuo", "Meteoric") {
         proj_dirs.config_dir();
         if !proj_dirs.config_dir().exists() {
             std::fs::create_dir_all(proj_dirs.config_dir()).unwrap();
         }
         if !proj_dirs
             .config_dir()
-            .join("universe_extra_content")
+            .join("meteoric_extra_content")
             .exists()
         {
-            std::fs::create_dir_all(proj_dirs.config_dir().join("universe_extra_content")).unwrap();
+            std::fs::create_dir_all(proj_dirs.config_dir().join("meteoric_extra_content")).unwrap();
         }
         println!("Config dir: {:?}", proj_dirs.config_dir());
         println!("Data dir: {:?}", proj_dirs.data_dir());
@@ -272,7 +272,7 @@ fn initialize() {
         println!("Runtime dir: {:?}", proj_dirs.runtime_dir());
         println!(
             "Extra content dir: {:?}",
-            proj_dirs.config_dir().join("universe_extra_content")
+            proj_dirs.config_dir().join("meteoric_extra_content")
         );
     }
 }
@@ -349,10 +349,10 @@ lazy_static! {
 #[tokio::main]
 async fn main() {
     initialize();
-    let dotenv_file = ProjectDirs::from("fr", "Nytuo", "universe")
+    let dotenv_file = ProjectDirs::from("fr", "Nytuo", "Meteoric")
         .unwrap()
         .config_dir()
-        .join("universe.env");
+        .join("Meteoric.env");
     dotenv::from_filename(dotenv_file).ok();
     tauri::Builder::default()
         .setup(|app| {

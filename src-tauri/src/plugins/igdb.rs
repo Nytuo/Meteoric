@@ -5,9 +5,9 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use reqwest::header::HeaderMap;
 use tokio::task;
 
-use crate::{IGame, Metadata, to_title_case};
 use crate::database::{establish_connection, update_game};
 use crate::file_operations::save_media_to_external_storage;
+use crate::{to_title_case, IGame, Metadata};
 
 pub async fn calculate_igdb_token(
     client_id: String,
@@ -36,8 +36,7 @@ pub(crate) async fn search_game_igdb(
     let mut access_token = ACCESS_TOKEN.lock().unwrap();
     let mut expiration = TOKEN_EXPIRATION.lock().unwrap();
     if expiration.is_empty()
-        || Utc::now()
-            > chrono::DateTime::parse_from_rfc3339(&*expiration)?.with_timezone(&Utc)
+        || Utc::now() > chrono::DateTime::parse_from_rfc3339(&*expiration)?.with_timezone(&Utc)
     {
         let d: HashMap<String, serde_json::Value> =
             calculate_igdb_token(client_id.clone(), client_secret.clone()).await?;
@@ -119,23 +118,7 @@ pub(crate) async fn search_game_igdb(
             }
         }
         games[i]["background"] = games[i]["screenshots"][0].clone();
-        if let Some(platforms) = games[i]["platforms"].as_array() {
-            if !platforms.is_empty() {
-                let platform_names: Result<Vec<&str>, _> = platforms
-                    .iter()
-                    .map(|platform| platform["name"].as_str().ok_or("No platform name found"))
-                    .collect();
-                match platform_names {
-                    Ok(names) => {
-                        let joined_names = names.join(", ");
-                        games[i]["platforms"] = serde_json::Value::String(joined_names);
-                    }
-                    Err(_) => {
-                        // Handle the error here, e.g., log it or set a default value
-                    }
-                }
-            }
-        }
+        games[i]["platforms"] = serde_json::Value::String("Other".to_string());
 
         let summary = games[i]["summary"].as_str();
         let storyline = games[i]["storyline"].as_str();

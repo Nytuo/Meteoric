@@ -1,5 +1,5 @@
 [package]
-name = "UniverseCollector"
+name = "Meteoric"
 version = "0.0.1"
 description = "Collects all your games in one place"
 authors = ["Nytuo"]
@@ -20,7 +20,7 @@ libloading = "0.8.3"
 tokio = { version = "1.39.2", features = ["full"] }
 lazy_static = "1.4.0"
 reqwest =  { version = "0.12.4", features = ["json"] }
-rusty_ytdl = "0.7.4"
+rusty_ytdl = { git = "https://github.com/Mithronn/rusty_ytdl" }
 chrono = "0.4.38"
 scraper = "0.20.0"
 regex = "1.10.4"

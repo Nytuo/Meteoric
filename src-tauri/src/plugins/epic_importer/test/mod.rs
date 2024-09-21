@@ -13,7 +13,7 @@ mod tests {
 
     fn setup() {
         INIT.call_once(|| {
-            let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
+            let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
             let file_path = proj_dirs.config_dir().join("epicDetails.txt");
             if Path::new(&file_path).exists() {
                 fs::remove_file(&file_path).unwrap();

@@ -1,86 +1,78 @@
 {
-  "build": {
-    "beforeDevCommand": "npm run start",
-    "beforeBuildCommand": "npm run build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist/browser"
-  },
-  "package": {
-    "productName": "UniverseCollector",
-    "version": "0.0.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "window": {
-        "all": false,
-        "setFullscreen": true
-      },
-      "dialog": {
-        "all": false,
-        "ask": false,
-        "confirm": false,
-        "message": false,
-        "open": true,
-        "save": false
-      },
-      "os": {
-        "all": true
-      },
-      "shell": {
-        "all": false,
-        "open": true
-      },
-      "path": {
-        "all": true
-      },
-      "protocol": {
-        "asset": true,
-        "assetScope": {
-          "allow": [
-            "**"
-          ],
-          "requireLiteralLeadingDot": false
-        }
-      }
-    },
-    "windows": [
-      {
-        "title": "Universe Collector",
-        "width": 1280,
-        "height": 720,
-        "resizable": true,
-        "fullscreen": true,
-        "minWidth": 1280,
-        "minHeight": 720
-      }
-    ],
-    "security": {
-      "csp": {
-        "default-src": "'self' customprotocol: asset:",
-        "connect-src": "ipc: http://ipc.localhost",
-        "font-src": "'self' https://fonts.gstatic.com",
-        "img-src": "'self' asset: http://asset.localhost blob: data:",
-        "style-src": "'unsafe-inline' 'self' https://fonts.googleapis.com",
-        "media-src": "'self' asset: http://asset.localhost blob: data:"
-      }
-    },
-    "bundle": {
-      "windows": {
-        "webviewInstallMode": {
-          "type": "downloadBootstrapper"
-        }
-      },
-      "active": true,
-      "targets": "all",
-      "identifier": "fr.nytuo.collector",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ]
-    }
-  }
+	"build": {
+		"beforeDevCommand": "npm run start",
+		"beforeBuildCommand": "npm run build",
+		"devPath": "http://localhost:1420",
+		"distDir": "../dist/browser"
+	},
+	"package": {
+		"productName": "Meteoric",
+		"version": "0.0.0"
+	},
+	"tauri": {
+		"allowlist": {
+			"all": false,
+			"window": {
+				"all": false,
+				"setFullscreen": true
+			},
+			"dialog": {
+				"all": false,
+				"ask": false,
+				"confirm": false,
+				"message": false,
+				"open": true,
+				"save": false
+			},
+			"os": {
+				"all": true
+			},
+			"shell": {
+				"all": false,
+				"open": true
+			},
+			"path": {
+				"all": true
+			},
+			"protocol": {
+				"asset": true,
+				"assetScope": {
+					"allow": ["**"],
+					"requireLiteralLeadingDot": false
+				}
+			}
+		},
+		"windows": [
+			{
+				"title": "Meteoric",
+				"width": 1280,
+				"height": 720,
+				"resizable": true,
+				"fullscreen": true,
+				"minWidth": 1280,
+				"minHeight": 720
+			}
+		],
+		"security": {
+			"csp": {
+				"default-src": "'self' customprotocol: asset:",
+				"connect-src": "ipc: http://ipc.localhost",
+				"font-src": "'self' https://fonts.gstatic.com",
+				"img-src": "'self' asset: http://asset.localhost blob: data:",
+				"style-src": "'unsafe-inline' 'self' https://fonts.googleapis.com",
+				"media-src": "'self' asset: http://asset.localhost blob: data:"
+			}
+		},
+		"bundle": {
+			"windows": {
+				"webviewInstallMode": {
+					"type": "downloadBootstrapper"
+				}
+			},
+			"active": true,
+			"targets": "all",
+			"identifier": "fr.nytuo.collector",
+			"icon": ["icons/128x128.png", "icons/icon.icns", "icons/icon.ico"]
+		}
+	}
 }

@@ -112,8 +112,8 @@ pub fn get_all_files_in_dir_for_parsed(id: &str, extra_dir: &str) -> String {
 }
 
 fn create_extra_content_dir() -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
-    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
-    let extra_content_dir = proj_dirs.config_dir().join("universe_extra_content");
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
+    let extra_content_dir = proj_dirs.config_dir().join("meteoric_extra_content");
     if !extra_content_dir.exists() {
         fs::create_dir_all(extra_content_dir.clone()).unwrap();
     }
@@ -299,8 +299,8 @@ pub async fn save_media_to_external_storage(id: String, game: Metadata) -> Resul
 pub fn have_no_metadata(games: Vec<IGame>) -> Vec<IGame> {
     let mut missing = Vec::new();
     for game in &games {
-        let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
-        let extra_content_dir = proj_dirs.config_dir().join("universe_extra_content");
+        let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
+        let extra_content_dir = proj_dirs.config_dir().join("meteoric_extra_content");
         let game_dir = extra_content_dir.join(game.clone().id);
         let have_content = !is_folder_empty_recursive(game_dir.as_path());
         let have_content_on_db = game.check_if_game_has_minimum_requirements();

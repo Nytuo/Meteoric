@@ -1,16 +1,16 @@
-import {Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {RouterOutlet} from '@angular/router';
-import {CardViewComponent} from "./Components/views/card-view/card-view.component";
-import {GameService} from "./services/game.service";
-import {SidebarComponent} from "./Components/sidebar/sidebar.component";
-import {TopbarComponent} from "./Components/topbar/topbar.component";
-import {CategoryService} from "./services/category.service";
-import {GenericService} from "./services/generic.service";
-import {LoadingBarComponent} from "./Components/loading-bar/loading-bar.component";
-import {ConfirmationService, MessageService, PrimeNGConfig} from 'primeng/api';
-import {ToastModule} from 'primeng/toast';
-import {BlockingOverlayComponent} from "./Components/blocking-overlay/blocking-overlay.component";
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet } from '@angular/router';
+import { CardViewComponent } from "./Components/views/card-view/card-view.component";
+import { GameService } from "./services/game.service";
+import { SidebarComponent } from "./Components/sidebar/sidebar.component";
+import { TopbarComponent } from "./Components/topbar/topbar.component";
+import { CategoryService } from "./services/category.service";
+import { GenericService } from "./services/generic.service";
+import { LoadingBarComponent } from "./Components/loading-bar/loading-bar.component";
+import { ConfirmationService, MessageService, PrimeNGConfig } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { BlockingOverlayComponent } from "./Components/blocking-overlay/blocking-overlay.component";
 
 @Component({
     selector: 'app-root',

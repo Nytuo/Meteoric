@@ -21,7 +21,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     let authcode = AUTHCODE.lock().await;
     let mut client = EPIC.lock().await;
 
-    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
     let file_path = proj_dirs.config_dir().join("epicDetails.txt");
     if authcode.is_empty() && file_path.exists() && file_path.metadata()?.len() > 0 {
         println!("RECOVERING");
@@ -67,7 +67,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         let mut igame: IGame = IGame::new();
         igame.id = "-1".to_string();
         igame.name = game.clone();
-        igame.platforms = "Epic".to_string();
+        igame.platforms = "Epic Games".to_string();
         let conn = establish_connection().unwrap();
         update_game(&conn, igame).expect("Failed to update game");
     }
@@ -84,4 +84,3 @@ pub async fn get_games_from_user() -> Result<(), Box<dyn std::error::Error>> {
     get_games().await.expect("Failed to get games");
     Ok(())
 }
-

@@ -18,7 +18,7 @@ lazy_static::lazy_static! {
 pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     let token = TOKEN.lock().await;
     task::block_in_place(move || {
-        let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
+        let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
         let file_path = proj_dirs.config_dir().join("gogDetails.txt");
         let parsed_token: Token;
         if token.is_empty() && file_path.exists() && file_path.metadata().unwrap().len() > 0 {

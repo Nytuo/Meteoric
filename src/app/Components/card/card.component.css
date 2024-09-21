@@ -17,7 +17,7 @@
     width: 12rem;
     height: auto;
     cursor: pointer;
-    animation: fadeIn 0.2s;
+    animation: fadeIn 0.3s;
     aspect-ratio: 2/3;
 }
 
@@ -36,6 +36,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }

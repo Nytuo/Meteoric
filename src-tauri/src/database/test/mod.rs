@@ -14,7 +14,7 @@ mod tests {
         
         // Create test tables
         conn.execute("CREATE TABLE games (id INTEGER PRIMARY KEY, name TEXT, sort_name TEXT, rating TEXT, platforms TEXT, description TEXT, critic_score TEXT, genres TEXT, styles TEXT, release_date TEXT, developers TEXT, editors TEXT, game_dir TEXT, exec_file TEXT, exec_args TEXT, tags TEXT, status TEXT, time_played TEXT, trophies TEXT, trophies_unlocked TEXT, last_time_played TEXT)", []).unwrap();
-        conn.execute("CREATE TABLE universe (id INTEGER PRIMARY KEY, name TEXT, games TEXT, icon TEXT, background TEXT, filters TEXT, views TEXT)", []).unwrap();
+        conn.execute("CREATE TABLE category (id INTEGER PRIMARY KEY, name TEXT, games TEXT, icon TEXT, background TEXT, filters TEXT, views TEXT)", []).unwrap();
         
         conn
     }
@@ -44,7 +44,7 @@ mod tests {
         let conn = setup_test_db();
         add_category(&conn, "Action".to_string(), "icon.png".to_string(), vec!["1".to_string()], vec!["filter1".to_string()], vec!["view1".to_string()], "bg.png".to_string()).unwrap();
 
-        let result = query_all_data(&conn, "universe").unwrap();
+        let result = query_all_data(&conn, "category").unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].get("name"), Some(&"Action".to_string()));
     }
@@ -52,11 +52,11 @@ mod tests {
     #[test]
     fn test_add_game_to_category_db() {
         let conn = setup_test_db();
-        conn.execute("INSERT INTO universe (id, name, games) VALUES (1, 'Action', '')", []).unwrap();
+        conn.execute("INSERT INTO category (id, name, games) VALUES (1, 'Action', '')", []).unwrap();
 
         add_game_to_category_db(&conn, "123".to_string(), "1".to_string()).unwrap();
 
-        let result = query_data(&conn, vec!["universe"], vec!["games"], vec![("id", "1")], false).unwrap();
+        let result = query_data(&conn, vec!["category"], vec!["games"], vec![("id", "1")], false).unwrap();
         let games = result[0].get("games").unwrap();
         let games = games.replace(",", "");
         assert_eq!(games, "123");
@@ -65,11 +65,11 @@ mod tests {
     #[test]
     fn test_remove_game_from_category_db() {
         let conn = setup_test_db();
-        conn.execute("INSERT INTO universe (id, name, games) VALUES (1, 'Action', '123,456')", []).unwrap();
+        conn.execute("INSERT INTO category (id, name, games) VALUES (1, 'Action', '123,456')", []).unwrap();
 
         remove_game_from_category_db(&conn, "123".to_string(), "1".to_string()).unwrap();
 
-        let result = query_data(&conn, vec!["universe"], vec!["games"], vec![("id", "1")], false).unwrap();
+        let result = query_data(&conn, vec!["category"], vec!["games"], vec![("id", "1")], false).unwrap();
         assert_eq!(result[0].get("games"), Some(&"456".to_string()));
     }
 
@@ -166,7 +166,7 @@ mod tests {
             "exec_args", "tags", "status", "time_played", "trophies", "trophies_unlocked", "last_played"
         ];
 
-        let required_columns_universe = vec![
+        let required_columns_category = vec![
             "id", "name", "games", "icon", "background", "filters", "views"
         ];
 
@@ -174,9 +174,9 @@ mod tests {
         let games_columns_exist = check_columns_exist(&conn, "games", &required_columns_games);
         assert!(games_columns_exist);
 
-        // Check if all required columns exist in the 'universe' table
-        let universe_columns_exist = check_columns_exist(&conn, "universe", &required_columns_universe);
-        assert!(universe_columns_exist);
+        // Check if all required columns exist in the 'category' table
+        let category_columns_exist = check_columns_exist(&conn, "category", &required_columns_category);
+        assert!(category_columns_exist);
     }
 
     #[test]

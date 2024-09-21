@@ -35,7 +35,7 @@ pub fn get_all_games() -> String {
 #[tauri::command]
 pub fn get_all_categories() -> String {
     let conn = establish_connection().unwrap();
-    let category = query_all_data(&conn, "universe")
+    let category = query_all_data(&conn, "category")
         .unwrap()
         .iter()
         .map(|row| format!("{:?}", row))
@@ -309,7 +309,7 @@ pub fn get_games_by_category(category: String) -> String {
     let conn = establish_connection().unwrap();
     let game_ids_from_cat = query_data(
         &conn,
-        vec!["universe"],
+        vec!["category"],
         vec!["DISTINCT games"],
         vec![("name", &*("'".to_string() + &category + "'"))],
         false,

@@ -59,7 +59,7 @@ pub(crate) fn add_category(
     views: Vec<String>,
     background: String,
 ) -> rusqlite::Result<()> {
-    conn.execute("INSERT INTO universe (name, icon, games, filters, views, background) VALUES (?1,?2,?3,?4,?5,?6)", params![name, icon, games.join(","), filters.join(","), views.join(","), background])?;
+    conn.execute("INSERT INTO category (name, icon, games, filters, views, background) VALUES (?1,?2,?3,?4,?5,?6)", params![name, icon, games.join(","), filters.join(","), views.join(","), background])?;
     Ok(())
 }
 
@@ -70,7 +70,7 @@ pub(crate) fn add_game_to_category_db(
 ) -> rusqlite::Result<()> {
     let is_empty: bool = conn
         .query_row(
-            "SELECT games FROM universe WHERE id = ?1",
+            "SELECT games FROM category WHERE id = ?1",
             params![category_id],
             |row| row.get::<_, Option<String>>(0),
         )
@@ -78,7 +78,7 @@ pub(crate) fn add_game_to_category_db(
         .map_or(true, |games| games.is_empty());
     let is_already_present: bool = conn
         .query_row(
-            "SELECT games FROM universe WHERE id = ?1",
+            "SELECT games FROM category WHERE id = ?1",
             params![category_id],
             |row| row.get::<_, Option<String>>(0),
         )
@@ -90,13 +90,13 @@ pub(crate) fn add_game_to_category_db(
     }
     if is_empty {
         conn.execute(
-            "UPDATE universe SET games = ?1 WHERE id = ?2",
+            "UPDATE category SET games = ?1 WHERE id = ?2",
             params![game_id, category_id],
         )?;
         return Ok(());
     }
     conn.execute(
-        "UPDATE universe SET games = games || ',' || ?1 WHERE id = ?2",
+        "UPDATE category SET games = games || ',' || ?1 WHERE id = ?2",
         params![game_id, category_id],
     )?;
     Ok(())
@@ -109,7 +109,7 @@ pub(crate) fn remove_game_from_category_db(
 ) -> rusqlite::Result<()> {
     let games: String = conn
         .query_row(
-            "SELECT games FROM universe WHERE id = ?1",
+            "SELECT games FROM category WHERE id = ?1",
             params![category_id],
             |row| row.get(0),
         )
@@ -119,7 +119,7 @@ pub(crate) fn remove_game_from_category_db(
     let games: Vec<String> = games.into_iter().filter(|s| s != &game_id).collect();
     let games: String = games.join(",");
     conn.execute(
-        "UPDATE universe SET games = ?1 WHERE id = ?2",
+        "UPDATE category SET games = ?1 WHERE id = ?2",
         params![games, category_id],
     )?;
     Ok(())
@@ -237,8 +237,8 @@ fn make_a_json_from_db(
 }
 
 pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
-    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "universe").unwrap();
-    let db_path = proj_dirs.config_dir().join("universe.db");
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
+    let db_path = proj_dirs.config_dir().join("Meteoric.db");
     let conn = Connection::open(db_path)?;
     let required_columns_games = vec![
         ("id", "INTEGER PRIMARY KEY"),
@@ -263,7 +263,7 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("trophies_unlocked", "INTEGER NOT NULL DEFAULT 0"),
         ("last_played", "TEXT"),
     ];
-    let required_columns_universe = vec![
+    let required_columns_category = vec![
         ("id", "INTEGER PRIMARY KEY"),
         ("name", "TEXT NOT NULL"),
         ("games", "TEXT NOT NULL"),
@@ -278,8 +278,8 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
     ];
     create_table(&conn, "games", required_columns_games.clone())?;
     modify_table_add_missing_columns(&conn, "games", required_columns_games.clone())?;
-    create_table(&conn, "universe", required_columns_universe.clone())?;
-    modify_table_add_missing_columns(&conn, "universe", required_columns_universe.clone())?;
+    create_table(&conn, "category", required_columns_category.clone())?;
+    modify_table_add_missing_columns(&conn, "category", required_columns_category.clone())?;
     create_table(&conn, "settings", required_columns_settings.clone())?;
     modify_table_add_missing_columns(&conn, "settings", required_columns_settings.clone())?;
     create_favorites_category(&conn)?;
@@ -287,7 +287,7 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
 }
 
 fn create_favorites_category(conn: &Connection) -> Result<(), rusqlite::Error> {
-    let categories = query_all_data(&conn, "universe")
+    let categories = query_all_data(&conn, "category")
         .unwrap()
         .iter()
         .map(|row| format!("{:?}", row))

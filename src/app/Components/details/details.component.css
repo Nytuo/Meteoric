@@ -4,6 +4,13 @@
     z-index: 2;
     overflow: auto;
     padding: 15px;
+    width: calc(100vw - 18rem);
+}
+
+.svgLauncherIcon {
+    width: 32px;
+    height: 32px;
+    filter: invert(92%) sepia(93%) saturate(0%) hue-rotate(202deg) brightness(106%) contrast(106%);
 }
 
 .gameTopHeader {
@@ -28,12 +35,10 @@
     opacity: 0.6;
     transform: translateX(-50%);
     z-index: 1;
-    mask-image: radial-gradient(
-            ellipse,
+    mask-image: radial-gradient(ellipse,
             rgba(0, 0, 0, 1) 0%,
             rgba(0, 0, 0, 0.2) 50%,
-            rgba(0, 0, 0, 0) 70%
-    );
+            rgba(0, 0, 0, 0) 70%);
     transition: filter 0.5s ease-in-out, -webkit-filter 0.5s ease-in-out;
 }
 
@@ -55,20 +60,20 @@ p.fadedText {
     border-radius: 10px;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr {
+::ng-deep .p-datatable .p-datatable-tbody>tr {
     background: transparent;
     font-size: 0.9rem;
 }
 
-::ng-deep .p-datatable .p-datatable-thead > tr > th {
+::ng-deep .p-datatable .p-datatable-thead>tr>th {
     background: transparent;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
     background: rgba(28, 28, 28, 0.24);
 }
 
-::ng-deep .p-datatable .p-datatable-thead > tr > th:hover {
+::ng-deep .p-datatable .p-datatable-thead>tr>th:hover {
     background: rgba(28, 28, 28, 0.24);
 }
 
@@ -76,6 +81,7 @@ p.fadedText {
     0% {
         opacity: 0;
     }
+
     100% {
         opacity: 1;
     }
@@ -85,6 +91,7 @@ p.fadedText {
     0% {
         opacity: 1;
     }
+
     100% {
         opacity: 0;
     }
@@ -148,6 +155,7 @@ p.fadedText {
         transform: scale(1);
         transition: all 0.5s ease-in-out;
     }
+
     to {
         opacity: 0;
         pointer-events: none;
@@ -157,8 +165,8 @@ p.fadedText {
 }
 
 @keyframes logoLaunchAnim {
-    from {
-    }
+    from {}
+
     to {
         transform: translateY(15vh) scale(1.5);
         margin: 100px;

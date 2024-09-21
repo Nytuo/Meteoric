@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ macos-latest, ubuntu-22.04, windows-latest ]
+        platform: [macos-latest, ubuntu-22.04, windows-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -49,7 +49,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 'UniverseCollector_v__VERSION__' # tauri-action remplace \_\_VERSION\_\_ par la version de l'application.
+          releaseName: 'Meteoric_v__VERSION__' # tauri-action remplace \_\_VERSION\_\_ par la version de l'application.
           releaseBody: 'See the assets to download and install this version.'
           releaseDraft: true
           prerelease: false
