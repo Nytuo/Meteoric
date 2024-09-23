@@ -1,160 +1,174 @@
-import {Injectable} from '@angular/core';
-import {BehaviorSubject} from "rxjs";
-import {NavigationEnd, Router} from "@angular/router";
-import {invoke} from "@tauri-apps/api/tauri";
-import ISettings from "../../interfaces/ISettings";
-import {DBService} from "./db.service";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { NavigationEnd, Router } from '@angular/router';
+import { invoke } from '@tauri-apps/api/tauri';
+import ISettings from '../../interfaces/ISettings';
+import { DBService } from './db.service';
 
 @Injectable({
-    providedIn: 'root',
+	providedIn: 'root',
 })
 export class GenericService {
+	isAuthorizedToBookmark = false;
+	private audio: HTMLAudioElement | null = null;
+	private displayBookmark: BehaviorSubject<boolean> =
+		new BehaviorSubject<boolean>(false);
+	private gameLaunchAnimation: BehaviorSubject<boolean> =
+		new BehaviorSubject<boolean>(false);
+	private blockUI: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+		false,
+	);
+	private sidebarOpen: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+		true,
+	);
+	private audioInterval: string | number | NodeJS.Timeout | undefined;
+	private settings: BehaviorSubject<ISettings> = new BehaviorSubject<ISettings>(
+		{},
+	);
+	private asAlreadyLaunched = false;
 
-    isAuthorizedToBookmark = false;
-    private audio: HTMLAudioElement | null = null;
-    private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-    private gameLaunchAnimation: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-    private blockUI: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-    private sidebarOpen: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
-    private audioInterval: string | number | NodeJS.Timeout | undefined;
-    private settings: BehaviorSubject<ISettings> = new BehaviorSubject<ISettings>({});
+	constructor(protected router: Router, protected db: DBService) {
+		this.router.events.subscribe((event) => {
+			if (event instanceof NavigationEnd && this.isAuthorizedToBookmark) {
+				this.changeDisplayBookmark(false);
+			}
+		});
 
-    constructor(protected router: Router, protected db: DBService) {
-        this.router.events.subscribe((event) => {
-            if (event instanceof NavigationEnd && this.isAuthorizedToBookmark) {
-                this.changeDisplayBookmark(false);
-            }
+		this.db.getSettings().then((settings) => {
+			console.log(settings);
+			if (settings.gap) {
+				if (Number.isNaN(settings.gap)) {
+					settings.gap = '1';
+				}
+				settings.gap = settings.gap.toString();
+			}
+			if (settings.zoom) {
+				if (Number.isNaN(settings.gap)) {
+					settings.zoom = '10';
+				}
+				settings.zoom = settings.zoom.toString();
+			}
+			console.log(settings);
+			this.settings.next(settings);
+		});
+	}
 
-        });
+	setAsAlreadyLaunched() {
+		this.asAlreadyLaunched = true;
+	}
 
-        this.db.getSettings().then((settings) => {
-            console.log(settings);
-            if (settings.gap) {
-                if (Number.isNaN(settings.gap)) {
-                    settings.gap = '1';
-                }
-                settings.gap = settings.gap.toString();
+	getAsAlreadyLaunched() {
+		return this.asAlreadyLaunched;
+	}
 
-            }
-            if (settings.zoom) {
-                if (Number.isNaN(settings.gap)) {
-                    settings.zoom = '10';
-                }
-                settings.zoom = settings.zoom.toString();
+	changeSidebarOpen(sidebarOpen: boolean) {
+		this.sidebarOpen.next(sidebarOpen);
+	}
 
-            }
-            console.log(settings);
-            this.settings.next(settings);
-        });
-    }
+	getSidebarOpen() {
+		return this.sidebarOpen.asObservable();
+	}
 
-    changeSidebarOpen(sidebarOpen: boolean) {
-        this.sidebarOpen.next(sidebarOpen);
-    }
+	changeBlockUI(blockUI: boolean) {
+		this.blockUI.next(blockUI);
+	}
 
-    getSidebarOpen() {
-        return this.sidebarOpen.asObservable();
-    }
+	getBlockUI() {
+		return this.blockUI.asObservable();
+	}
 
-    changeBlockUI(blockUI: boolean) {
-        this.blockUI.next(blockUI);
-    }
+	getGameLaunchAnimationObservable() {
+		return this.gameLaunchAnimation.asObservable();
+	}
 
-    getBlockUI() {
-        return this.blockUI.asObservable();
-    }
+	changeDisplayBookmark(displayBookmark: boolean) {
+		this.displayBookmark.next(displayBookmark);
+	}
 
+	getDisplayBookmark() {
+		return this.displayBookmark.asObservable();
+	}
 
-    getGameLaunchAnimationObservable() {
-        return this.gameLaunchAnimation.asObservable();
-    }
+	playBackgroundMusic(backgroundMusic: string) {
+		console.log('Playing background music');
+		console.log(backgroundMusic);
+		if (!backgroundMusic) return;
 
-    changeDisplayBookmark(displayBookmark: boolean) {
-        this.displayBookmark.next(displayBookmark);
-    }
+		if (this.audioInterval) {
+			clearInterval(this.audioInterval);
+		}
 
-    getDisplayBookmark() {
-        return this.displayBookmark.asObservable();
-    }
+		this.audio = new Audio(backgroundMusic);
+		this.audio.loop = true;
+		this.audio.volume = 1;
+		this.audio.play();
+	}
 
-    playBackgroundMusic(backgroundMusic: string) {
-        console.log('Playing background music');
-        console.log(backgroundMusic);
-        if (!backgroundMusic) return;
+	isBackgroundMusicPlaying() {
+		return this.audio && !this.audio.paused;
+	}
 
-        if (this.audioInterval) {
-            clearInterval(this.audioInterval);
-        }
+	stopBackgroundMusic() {
+		console.log('Stopping background music');
+		if (!this.audio) return;
 
-        this.audio = new Audio(backgroundMusic);
-        this.audio.loop = true;
-        this.audio.volume = 1;
-        this.audio.play();
-    }
+		let volume = this.audio.volume;
+		this.audioInterval = setInterval(() => {
+			if (volume > 0.1) {
+				volume -= 0.1;
+				if (this.audio) this.audio.volume = volume;
+			} else {
+				clearInterval(this.audioInterval);
+				if (this.audio) this.audio.pause();
+			}
+		}, 100);
+	}
 
-    isBackgroundMusicPlaying() {
-        return this.audio && !this.audio.paused;
-    }
+	stopAllAudio() {
+		this.stopBackgroundMusic();
+	}
 
-    stopBackgroundMusic() {
-        console.log('Stopping background music');
-        if (!this.audio) return;
+	startRoutine() {
+		invoke('startup_routine');
+	}
 
-        let volume = this.audio.volume;
-        this.audioInterval = setInterval(() => {
-            if (volume > 0.1) {
-                volume -= 0.1;
-                if (this.audio) this.audio.volume = volume;
-            } else {
-                clearInterval(this.audioInterval);
-                if (this.audio) this.audio.pause();
-            }
-        }, 100);
-    }
+	async downloadYTAudio(url: string, id: string) {
+		return await invoke<string>('download_yt_audio', { url, id }).then(
+			(response) => {
+				console.log(response);
+			},
+		);
+	}
 
-    stopAllAudio() {
-        this.stopBackgroundMusic();
-    }
+	async launchGame(gameId: string) {
+		this.gameLaunchAnimation.next(true);
+		setTimeout(() => {
+			invoke('launch_game', { gameId }).then((response) => {
+				console.log(response);
+			});
+			this.stopAllAudio();
+		}, 2000);
+		setTimeout(() => {
+			this.gameLaunchAnimation.next(false);
+		}, 5000);
+	}
 
-    startRoutine() {
-        invoke('startup_routine');
-    }
+	async killGame(gamePID: number) {
+		invoke('kill_game', { pid: gamePID }).then((response) => {
+			console.log(response);
+		});
+	}
 
-    async downloadYTAudio(url: string, id: string) {
-        return await invoke<string>("download_yt_audio", {url, id}).then((response) => {
-            console.log(response);
-        });
-    }
+	changeSettings(settings: ISettings) {
+		this.settings.next(settings);
+	}
 
-    async launchGame(gameId: string) {
-        this.gameLaunchAnimation.next(true);
-        setTimeout(() => {
-            invoke('launch_game', {gameId}).then((response) => {
-                console.log(response);
-            });
-            this.stopAllAudio();
-        }, 2000);
-        setTimeout(() => {
-            this.gameLaunchAnimation.next(false);
-        }, 5000);
-    }
+	applySettings(settings: ISettings) {
+		this.settings.next(settings);
+		this.db.setSettings(settings);
+	}
 
-    async killGame(gamePID: number) {
-        invoke('kill_game', {pid: gamePID}).then((response) => {
-            console.log(response);
-        });
-    }
-
-    changeSettings(settings: ISettings) {
-        this.settings.next(settings);
-    }
-
-    applySettings(settings: ISettings) {
-        this.settings.next(settings);
-        this.db.setSettings(settings);
-    }
-
-    getSettings() {
-        return this.settings.asObservable();
-    }
+	getSettings() {
+		return this.settings.asObservable();
+	}
 }

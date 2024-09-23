@@ -1,7 +1,7 @@
 <div class="sidebar">
 	<p-sidebar [visible]="showSidebar">
 		<ng-template pTemplate="header">
-			<div class="logo">
+			<div id="logo" [class.logo-animation]="logoAnimation" class="logo">
 				<img
 					src="assets/logo.png"
 					class="meteor"

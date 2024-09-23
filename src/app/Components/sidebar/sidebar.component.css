@@ -13,6 +13,9 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
+}
+
+.logo-animation {
     animation: BigCenterToNormalPosition 3s;
     transform-origin: center;
     transition: all 0.5s ease;

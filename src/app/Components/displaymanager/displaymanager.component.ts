@@ -1,11 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, type OnInit } from '@angular/core';
+import {
+	AfterViewChecked,
+	AfterViewInit,
+	Component,
+	type OnInit,
+} from '@angular/core';
 import { CardViewComponent } from '../views/card-view/card-view.component';
 import { GameService } from '../../services/game.service';
 import IGame from '../../../interfaces/IGame';
 import { ListViewComponent } from '../views/listview/listview.component';
 import { GenericService } from '../../services/generic.service';
 import { BehaviorSubject } from 'rxjs';
+import { After } from 'v8';
 
 @Component({
 	selector: 'app-displaymanager',
@@ -28,10 +34,19 @@ export class DisplaymanagerComponent implements OnInit {
 		this.gameService.getGamesObservable().subscribe((games) => {
 			this.games = games;
 		});
-		setTimeout(() => {
+		if (this.genericService.getAsAlreadyLaunched()) {
 			this.genericService.getSettings().subscribe((settings) => {
 				this.currentView.next(settings.view || 'card');
 			});
-		}, 3000);
+			let logo = document.getElementById('logo');
+			logo?.classList.remove('logo-animation');
+		} else {
+			setTimeout(() => {
+				this.genericService.setAsAlreadyLaunched();
+				this.genericService.getSettings().subscribe((settings) => {
+					this.currentView.next(settings.view || 'card');
+				});
+			}, 3000);
+		}
 	}
 }
