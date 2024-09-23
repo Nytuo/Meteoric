@@ -187,6 +187,17 @@ mod tests {
         assert_eq!(result, "1");
     }
 
+    
+    #[test]
+    fn test_delete_game_db() {
+        let conn = setup_test_db();
+        conn.execute("INSERT INTO games (name, rating) VALUES ('Test Game', '5')", []).unwrap();
+        delete_game_db(&conn, 5.to_string()).unwrap();
+    
+        let result = query_all_data(&conn, "games").unwrap();
+        assert_eq!(result.len(), 0);
+    }
+
 /*     #[test]
     fn test_parse_fields() {
         let conn = setup_test_db();

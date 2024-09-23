@@ -10,6 +10,9 @@ import ISettings from '../../interfaces/ISettings';
 	providedIn: 'root',
 })
 export class DBService {
+	async deleteGame(currentGameID: string) {
+		await invoke('delete_game', { id: currentGameID });
+	}
 	constructor() {}
 
 	JSONParserForGames(games: string): IGame[] {
@@ -30,7 +33,7 @@ export class DBService {
 				configDirPath =
 					configDirPath + 'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 			} else {
-				configDirPath = configDirPath + 'Meteoric/meteoric_extra_content/';
+				configDirPath = configDirPath + 'meteoric/meteoric_extra_content/';
 			}
 			game.jaquette = convertFileSrc(configDirPath + id + '/jaquette.jpg');
 			game.background = convertFileSrc(configDirPath + id + '/background.jpg');
@@ -49,7 +52,7 @@ export class DBService {
 			configDirPath =
 				configDirPath + 'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else if (dplatform === 'linux') {
-			configDirPath = configDirPath + 'Meteoric/meteoric_extra_content/';
+			configDirPath = configDirPath + 'meteoric/meteoric_extra_content/';
 		}
 		game.jaquette =
 			convertFileSrc(configDirPath + id + '/jaquette.jpg') +

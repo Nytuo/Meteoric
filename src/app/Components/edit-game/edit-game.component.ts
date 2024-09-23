@@ -724,4 +724,15 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			});
 		});
 	}
+
+	deleteGame() {
+		if (this.currentGameID === undefined) {
+			return;
+		}
+		this.db.deleteGame(this.currentGameID).then(() => {
+			this.gameService.getGames().then(() => {
+				this.router.navigate(['/']);
+			});
+		});
+	}
 }

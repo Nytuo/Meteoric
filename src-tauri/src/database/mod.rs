@@ -412,3 +412,9 @@ pub fn set_settings_db(conn: &Connection, name: &str, value: &str) -> Result<(),
     conn.execute(&sql, []).map_err(|e| e.to_string())?;
     Ok(())
 }
+
+pub fn delete_game_db(conn: &Connection, id: String) -> Result<(), String> {
+    let sql = format!("DELETE FROM games WHERE id = '{}'", id);
+    conn.execute(&sql, []).map_err(|e| e.to_string())?;
+    Ok(())
+}

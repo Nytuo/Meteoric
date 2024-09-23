@@ -12,7 +12,7 @@ use tokio::time::Instant;
 
 use crate::{IGame, routine, send_message_to_frontend};
 use crate::database::{
-    add_category, add_game_to_category_db, establish_connection, get_all_fields, query_all_data, query_data, remove_game_from_category_db, update_game, set_settings_db
+    add_category, add_game_to_category_db, establish_connection, get_all_fields, query_all_data, query_data, remove_game_from_category_db, update_game, set_settings_db, delete_game_db
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
@@ -165,6 +165,12 @@ pub async fn upload_csv_to_db(data: Vec<HashMap<String, String>>) -> Result<(), 
         update_game(&conn, game).expect("Error updating game");
     }
     Ok(())
+}
+
+#[tauri::command]
+pub fn delete_game(id: String) -> Result<(), String> {
+    let conn = establish_connection().unwrap();
+    delete_game_db(&conn, id)
 }
 
 #[tauri::command]

@@ -7,11 +7,21 @@
         </ng-template>
         <p-panelMenu [model]="items" styleClass="w-full md:w-20rem"/>
         <br/>
-        <p-button
+        <div style="display: flex; gap: 1rem; justify-content: center">
+                    <p-button
                 [routerLink]="['/game/' + currentGame?.id]"
                 icon="pi pi-times"
                 label="Close"
         ></p-button>
+        <p-button
+        [routerLink]="['/games']"
+        severity="danger"
+        (onClick)="deleteGame()"
+        icon="pi pi-trash"
+        label="Delete"
+></p-button>
+        </div>
+
     </p-sidebar>
     <div [style]="{ width: '80vw' }">
         <div class="content">

@@ -30,7 +30,7 @@ export class SplashComponent implements OnInit {
 			configDirPath =
 				configDirPath + 'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else {
-			configDirPath = configDirPath + 'Meteoric/meteoric_extra_content/';
+			configDirPath = configDirPath + 'meteoric/meteoric_extra_content/';
 		}
 		let videoTag = document.getElementById('myVideo') as HTMLVideoElement;
 		if (videoTag) {
