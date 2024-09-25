@@ -22,7 +22,7 @@
 				"confirm": false,
 				"message": false,
 				"open": true,
-				"save": false
+				"save": true
 			},
 			"os": {
 				"all": true

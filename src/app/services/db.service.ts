@@ -5,6 +5,8 @@ import { configDir } from '@tauri-apps/api/path';
 import ICategory from '../../interfaces/ICategory';
 import { platform } from '@tauri-apps/api/os';
 import ISettings from '../../interfaces/ISettings';
+import { save } from '@tauri-apps/api/dialog';
+import { title } from 'process';
 
 @Injectable({
 	providedIn: 'root',
@@ -266,5 +268,15 @@ export class DBService {
 			configDirPath + id + '/musics/theme.mp3',
 		);
 		return game;
+	}
+
+	public async export_games_to_csv() {
+		const path = await save({
+			filters: [{
+			  name: 'CSV',
+			  extensions: ['csv']
+			}],title: 'Export games to CSV'
+		  });
+		return await invoke('export_game_database_to_csv', { path });
 	}
 }

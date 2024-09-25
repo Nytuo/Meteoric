@@ -1,24 +1,24 @@
 use std::collections::HashMap;
-use std::env;
+use std::{env, io};
 use std::path::PathBuf;
 use std::time::Duration;
 
-use rusty_ytdl::{
-    Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions,
-};
+use directories::ProjectDirs;
+use rusty_ytdl::{Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions};
 use tokio::process::Command;
 use tokio::task;
 use tokio::time::Instant;
 
-use crate::{IGame, routine, send_message_to_frontend};
 use crate::database::{
-    add_category, add_game_to_category_db, establish_connection, get_all_fields, query_all_data, query_data, remove_game_from_category_db, update_game, set_settings_db, delete_game_db
+    add_category, add_game_to_category_db, delete_game_db, establish_connection, get_all_fields,
+    query_all_data, query_data, remove_game_from_category_db, set_settings_db, update_game,
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
     remove_file,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
+use crate::{routine, send_message_to_frontend, IGame};
 
 #[tauri::command]
 pub fn get_all_games() -> String {
@@ -67,10 +67,7 @@ pub async fn create_category(
 }
 
 #[tauri::command]
-pub async fn add_game_to_category(
-    game_id: String,
-    category_id: String,
-) -> Result<(), String> {
+pub async fn add_game_to_category(game_id: String, category_id: String) -> Result<(), String> {
     let conn = establish_connection().unwrap();
     println!("Game id: {}, Category id: {}", game_id, category_id);
     let _ = add_game_to_category_db(&conn, game_id, category_id);
@@ -78,15 +75,11 @@ pub async fn add_game_to_category(
 }
 
 #[tauri::command]
-pub async fn remove_game_from_category(
-    game_id: String,
-    category_id: String,
-) -> Result<(), String> {
+pub async fn remove_game_from_category(game_id: String, category_id: String) -> Result<(), String> {
     let conn = establish_connection().unwrap();
     let _ = remove_game_from_category_db(&conn, game_id, category_id);
     Ok(())
 }
-
 
 #[tauri::command]
 pub fn get_all_fields_from_db() -> String {
@@ -130,7 +123,8 @@ pub fn get_settings() -> String {
 #[tauri::command]
 pub fn set_settings(settings: String) -> Result<(), String> {
     let conn = establish_connection().unwrap();
-    let settings: Vec<HashMap<String, String>> = serde_json::from_str(&settings).map_err(|e| e.to_string())?;
+    let settings: Vec<HashMap<String, String>> =
+        serde_json::from_str(&settings).map_err(|e| e.to_string())?;
     println!("{:?}", settings);
     for setting in settings {
         let name = setting.get("name").unwrap();
@@ -358,9 +352,7 @@ pub async fn search_metadata(game_name: String, plugin_name: String, strict: boo
             let result = steam_grid::search_game(&game_name).unwrap();
             format!("{:?}", result)
         }
-        _ => {
-            "Plugin not found".to_string()
-        }
+        _ => "Plugin not found".to_string(),
     }
 }
 
@@ -370,7 +362,9 @@ pub async fn import_library(plugin_name: String, creds: Vec<String>) {
     match plugin_name.as_str() {
         "epic_importer" => {
             epic_importer::set_credentials(creds).await;
-            epic_importer::get_games_from_user().await.expect("Failed to get games");
+            epic_importer::get_games_from_user()
+                .await
+                .expect("Failed to get games");
         }
         "steam_importer" => {
             let api_key = env::var("STEAM_API_KEY").expect("STEAM_API_KEY not found");
@@ -380,11 +374,15 @@ pub async fn import_library(plugin_name: String, creds: Vec<String>) {
             }
             creds_temp.push(api_key.clone());
             steam_importer::set_credentials(creds_temp).await;
-            steam_importer::get_games_from_user().await.expect("Failed to get games");
+            steam_importer::get_games_from_user()
+                .await
+                .expect("Failed to get games");
         }
         "gog_importer" => {
             gog_importer::set_credentials(creds).await;
-            gog_importer::get_games_from_user().await.expect("Failed to get games");
+            gog_importer::get_games_from_user()
+                .await
+                .expect("Failed to get games");
         }
         _ => {
             eprintln!("Unsupported plugin: {}", plugin_name);
@@ -591,9 +589,7 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                         let url = i.as_str().unwrap();
                         get_nb_of_screenshots = get_nb_of_screenshots + 1;
                         let file_path = game_dir.join("screenshots").join(
-                            "screenshot-".to_string()
-                                + &get_nb_of_screenshots.to_string()
-                                + ".jpg",
+                            "screenshot-".to_string() + &get_nb_of_screenshots.to_string() + ".jpg",
                         );
                         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
                         if let Err(e) = std::fs::write(&file_path, &file_content) {
@@ -731,4 +727,21 @@ pub async fn download_youtube_audio(url: &str, location: PathBuf) -> Result<(), 
             Err(VideoError::DownloadError(err.to_string()))
         }
     }
+}
+
+#[tauri::command]
+pub fn export_game_database_to_csv(path : String) -> Result<(), String> {
+    let conn = establish_connection().unwrap();
+    let results = query_all_data(&conn, "games").unwrap();
+    println!("{:?}", results);
+    let mut wtr = csv::Writer::from_path(path.clone()).unwrap();
+    for row in results {
+        let mut game: IGame = IGame::from_hashmap(row.clone());
+        game.id = "-1".to_string();
+        game.description = game.description.replace("\n", " ");
+        wtr.serialize(game).unwrap();
+    }
+    
+    wtr.flush().unwrap();
+    Ok(())
 }

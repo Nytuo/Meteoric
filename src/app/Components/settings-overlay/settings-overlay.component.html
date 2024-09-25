@@ -38,7 +38,9 @@
 				<app-csv-importer
 					*ngIf="activeItem === 'CSV Importer'"
 				></app-csv-importer>
-
+				<app-csv-exporter
+				*ngIf="activeItem === 'CSV Exporter'"
+			></app-csv-exporter>
 				<app-epic-importer
 					*ngIf="activeItem === 'Epic Games Importer'"
 				></app-epic-importer>

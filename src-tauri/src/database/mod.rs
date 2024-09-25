@@ -397,9 +397,7 @@ pub fn get_game_id_by_name(conn: &Connection, name: &str) -> Result<String, Stri
         .map_err(|e| e.to_string())?;
     let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
 
-    // Handle the Option returned by rows.next()
     if let Some(row) = rows.next().map_err(|e| e.to_string())? {
-        // Attempt to get the id as an integer and convert it to a string
         let id: i64 = row.get(0).map_err(|e| e.to_string())?;
         Ok(id.to_string())
     } else {
