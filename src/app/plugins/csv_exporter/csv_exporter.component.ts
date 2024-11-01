@@ -10,27 +10,28 @@ import { DropdownModule } from 'primeng/dropdown';
 import { DBService } from '../../services/db.service';
 
 @Component({
-    imports: [
-        NgIf,
-        NgFor,
-        TableModule,
-        HttpClientModule,
-        FileUploadModule,
-        FormsModule, DropdownModule
-    ],
-    standalone: true,
-    selector: 'app-csv-exporter',
-    templateUrl: './csv_exporter.component.html',
-    styleUrls: ['./csv_exporter.component.css']
+	imports: [
+		NgIf,
+		NgFor,
+		TableModule,
+		HttpClientModule,
+		FileUploadModule,
+		FormsModule,
+		DropdownModule,
+	],
+	standalone: true,
+	selector: 'app-csv-exporter',
+	templateUrl: './csv_exporter.component.html',
+	styleUrls: ['./csv_exporter.component.css'],
 })
 export class CSVEmporter implements OnInit {
-    export_csv() {
-        this.db.export_games_to_csv();
-    }
+	export_csv() {
+		this.db.export_games_to_csv();
+	}
 
-    constructor(private db: DBService) {
-    }
+	constructor(private db: DBService) {
+	}
 
-    ngOnInit(): void {
-    }
+	ngOnInit(): void {
+	}
 }

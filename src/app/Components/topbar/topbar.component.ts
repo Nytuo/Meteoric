@@ -36,6 +36,7 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { CategoryService } from '../../services/category.service';
 import { CheckboxModule } from 'primeng/checkbox';
 import { CascadeSelectModule } from 'primeng/cascadeselect';
+
 @Component({
 	selector: 'app-topbar',
 	standalone: true,
@@ -117,7 +118,8 @@ export class TopbarComponent implements OnInit {
 	) {}
 
 	addCategory() {
-		let name = (document.getElementById('addcat') as HTMLInputElement).value;
+		let name =
+			(document.getElementById('addcat') as HTMLInputElement).value;
 		this.categoryService.createCategory(
 			name,
 			'bookmark',
@@ -157,7 +159,9 @@ export class TopbarComponent implements OnInit {
 	}
 
 	isFavoritesChecked(): boolean {
-		return this.currentGameCategories.some((cat) => cat.name === 'Favorites');
+		return this.currentGameCategories.some((cat) =>
+			cat.name === 'Favorites'
+		);
 	}
 
 	toggleOverlay(overlay_name: string = 'filter') {
@@ -201,9 +205,10 @@ export class TopbarComponent implements OnInit {
 			];
 			value = value.filter((cat) => !exclusion.includes(cat.name));
 			this.allCategories = value;
-			this.currentGameCategories = this.categoryService.getCategoriesForGame(
-				this.gameID,
-			);
+			this.currentGameCategories = this.categoryService
+				.getCategoriesForGame(
+					this.gameID,
+				);
 		});
 		this.router.events.subscribe((val) => {
 			if (val instanceof NavigationEnd) {
@@ -216,16 +221,16 @@ export class TopbarComponent implements OnInit {
 						let game = this.gameService.getGame(id);
 						this.gameService.setGameObservable(game);
 						this.gameID = id;
-						this.currentGameCategories =
-							this.categoryService.getCategoriesForGame(this.gameID);
+						this.currentGameCategories = this.categoryService
+							.getCategoriesForGame(this.gameID);
 						this.displayPlayForGame =
 							game?.exec_file && game?.game_dir ? 'PLAY' : 'LINK';
-						this.btnicon =
-							game?.exec_file && game?.game_dir ? 'pi pi-play' : 'pi pi-link';
-						this.color =
-							game?.exec_file && game?.game_dir
-								? { backgroundColor: 'rgb(13 81 198)' }
-								: { backgroundColor: 'purple' };
+						this.btnicon = game?.exec_file && game?.game_dir
+							? 'pi pi-play'
+							: 'pi pi-link';
+						this.color = game?.exec_file && game?.game_dir
+							? { backgroundColor: 'rgb(13 81 198)' }
+							: { backgroundColor: 'purple' };
 					}
 				} else {
 					this.onGamePage = false;
@@ -254,14 +259,15 @@ export class TopbarComponent implements OnInit {
 			if (!game) {
 				return;
 			}
-			this.displayPlayForGame =
-				game?.exec_file && game?.game_dir ? 'PLAY' : 'LINK';
-			this.btnicon =
-				game?.exec_file && game?.game_dir ? 'pi pi-play' : 'pi pi-link';
-			this.color =
-				game?.exec_file && game?.game_dir
-					? { backgroundColor: 'rgb(13 81 198)' }
-					: { backgroundColor: 'purple' };
+			this.displayPlayForGame = game?.exec_file && game?.game_dir
+				? 'PLAY'
+				: 'LINK';
+			this.btnicon = game?.exec_file && game?.game_dir
+				? 'pi pi-play'
+				: 'pi pi-link';
+			this.color = game?.exec_file && game?.game_dir
+				? { backgroundColor: 'rgb(13 81 198)' }
+				: { backgroundColor: 'purple' };
 		});
 
 		this.gameService.getGamesObservable().subscribe((games) => {
@@ -311,14 +317,15 @@ export class TopbarComponent implements OnInit {
 				game.exec_args = execs.exec_args;
 				await this.dbService.postGame(game!);
 				this.gameService.setGame(this.gameID, game!);
-				this.displayPlayForGame =
-					game?.exec_file && game?.game_dir ? 'PLAY' : 'LINK';
-				this.btnicon =
-					game?.exec_file && game?.game_dir ? 'pi pi-play' : 'pi pi-link';
-				this.color =
-					game?.exec_file && game?.game_dir
-						? { backgroundColor: 'rgb(13 81 198)' }
-						: { backgroundColor: 'purple' };
+				this.displayPlayForGame = game?.exec_file && game?.game_dir
+					? 'PLAY'
+					: 'LINK';
+				this.btnicon = game?.exec_file && game?.game_dir
+					? 'pi pi-play'
+					: 'pi pi-link';
+				this.color = game?.exec_file && game?.game_dir
+					? { backgroundColor: 'rgb(13 81 198)' }
+					: { backgroundColor: 'purple' };
 			}
 			return;
 		} else if (this.displayPlayForGame === 'STOP') {

@@ -1,6 +1,7 @@
 <div class="topbar" data-tauri-drag-region>
 	<div class="navAndBookmarks">
-		<p-button (click)="location.back()" icon="pi pi-chevron-left"></p-button>
+		<p-button (click)="location.back()" icon="pi pi-chevron-left"></p-button
+		>
 		<p-button
 			(click)="location.forward()"
 			icon="pi pi-chevron-right"
@@ -115,7 +116,10 @@
 			(click)="toggleMaximize()"
 			icon="pi pi-window-maximize"
 		></p-button>
-		<p-button (click)="appWindow.close()" icon="pi pi-times-circle"></p-button>
+		<p-button
+			(click)="appWindow.close()"
+			icon="pi pi-times-circle"
+		></p-button>
 	</div>
 </div>
 

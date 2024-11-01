@@ -67,23 +67,21 @@
 	</div>
 
 	<div
-		style="
-			display: flex;
-			flex-direction: row;
-			flex-wrap: nowrap;
-			justify-content: space-between;
-			align-content: start;
-			width: 100%;
-			margin-top: 5rem;
-			margin-bottom: 5rem;
-		"
+		style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-between; align-content: start; width: 100%; margin-top: 5rem; margin-bottom: 5rem"
 		style="display: none"
 	>
 		<div class="leftPanel">
 			<div class="activity">
 				<p class="fadedText">Activity</p>
-				<p-divider align="center" layout="horizontal" type="solid"></p-divider>
-				<p-table [tableStyle]="{ 'min-width': '10rem' }" [value]="activities">
+				<p-divider
+					align="center"
+					layout="horizontal"
+					type="solid"
+				></p-divider>
+				<p-table
+					[tableStyle]="{ 'min-width': '10rem' }"
+					[value]="activities"
+				>
 					<ng-template pTemplate="header">
 						<tr>
 							<th>Player</th>
@@ -106,7 +104,11 @@
 		<p-divider align="center" layout="vertical" type="solid"></p-divider>
 		<div class="rightPanel">
 			<p class="fadedText">Friends And You</p>
-			<p-divider align="center" layout="horizontal" type="solid"></p-divider>
+			<p-divider
+				align="center"
+				layout="horizontal"
+				type="solid"
+			></p-divider>
 
 			<p-table [tableStyle]="{ 'min-width': '35rem' }" [value]="friends">
 				<ng-template pTemplate="header">
@@ -157,10 +159,13 @@
 					<span class="whiterized">{{ game?.release_date }}</span>
 				</p>
 				<p class="fadedText">
-					Developers : <span class="whiterized">{{ game?.developers }}</span>
+					Developers : <span class="whiterized">{{
+							game?.developers
+						}}</span>
 				</p>
 				<p class="fadedText">
-					Editors : <span class="whiterized">{{ game?.editors }}</span>
+					Editors : <span class="whiterized">{{ game?.editors }}</span
+					>
 				</p>
 				<p class="fadedText">
 					Status : <span class="whiterized">{{ game?.status }}</span>
@@ -170,17 +175,22 @@
 		<p-galleria
 			[circular]="true"
 			[containerStyle]="{
-				'max-width': '640px',
-				'margin-left': 'auto',
-				'margin-right': 'auto'
-			}"
+		'max-width': '640px',
+		'margin-left': 'auto',
+		'margin-right': 'auto',
+	}"
 			[numVisible]="5"
 			[responsiveOptions]="responsiveOptions"
 			[showItemNavigators]="true"
 			[showThumbnails]="false"
 			[value]="media.images"
 		>
-			<ng-template [ngForOf]="media.images" let-item ngFor pTemplate="item">
+			<ng-template
+				[ngForOf]="media.images"
+				let-item
+				ngFor
+				pTemplate="item"
+			>
 				<img
 					[ngSrc]="item"
 					alt="screen"
@@ -197,22 +207,17 @@
 			[responsiveOptions]="responsiveOptions"
 			[showIndicators]="false"
 			[style]="{
-				'max-width': '640px',
-				'margin-left': 'auto',
-				'margin-right': 'auto',
-				'margin-bottom': '5vh'
-			}"
+		'max-width': '640px',
+		'margin-left': 'auto',
+		'margin-right': 'auto',
+		'margin-bottom': '5vh',
+	}"
 			[value]="media.videos"
 		>
 			<ng-template let-item pTemplate="item">
 				<video
 					controls
-					style="
-						width: 500px;
-						display: block;
-						height: 400px;
-						object-fit: contain;
-					"
+					style="width: 500px; display: block; height: 400px; object-fit: contain"
 				>
 					<source [src]="item" type="video/mp4" />
 				</video>

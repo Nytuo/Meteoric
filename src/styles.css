@@ -2,106 +2,117 @@
 @import 'primeicons/primeicons.css';
 
 :root {
-    font-size: 14px;
-    line-height: 24px;
-    font-weight: 400;
+	font-size: 14px;
+	line-height: 24px;
+	font-weight: 400;
 
-    color: var(--text-color);
-    background-color: var(--background-color);
+	color: var(--text-color);
+	background-color: var(--background-color);
 
-    --primary: #3546e8;
-    --secondary: #1f1f1f;
-    --tertiary: #1c1c1c;
-    --background-color: #0f0f0f;
-    --text-color: #ffffff;
-    --accent-color: #1a62fd;
-    --background-color-prime: rgba(0, 0, 0, 0.616);
-    --form-control-color: rebeccapurple;
-    --form-control-disabled: #959495;
-    --form-background: #1f1f1f;
+	--primary: #3546e8;
+	--secondary: #1f1f1f;
+	--tertiary: #1c1c1c;
+	--background-color: #0f0f0f;
+	--text-color: #ffffff;
+	--accent-color: #1a62fd;
+	--background-color-prime: rgba(0, 0, 0, 0.616);
+	--form-control-color: rebeccapurple;
+	--form-control-disabled: #959495;
+	--form-background: #1f1f1f;
 
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-text-size-adjust: 100%;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-text-size-adjust: 100%;
 
-    font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Ubuntu',
-    'Cantarell', 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		'Roboto',
+		'Ubuntu',
+		'Cantarell',
+		'Noto Sans',
+		sans-serif,
+		'Apple Color Emoji',
+		'Segoe UI Emoji',
+		'Segoe UI Symbol',
+		'Noto Color Emoji';
 }
 
 html {
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-color: #000000;
-    background-repeat: repeat;
-    overflow: hidden;
+	background-size: cover;
+	background-position: center;
+	background-attachment: fixed;
+	background-color: #000000;
+	background-repeat: repeat;
+	overflow: hidden;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    backdrop-filter: blur(70px) brightness(70%) saturate(120%) contrast(120%) invert(10%);
-    background-color: rgba(0, 0, 0, 0.5);
+	margin: 0;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	backdrop-filter: blur(70px) brightness(70%) saturate(120%) contrast(120%)
+		invert(10%);
+	background-color: rgba(0, 0, 0, 0.5);
 }
 
 app-details {
-    overflow-x: hidden;
+	overflow-x: hidden;
 }
 
 @font-face {
-    font-family: 'Roboto-Light';
-    src: url('assets/fonts/Roboto-Light.ttf') format('truetype');
+	font-family: 'Roboto-Light';
+	src: url('assets/fonts/Roboto-Light.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'Roboto-Medium';
-    src: url('assets/fonts/Roboto-Medium.ttf') format('truetype');
+	font-family: 'Roboto-Medium';
+	src: url('assets/fonts/Roboto-Medium.ttf') format('truetype');
 }
 
 ::-webkit-scrollbar {
-    width: 5px;
+	width: 5px;
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+	background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.214);
-    border-radius: 10px;
+	background: rgba(255, 255, 255, 0.214);
+	border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+	background: rgba(255, 255, 255, 0.5);
 }
 
 ::-webkit-scrollbar-thumb:active {
-    background: rgba(255, 255, 255, 0.8);
+	background: rgba(255, 255, 255, 0.8);
 }
 
 .p-sidebar-mask,
 .p-sidebar-close {
-    display: none !important;
+	display: none !important;
 }
 
 .p-sidebar-left {
-    top: 0;
-    left: 0;
-    width: 18rem;
-    height: 100%;
+	top: 0;
+	left: 0;
+	width: 18rem;
+	height: 100%;
 }
 
 .p-sidebar {
-    background: #0000005c;
-    color: rgba(255, 255, 255, 0.87);
-    border: none;
-    box-shadow: none;
-    z-index: 1000 !important;
+	background: #0000005c;
+	color: rgba(255, 255, 255, 0.87);
+	border: none;
+	box-shadow: none;
+	z-index: 1000 !important;
 }

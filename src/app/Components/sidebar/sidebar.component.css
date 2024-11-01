@@ -1,178 +1,177 @@
 .accountAndSettings {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px;
 }
 
 .logo {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
 }
 
 .logo-animation {
-    animation: BigCenterToNormalPosition 3s;
-    transform-origin: center;
-    transition: all 0.5s ease;
+	animation: BigCenterToNormalPosition 3s;
+	transform-origin: center;
+	transition: all 0.5s ease;
 }
 
-.categories>p {
-    color: #b1b1b1;
-    font-size: 1.2rem;
-    margin: 10px;
+.categories > p {
+	color: #b1b1b1;
+	font-size: 1.2rem;
+	margin: 10px;
 }
 
 .category {
-    cursor: pointer;
+	cursor: pointer;
 }
 
 .material-symbols-outlined.fill {
-    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+	font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
 }
 
-.category>.categoryItem>p {
-    color: #b1b1b1;
-    font-size: 1rem;
-    text-decoration: none;
-    margin: 4px;
+.category > .categoryItem > p {
+	color: #b1b1b1;
+	font-size: 1rem;
+	text-decoration: none;
+	margin: 4px;
 }
 
-.category>.categoryItem {
-    margin-left: 5px;
+.category > .categoryItem {
+	margin-left: 5px;
 }
 
 .categoryItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
 .categoryItemEl {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 10px;
 }
 
 .activeIndicator {
-    width: 5px;
-    height: 53px;
-    background-color: #3546e8;
-    position: absolute;
-    left: 0;
-    transition: 0.5s;
-    animation: spreadOut 0.2s;
-    transform-origin: center;
+	width: 5px;
+	height: 53px;
+	background-color: #3546e8;
+	position: absolute;
+	left: 0;
+	transition: 0.5s;
+	animation: spreadOut 0.2s;
+	transform-origin: center;
 }
 
 @keyframes spreadOut {
-    0% {
-        transform: scaleY(0);
-    }
+	0% {
+		transform: scaleY(0);
+	}
 
-    100% {
-        transform: scaleY(1);
-    }
+	100% {
+		transform: scaleY(1);
+	}
 }
 
 .stat {
-    display: flex;
-    flex-direction: row;
-    justify-content: start;
-    align-items: center;
-    padding: 10px;
-    gap: 20px;
-    cursor: pointer;
+	display: flex;
+	flex-direction: row;
+	justify-content: start;
+	align-items: center;
+	padding: 10px;
+	gap: 20px;
+	cursor: pointer;
 }
 
 ::ng-deep .p-sidebar-header {
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 25px;
+	flex-direction: column !important;
+	align-items: center !important;
+	gap: 25px;
 }
 
 @keyframes shake {
-    0% {
-        transform: translate(1px, 1px) rotate(0deg);
-    }
+	0% {
+		transform: translate(1px, 1px) rotate(0deg);
+	}
 
-    10% {
-        transform: translate(-1px, -2px) rotate(-1deg);
-    }
+	10% {
+		transform: translate(-1px, -2px) rotate(-1deg);
+	}
 
-    20% {
-        transform: translate(-3px, 0px) rotate(1deg);
-    }
+	20% {
+		transform: translate(-3px, 0px) rotate(1deg);
+	}
 
-    30% {
-        transform: translate(3px, 2px) rotate(0deg);
-    }
+	30% {
+		transform: translate(3px, 2px) rotate(0deg);
+	}
 
-    40% {
-        transform: translate(1px, -1px) rotate(1deg);
-    }
+	40% {
+		transform: translate(1px, -1px) rotate(1deg);
+	}
 
-    50% {
-        transform: translate(-1px, 2px) rotate(-1deg);
-    }
+	50% {
+		transform: translate(-1px, 2px) rotate(-1deg);
+	}
 
-    60% {
-        transform: translate(-3px, 1px) rotate(0deg);
-    }
+	60% {
+		transform: translate(-3px, 1px) rotate(0deg);
+	}
 
-    70% {
-        transform: translate(3px, 1px) rotate(-1deg);
-    }
+	70% {
+		transform: translate(3px, 1px) rotate(-1deg);
+	}
 
-    80% {
-        transform: translate(-1px, -1px) rotate(1deg);
-    }
+	80% {
+		transform: translate(-1px, -1px) rotate(1deg);
+	}
 
-    90% {
-        transform: translate(1px, 2px) rotate(0deg);
-    }
+	90% {
+		transform: translate(1px, 2px) rotate(0deg);
+	}
 
-    100% {
-        transform: translate(1px, -2px) rotate(-1deg);
-    }
+	100% {
+		transform: translate(1px, -2px) rotate(-1deg);
+	}
 }
 
 .meteor:hover {
-    animation: shake 0.5s infinite;
+	animation: shake 0.5s infinite;
 }
 
 .meteor {
-    animation: shake 0.5s 6;
+	animation: shake 0.5s 6;
 }
 
 @keyframes BigCenterToNormalPosition {
-    0% {
-        position: absolute;
-        top: 50vh;
-        left: 50vw;
-        transform: scale(3);
-    }
+	0% {
+		position: absolute;
+		top: 50vh;
+		left: 50vw;
+		transform: scale(3);
+	}
 
-    60% {
-        position: absolute;
-        top: 50vh;
-        left: 50vw;
-        transform: scale(3);
-    }
+	60% {
+		position: absolute;
+		top: 50vh;
+		left: 50vw;
+		transform: scale(3);
+	}
 
-    99% {
-        top: 0;
-        left: 0;
-        transform: scale(1);
-    }
+	99% {
+		top: 0;
+		left: 0;
+		transform: scale(1);
+	}
 
-    100% {
-        position: relative;
-    }
-
+	100% {
+		position: relative;
+	}
 }

@@ -1,29 +1,23 @@
 <div>
-    <h1>IGDB</h1>
-    <p *ngIf="message">{{ message }}</p>
-    <div
-            *ngIf="!message"
-            style="
-			display: flex;
-			flex-direction: row;
-			flex-wrap: wrap;
-			justify-content: space-around;
-			align-items: center;
-		"
-    >
-        <div
-                (click)="updateSelectedItem(game)"
-                *ngFor="let game of searchedGames"
-                style="text-align: center"
-        >
-            <img
-                    [ngSrc]="game.jaquette"
-                    alt="{{ game.name }}"
-                    height="200"
-                    id="igdb_jaquette-{{ game.name.toLowerCase().replace(' ', '-') }}"
-                    width="150"
-            />
-            <p>{{ game.name }}</p>
-        </div>
-    </div>
+	<h1>IGDB</h1>
+	<p *ngIf="message">{{ message }}</p>
+	<div
+		*ngIf="!message"
+		style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-around; align-items: center"
+	>
+		<div
+			(click)="updateSelectedItem(game)"
+			*ngFor="let game of searchedGames"
+			style="text-align: center"
+		>
+			<img
+				[ngSrc]="game.jaquette"
+				alt="{{ game.name }}"
+				height="200"
+				id="igdb_jaquette-{{ game.name.toLowerCase().replace(' ', '-') }}"
+				width="150"
+			/>
+			<p>{{ game.name }}</p>
+		</div>
+	</div>
 </div>

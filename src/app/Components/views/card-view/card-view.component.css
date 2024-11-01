@@ -1,16 +1,16 @@
 .griddy {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 10rem;
-    padding: 1rem;
-    transition: all 0.3s;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-top: 10rem;
+	padding: 1rem;
+	transition: all 0.3s;
 }
 
 .gameList {
-    position: relative;
-    height: 100vh;
-    z-index: 2;
-    overflow: auto;
-    padding: 15px;
+	position: relative;
+	height: 100vh;
+	z-index: 2;
+	overflow: auto;
+	padding: 15px;
 }

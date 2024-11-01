@@ -12,7 +12,11 @@
 				<h1>Meteoric</h1>
 			</div>
 			<div class="accountAndSettings">
-				<div (click)="openSettings()" class="settings" style="cursor: pointer">
+				<div
+					(click)="openSettings()"
+					class="settings"
+					style="cursor: pointer"
+				>
 					<i
 						[routerLink]="['/account']"
 						class="pi pi-cog"
@@ -67,8 +71,8 @@
 					<div class="categoryItem">
 						<span class="categoryItemEl">
 							<span class="material-symbols-outlined">{{
-								category.icon || 'bookmark'
-							}}</span>
+									category.icon || 'bookmark'
+								}}</span>
 							<p>{{ category.name }}</p>
 						</span>
 

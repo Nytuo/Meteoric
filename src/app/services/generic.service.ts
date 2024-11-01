@@ -11,18 +11,24 @@ import { DBService } from './db.service';
 export class GenericService {
 	isAuthorizedToBookmark = false;
 	private audio: HTMLAudioElement | null = null;
-	private displayBookmark: BehaviorSubject<boolean> =
-		new BehaviorSubject<boolean>(false);
-	private gameLaunchAnimation: BehaviorSubject<boolean> =
-		new BehaviorSubject<boolean>(false);
+	private displayBookmark: BehaviorSubject<boolean> = new BehaviorSubject<
+		boolean
+	>(false);
+	private gameLaunchAnimation: BehaviorSubject<boolean> = new BehaviorSubject<
+		boolean
+	>(false);
 	private blockUI: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
 		false,
 	);
-	private sidebarOpen: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+	private sidebarOpen: BehaviorSubject<boolean> = new BehaviorSubject<
+		boolean
+	>(
 		true,
 	);
 	private audioInterval: string | number | NodeJS.Timeout | undefined;
-	private settings: BehaviorSubject<ISettings> = new BehaviorSubject<ISettings>(
+	private settings: BehaviorSubject<ISettings> = new BehaviorSubject<
+		ISettings
+	>(
 		{},
 	);
 	private asAlreadyLaunched = false;

@@ -27,8 +27,8 @@ export class SplashComponent implements OnInit {
 		let configDirPath = await configDir();
 		let dplatform = await platform();
 		if (dplatform === 'win32') {
-			configDirPath =
-				configDirPath + 'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+			configDirPath = configDirPath +
+				'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else {
 			configDirPath = configDirPath + 'meteoric/meteoric_extra_content/';
 		}

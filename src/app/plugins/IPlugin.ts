@@ -1,5 +1,5 @@
 interface IPlugin {
-    name: string;
+	name: string;
 
-    run(): void;
+	run(): void;
 }

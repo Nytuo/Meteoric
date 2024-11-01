@@ -130,7 +130,9 @@ export class DetailsComponent implements OnInit, OnDestroy {
 				this.game.backgroundMusic &&
 				!this.genericService.isBackgroundMusicPlaying()
 			) {
-				this.genericService.playBackgroundMusic(this.game.backgroundMusic);
+				this.genericService.playBackgroundMusic(
+					this.game.backgroundMusic,
+				);
 			}
 		});
 
@@ -220,13 +222,15 @@ export class DetailsComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		let icon = simpleIcons[platform as keyof typeof simpleIcons] as SimpleIcon;
+		let icon =
+			simpleIcons[platform as keyof typeof simpleIcons] as SimpleIcon;
 		if (icon && platform.includes('si')) {
 			let svg = icon.svg.replace(/#/g, '%23');
 			this.launcherIcon = `data:image/svg+xml,${svg}`;
 		} else {
-			if (platform === 'xbox') this.launcherIcon = 'assets/platforms/xbox.svg';
-			else this.launcherIcon = 'assets/logo.svg';
+			if (platform === 'xbox') {
+				this.launcherIcon = 'assets/platforms/xbox.svg';
+			} else this.launcherIcon = 'assets/logo.svg';
 		}
 	}
 
@@ -269,7 +273,9 @@ export class DetailsComponent implements OnInit, OnDestroy {
 			document
 				.querySelector('.navAndBookmarks')
 				?.classList.remove('backgroundTopbar');
-			document.querySelector('.main')?.classList.remove('backgroundTopbar');
+			document.querySelector('.main')?.classList.remove(
+				'backgroundTopbar',
+			);
 		}
 	}
 

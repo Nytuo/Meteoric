@@ -1,104 +1,112 @@
 <div style="padding: 20px">
-    <h1>Good Old Games Importer</h1>
+	<h1>Good Old Games Importer</h1>
 
-    <p-stepper>
-        <p-stepperPanel header="Sign In">
-            <ng-template
-                let-index="index"
-                let-nextCallback="nextCallback"
-                pTemplate="content"
-            >
-                <div style="width: 100%">
-                    <div [style]="{ margin: '20px' }">
-                        <p>
-                            You will be redirected to the GOG website to get an authentication
-                            code. This code will be used to sync your library. You will have
-                            to copy/paste the AuthCode for the next step.
-                        </p>
-                        <p>If you are already connected then you can skip to step 3</p>
-                        <p-confirmDialog>
-                            <ng-template let-message pTemplate="message">
-                                <p>{{ message.message }}</p>
-                            </ng-template>
-                        </p-confirmDialog>
-                        <p-button (onClick)="confirm()" label="Sign In"/>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: flex-end">
-                    <p-button
-                            (onClick)="nextCallback.emit()"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            label="Next"
-                    />
-                </div>
-            </ng-template>
-        </p-stepperPanel>
-        <p-stepperPanel header="Insert the AuthCode">
-            <ng-template
-                let-index="index"
-                let-nextCallback="nextCallback"
-                let-prevCallback="prevCallback"
-                pTemplate="content"
-            >
-                <div style="width: 100%">
-                    <div [style]="{ margin: '20px' }">
-                        <p-floatLabel>
-                            <input [(ngModel)]="authCode" id="AuthCode" pInputText/>
-                            <label for="AuthCode">AuthCode</label>
-                        </p-floatLabel>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: space-evenly">
-                    <p-button
-                            (onClick)="prevCallback.emit()"
-                            icon="pi pi-arrow-left"
-                            label="Back"
-                    />
-                    <p-button
-                            (onClick)="nextCallback.emit()"
-                            icon="pi pi-arrow-right"
-                            iconPos="right"
-                            label="Next"
-                    />
-                </div>
-            </ng-template>
-        </p-stepperPanel>
-        <p-stepperPanel header="Login">
-            <ng-template
-                let-index="index"
-                let-prevCallback="prevCallback"
-                pTemplate="content"
-            >
-                <div style="width: 100%">
-                    <div
-                            [style]="{
-							margin: '20px',
-							display: 'flex',
-							flexDirection: 'row',
-							flexWrap: 'nowrap',
-							justifyContent: 'space-around'
-						}"
-                    >
-                        <p-button
-                                (click)="loginAndSync()"
-                                [style]="{ marginLeft: '20px' }"
-                                label="Login And Sync"
-                        ></p-button>
-                        <p-button
-                                (click)="syncOnly()"
-                                label="Sync (Already Logged in)"
-                        ></p-button>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: flex-start">
-                    <p-button
-                            (onClick)="prevCallback.emit()"
-                            icon="pi pi-arrow-left"
-                            label="Back"
-                    />
-                </div>
-            </ng-template>
-        </p-stepperPanel>
-    </p-stepper>
+	<p-stepper>
+		<p-stepperPanel header="Sign In">
+			<ng-template
+				let-index="index"
+				let-nextCallback="nextCallback"
+				pTemplate="content"
+			>
+				<div style="width: 100%">
+					<div [style]="{ margin: '20px' }">
+						<p>
+							You will be redirected to the GOG website to get an
+							authentication code. This code will be used to sync
+							your library. You will have to copy/paste the
+							AuthCode for the next step.
+						</p>
+						<p>
+							If you are already connected then you can skip to
+							step 3
+						</p>
+						<p-confirmDialog>
+							<ng-template let-message pTemplate="message">
+								<p>{{ message.message }}</p>
+							</ng-template>
+						</p-confirmDialog>
+						<p-button (onClick)="confirm()" label="Sign In" />
+					</div>
+				</div>
+				<div style="display: flex; justify-content: flex-end">
+					<p-button
+						(onClick)="nextCallback.emit()"
+						icon="pi pi-arrow-right"
+						iconPos="right"
+						label="Next"
+					/>
+				</div>
+			</ng-template>
+		</p-stepperPanel>
+		<p-stepperPanel header="Insert the AuthCode">
+			<ng-template
+				let-index="index"
+				let-nextCallback="nextCallback"
+				let-prevCallback="prevCallback"
+				pTemplate="content"
+			>
+				<div style="width: 100%">
+					<div [style]="{ margin: '20px' }">
+						<p-floatLabel>
+							<input
+								[(ngModel)]="authCode"
+								id="AuthCode"
+								pInputText
+							/>
+							<label for="AuthCode">AuthCode</label>
+						</p-floatLabel>
+					</div>
+				</div>
+				<div style="display: flex; justify-content: space-evenly">
+					<p-button
+						(onClick)="prevCallback.emit()"
+						icon="pi pi-arrow-left"
+						label="Back"
+					/>
+					<p-button
+						(onClick)="nextCallback.emit()"
+						icon="pi pi-arrow-right"
+						iconPos="right"
+						label="Next"
+					/>
+				</div>
+			</ng-template>
+		</p-stepperPanel>
+		<p-stepperPanel header="Login">
+			<ng-template
+				let-index="index"
+				let-prevCallback="prevCallback"
+				pTemplate="content"
+			>
+				<div style="width: 100%">
+					<div
+						[style]="{
+		margin: '20px',
+		display: 'flex',
+		flexDirection: 'row',
+		flexWrap: 'nowrap',
+		justifyContent: 'space-around',
+	}"
+					>
+						<p-button
+							(click)="loginAndSync()"
+							[style]="{ marginLeft: '20px' }"
+							label="Login And Sync"
+						></p-button>
+						<p-button
+							(click)="syncOnly()"
+							label="Sync (Already Logged in)"
+						></p-button>
+					</div>
+				</div>
+				<div style="display: flex; justify-content: flex-start">
+					<p-button
+						(onClick)="prevCallback.emit()"
+						icon="pi pi-arrow-left"
+						label="Back"
+					/>
+				</div>
+			</ng-template>
+		</p-stepperPanel>
+	</p-stepper>
 </div>

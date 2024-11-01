@@ -50,10 +50,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
 	ngOnInit() {
 		this.categoryService.getCategories();
-		this.categoryService.getCategoriesObservable().subscribe((categories) => {
-			this.categories = categories;
-			this.currentCategory = this.categoryService.getCurrentCategory();
-		});
+		this.categoryService.getCategoriesObservable().subscribe(
+			(categories) => {
+				this.categories = categories;
+				this.currentCategory = this.categoryService
+					.getCurrentCategory();
+			},
+		);
 		this.genericService.getSidebarOpen().subscribe((sidebarOpen) => {
 			this.showSidebar = sidebarOpen;
 			if (this.genericService.getAsAlreadyLaunched()) {

@@ -1,37 +1,56 @@
 <div class="listview">
-    <h1 *ngIf="games.length === 0">No games found</h1>
+	<h1 *ngIf="games.length === 0">No games found</h1>
 
-    <div
-            *ngIf="games.length > 0"
-            style="cursor: pointer;"
-    >
-        <table>
-            <tr>
-                <th>Icon</th>
-                <th>Name</th>
-            </tr>
-            <tr *ngFor="let game of games" [routerLink]="['/game', game.id]">
-                <td>
-                    <img #imageElement
-                         [ngSrc]="game.jaquette ? game.jaquette : 'assets/logo.gif'" alt="{{game.name}}" class="image"
-                         height="600" priority
-                         width="800"/>
-                </td>
-                <td>
-                    <h2>{{ game.name }}</h2>
-                    <p *ngIf="displayInfo == 'platforms'" class="italic">{{ game.platforms }}</p>
-                    <div *ngIf="displayInfo == 'rating'">
-                        <p-rating [(ngModel)]="game.rating" [cancel]="false" [style]="{'margin-right': '10px'}"
-                                  readonly></p-rating>
-                    </div>
-                    <div *ngIf="displayInfo == 'tags'">
-                        <p-tag *ngIf="game.tags.length === 0" [style]="{'margin-right': '10px'}" icon="pi pi-tag"
-                               value="No tag"></p-tag>
-                        <p-tag *ngFor="let tag of game.tags" [style]="{'margin-right': '10px'}" [value]="tag"
-                               icon="pi pi-tag"></p-tag>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
+	<div
+		*ngIf="games.length > 0"
+		style="cursor: pointer"
+	>
+		<table>
+			<tr>
+				<th>Icon</th>
+				<th>Name</th>
+			</tr>
+			<tr *ngFor="let game of games" [routerLink]="['/game', game.id]">
+				<td>
+					<img
+						#imageElement
+						[ngSrc]="game.jaquette ? game.jaquette : 'assets/logo.gif'"
+						alt="{{game.name}}"
+						class="image"
+						height="600"
+						priority
+						width="800"
+					/>
+				</td>
+				<td>
+					<h2>{{ game.name }}</h2>
+					<p *ngIf="displayInfo == 'platforms'" class="italic">
+						{{ game.platforms }}
+					</p>
+					<div *ngIf="displayInfo == 'rating'">
+						<p-rating
+							[(ngModel)]="game.rating"
+							[cancel]="false"
+							[style]="{ 'margin-right': '10px' }"
+							readonly
+						></p-rating>
+					</div>
+					<div *ngIf="displayInfo == 'tags'">
+						<p-tag
+							*ngIf="game.tags.length === 0"
+							[style]="{ 'margin-right': '10px' }"
+							icon="pi pi-tag"
+							value="No tag"
+						></p-tag>
+						<p-tag
+							*ngFor="let tag of game.tags"
+							[style]="{ 'margin-right': '10px' }"
+							[value]="tag"
+							icon="pi pi-tag"
+						></p-tag>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
 </div>

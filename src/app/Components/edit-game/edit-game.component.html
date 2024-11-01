@@ -1,355 +1,372 @@
 <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem">
-    <p-sidebar [visible]="true" class="editmode">
-        <ng-template pTemplate="header">
-            <div class="flex align-items-center gap-2">
-                <span class="font-bold"> Editing {{ currentGame?.name }} </span>
-            </div>
-        </ng-template>
-        <p-panelMenu [model]="items" styleClass="w-full md:w-20rem"/>
-        <br/>
-        <div style="display: flex; gap: 1rem; justify-content: center">
-                    <p-button
-                [routerLink]="['/game/' + currentGame?.id]"
-                icon="pi pi-times"
-                label="Close"
-        ></p-button>
-        <p-button
-        [routerLink]="['/games']"
-        severity="danger"
-        (onClick)="deleteGame()"
-        icon="pi pi-trash"
-        label="Delete"
-></p-button>
-        </div>
+	<p-sidebar [visible]="true" class="editmode">
+		<ng-template pTemplate="header">
+			<div class="flex align-items-center gap-2">
+				<span class="font-bold"> Editing {{ currentGame?.name }} </span>
+			</div>
+		</ng-template>
+		<p-panelMenu [model]="items" styleClass="w-full md:w-20rem" />
+		<br />
+		<div style="display: flex; gap: 1rem; justify-content: center">
+			<p-button
+				[routerLink]="['/game/' + currentGame?.id]"
+				icon="pi pi-times"
+				label="Close"
+			></p-button>
+			<p-button
+				[routerLink]="['/games']"
+				severity="danger"
+				(onClick)="deleteGame()"
+				icon="pi pi-trash"
+				label="Delete"
+			></p-button>
+		</div>
+	</p-sidebar>
+	<div [style]="{ width: '80vw' }">
+		<div class="content">
+			<div
+				*ngIf="hideSearch"
+				style="width: 100%; display: flex; gap: 1rem; justify-content: space-between; align-items: center; margin-top: 15vh; padding: 1rem"
+			>
+				<p-floatLabel style="width: 400px">
+					<input
+						(keydown.enter)="searchGameInAPI()"
+						[(ngModel)]="searchingGame"
+						id="searchGame"
+						pInputText
+					/>
+					<label for="searchGame">Search A Game</label>
+				</p-floatLabel>
+				<p-button (click)="searchGameInAPI()" label="Search"></p-button>
+				<p-checkbox
+					[(ngModel)]="strict"
+					[binary]="true"
+					label="Strict"
+				></p-checkbox>
+				<p-button
+					(click)="selectItem()"
+					*ngIf="hideSelectBtn"
+					label="Select"
+				></p-button>
+			</div>
+			<div *ngIf="hideSearch" id="providers">
+				<app-igdb
+					*ngIf="selectedProvider === 'igdb'"
+					[(selectedItem)]="selectedItem"
+					[message]="message"
+					[searchedGames]="searchedGames"
+				></app-igdb>
 
-    </p-sidebar>
-    <div [style]="{ width: '80vw' }">
-        <div class="content">
-            <div
-                    *ngIf="hideSearch"
-                    style="
-					width: 100%;
-					display: flex;
-					gap: 1rem;
-					justify-content: space-between;
-					align-items: center;
-					margin-top: 15vh;
-					padding: 1rem;
-				"
-            >
-                <p-floatLabel style="width: 400px">
-                    <input
-                            (keydown.enter)="searchGameInAPI()"
-                            [(ngModel)]="searchingGame"
-                            id="searchGame"
-                            pInputText
-                    />
-                    <label for="searchGame">Search A Game</label>
-                </p-floatLabel>
-                <p-button (click)="searchGameInAPI()" label="Search"></p-button>
-                <p-checkbox
-                        [(ngModel)]="strict"
-                        [binary]="true"
-                        label="Strict"
-                ></p-checkbox>
-                <p-button
-                        (click)="selectItem()"
-                        *ngIf="hideSelectBtn"
-                        label="Select"
-                ></p-button>
-            </div>
-            <div *ngIf="hideSearch" id="providers">
-                <app-igdb
-                        *ngIf="selectedProvider === 'igdb'"
-                        [(selectedItem)]="selectedItem"
-                        [message]="message"
-                        [searchedGames]="searchedGames"
-                ></app-igdb>
+				<app-ytdl
+					*ngIf="selectedProvider === 'ytdl'"
+					[(selectedItem)]="selectedItem"
+					[message]="message"
+					[searchedGames]="searchedGames"
+				></app-ytdl>
 
-                <app-ytdl
-                        *ngIf="selectedProvider === 'ytdl'"
-                        [(selectedItem)]="selectedItem"
-                        [message]="message"
-                        [searchedGames]="searchedGames"
-                ></app-ytdl>
+				<app-steam-grid
+					(selectItem)="selectItem()"
+					*ngIf="selectedProvider === 'steam_grid'"
+					[(selectedItem)]="selectedItem"
+					[message]="message"
+					[searchedGames]="searchedGames"
+				></app-steam-grid>
+			</div>
+			<div *ngIf="currentGame && !hideSearch" id="gameInfo">
+				<div *ngIf="selectedProvider === 'general'">
+					<h1>General Info</h1>
+					<form
+						(ngSubmit)="saveGameInfo()"
+						[formGroup]="info"
+						class="formDisplay"
+					>
+						<p-button
+							class="posBL"
+							icon="pi pi-save"
+							label="Save"
+							type="submit"
+						></p-button>
+						<ng-container *ngIf="currentGame">
+							<div
+								*ngFor="let field of currentGame | keyvalue"
+								[style.display]="generalKeys.includes(field.key) ? 'block' : 'none'"
+							>
+								<p-floatLabel
+									*ngIf="generalKeys.includes(field.key)"
+								>
+									<input
+										[formControlName]="field.key"
+										[id]="field.key"
+										pInputText
+									/>
+									<label [for]="field.key">{{
+											field.key
+										}}</label>
+								</p-floatLabel>
+								<small
+									*ngIf="field.key === 'tags'"
+									id="tags-helper"
+								>
+									Tags are separated by commas
+								</small>
+							</div>
+						</ng-container>
+					</form>
+				</div>
+				<div *ngIf="selectedProvider === 'personal'">
+					<h1>Personal Stats</h1>
+					<form
+						(ngSubmit)="saveGameStat()"
+						[formGroup]="stat"
+						class="formDisplay"
+					>
+						<ng-container *ngIf="currentGame">
+							<div
+								*ngFor="let field of currentGame | keyvalue"
+								[style.display]="statKeys.includes(field.key) && field.key !== 'status'
+		? 'block'
+		: 'none'"
+							>
+								<p-floatLabel
+									*ngIf="statKeys.includes(field.key)"
+								>
+									<input
+										[formControlName]="field.key"
+										[id]="field.key"
+										pInputText
+									/>
+									<label [for]="field.key">{{
+											field.key
+										}}</label>
+								</p-floatLabel>
+							</div>
+							<p-dropdown
+								[formControlName]="'status'"
+								[options]="statuses"
+								[showClear]="true"
+								placeholder="Select a status"
+							/>
+						</ng-container>
+						<p-button label="Save" type="submit"></p-button>
+					</form>
+				</div>
+				<div *ngIf="selectedProvider === 'media'">
+					<h1>Media</h1>
+					<ng-container *ngIf="currentGame">
+						<div class="formDisplay">
+							<h2>Background</h2>
+							<div>
+								<img
+									(click)="openFileChooser('background-input')"
+									[src]="currentGame.background"
+									alt="background"
+									width="150px"
+								/>
+								<input
+									(change)="onFileSelected($event, 'background')"
+									id="background-input"
+									style="display: none"
+									type="file"
+								/>
+							</div>
+						</div>
+						<div class="formDisplay">
+							<h2>Jaquette</h2>
+							<div>
+								<img
+									(click)="openFileChooser('jaquette-input')"
+									[src]="currentGame.jaquette"
+									alt="jaquette"
+									width="150px"
+								/>
+								<input
+									(change)="onFileSelected($event, 'jaquette')"
+									id="jaquette-input"
+									style="display: none"
+									type="file"
+								/>
+							</div>
+						</div>
+						<div class="formDisplay">
+							<h2>Logo</h2>
+							<div>
+								<img
+									(click)="openFileChooser('logo-input')"
+									[src]="currentGame.logo"
+									alt="logo"
+									width="150px"
+								/>
+								<input
+									(change)="onFileSelected($event, 'logo')"
+									id="logo-input"
+									style="display: none"
+									type="file"
+								/>
+							</div>
+						</div>
+						<div class="formDisplay">
+							<h2>Icon</h2>
+							<div>
+								<img
+									(click)="openFileChooser('icon-input')"
+									[src]="currentGame.icon"
+									alt="icon"
+									width="150px"
+								/>
+								<input
+									(change)="onFileSelected($event, 'icon')"
+									id="icon-input"
+									style="display: none"
+									type="file"
+								/>
+							</div>
+						</div>
+						<div class="formDisplay">
+							<h2>Screenshots</h2>
+							<p-button
+								(onClick)="openFileChooser('screen-input')"
+								icon="pi pi-plus"
+							/>
+							<div
+								*ngFor="let screenshot of currentGame.screenshots | keyvalue"
+								style="display: flex; gap: 1rem; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center"
+							>
+								<img
+									[src]="screenshot.value"
+									alt="screenshot"
+									width="250px"
+								/>
+								<p-button
+									(click)="deleteScreenshot(screenshot.value)"
+									[rounded]="true"
+									icon="pi pi-times"
+									severity="danger"
+								/>
+							</div>
 
-                <app-steam-grid
-                        (selectItem)="selectItem()"
-                        *ngIf="selectedProvider === 'steam_grid'"
-                        [(selectedItem)]="selectedItem"
-                        [message]="message"
-                        [searchedGames]="searchedGames"
-                ></app-steam-grid>
-            </div>
-            <div *ngIf="currentGame && !hideSearch" id="gameInfo">
-                <div *ngIf="selectedProvider === 'general'">
-                    <h1>General Info</h1>
-                    <form
-                            (ngSubmit)="saveGameInfo()"
-                            [formGroup]="info"
-                            class="formDisplay"
-                    >
-                        <p-button
-                                class="posBL"
-                                icon="pi pi-save"
-                                label="Save"
-                                type="submit"
-                        ></p-button>
-                        <ng-container *ngIf="currentGame">
-                            <div
-                                    *ngFor="let field of currentGame | keyvalue"
-                                    [style.display]="
-									generalKeys.includes(field.key) ? 'block' : 'none'
-								"
-                            >
-                                <p-floatLabel *ngIf="generalKeys.includes(field.key)">
-                                    <input
-                                            [formControlName]="field.key"
-                                            [id]="field.key"
-                                            pInputText
-                                    />
-                                    <label [for]="field.key">{{ field.key }}</label>
-                                </p-floatLabel>
-                                <small *ngIf="field.key === 'tags'" id="tags-helper">
-                                    Tags are separated by commas
-                                </small>
-                            </div>
-                        </ng-container>
-                    </form>
-                </div>
-                <div *ngIf="selectedProvider === 'personal'">
-                    <h1>Personal Stats</h1>
-                    <form
-                            (ngSubmit)="saveGameStat()"
-                            [formGroup]="stat"
-                            class="formDisplay"
-                    >
-                        <ng-container *ngIf="currentGame">
-                            <div
-                                    *ngFor="let field of currentGame | keyvalue"
-                                    [style.display]="
-									statKeys.includes(field.key) && field.key !== 'status'
-										? 'block'
-										: 'none'
-								"
-                            >
-                                <p-floatLabel *ngIf="statKeys.includes(field.key)">
-                                    <input
-                                            [formControlName]="field.key"
-                                            [id]="field.key"
-                                            pInputText
-                                    />
-                                    <label [for]="field.key">{{ field.key }}</label>
-                                </p-floatLabel>
-                            </div>
-                            <p-dropdown
-                                    [formControlName]="'status'"
-                                    [options]="statuses"
-                                    [showClear]="true"
-                                    placeholder="Select a status"
-                            />
-                        </ng-container>
-                        <p-button label="Save" type="submit"></p-button>
-                    </form>
-                </div>
-                <div *ngIf="selectedProvider === 'media'">
-                    <h1>Media</h1>
-                    <ng-container *ngIf="currentGame">
-                        <div class="formDisplay">
-                            <h2>Background</h2>
-                            <div>
-                                <img
-                                        (click)="openFileChooser('background-input')"
-                                        [src]="currentGame.background"
-                                        alt="background"
-                                        width="150px"/>
-                                <input
-                                        (change)="onFileSelected($event, 'background')"
-                                        id="background-input"
-                                        style="display: none"
-                                        type="file"
-                                />
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <h2>Jaquette</h2>
-                            <div>
-                                <img
-                                        (click)="openFileChooser('jaquette-input')"
-                                        [src]="currentGame.jaquette"
-                                        alt="jaquette"
-                                        width="150px"/>
-                                <input
-                                        (change)="onFileSelected($event, 'jaquette')"
-                                        id="jaquette-input"
-                                        style="display: none"
-                                        type="file"
-                                />
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <h2>Logo</h2>
-                            <div>
-                                <img
-                                        (click)="openFileChooser('logo-input')"
-                                        [src]="currentGame.logo"
-                                        alt="logo"
-                                        width="150px"/>
-                                <input
-                                        (change)="onFileSelected($event, 'logo')"
-                                        id="logo-input"
-                                        style="display: none"
-                                        type="file"
-                                />
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <h2>Icon</h2>
-                            <div>
-                                <img
-                                        (click)="openFileChooser('icon-input')"
-                                        [src]="currentGame.icon"
-                                        alt="icon"
-                                        width="150px"/>
-                                <input
-                                        (change)="onFileSelected($event, 'icon')"
-                                        id="icon-input"
-                                        style="display: none"
-                                        type="file"
-                                />
-                            </div>
-                        </div>
-                        <div class="formDisplay">
-                            <h2>Screenshots</h2>
-                            <p-button
-                                    (onClick)="openFileChooser('screen-input')"
-                                    icon="pi pi-plus"
-                            />
-                            <div
-                                    *ngFor="let screenshot of currentGame.screenshots | keyvalue"
-                                    style="
-									display: flex;
-									gap: 1rem;
-									flex-direction: row;
-									flex-wrap: nowrap;
-									justify-content: center;
-									align-items: center;
-								"
-                            >
-                                <img [src]="screenshot.value" alt="screenshot" width="250px"/>
-                                <p-button
-                                        (click)="deleteScreenshot(screenshot.value)"
-                                        [rounded]="true"
-                                        icon="pi pi-times"
-                                        severity="danger"
-                                />
-                            </div>
+							<input
+								(change)="onFileSelected($event, 'screenshot')"
+								id="screen-input"
+								style="display: none"
+								type="file"
+							/>
+						</div>
+						<div class="formDisplay">
+							<h2>Background Music</h2>
 
-                            <input
-                                    (change)="onFileSelected($event, 'screenshot')"
-                                    id="screen-input"
-                                    style="display: none"
-                                    type="file"
-                            />
-                        </div>
-                        <div class="formDisplay">
-                            <h2>Background Music</h2>
+							<div style="text-align: center">
+								<p-button
+									(onClick)="openFileChooser('music-input')"
+									icon="pi pi-plus"
+								/>
+								<div style="margin-top: 1rem">
+									<p-floatLabel>
+										<input
+											[(ngModel)]="ytUrl"
+											id="music-name"
+											pInputText
+										/>
+										<label for="music-name"
+										>Youtube Video URL</label>
+									</p-floatLabel>
+								</div>
+								<p-button
+									(click)="searchYT4BGMusic()"
+									[rounded]="true"
+									[style]="{ margin: '1rem' }"
+									icon="pi pi-save"
+								/>
+								<p-button
+									(click)="deleteBackgroundMusic()"
+									[rounded]="true"
+									[style]="{ margin: '1rem' }"
+									icon="pi pi-trash"
+									severity="danger"
+								/>
+								<br />
+								<audio
+									controls
+									src="{{ currentGame.backgroundMusic }}"
+								>
+								</audio>
 
-                            <div style="text-align: center">
-                                <p-button
-                                        (onClick)="openFileChooser('music-input')"
-                                        icon="pi pi-plus"
-                                />
-                                <div style="margin-top: 1rem">
-                                    <p-floatLabel>
-                                        <input [(ngModel)]="ytUrl" id="music-name" pInputText/>
-                                        <label for="music-name">Youtube Video URL</label>
-                                    </p-floatLabel>
-                                </div>
-                                <p-button
-                                        (click)="searchYT4BGMusic()"
-                                        [rounded]="true"
-                                        [style]="{ margin: '1rem' }"
-                                        icon="pi pi-save"
-                                />
-                                <p-button
-                                        (click)="deleteBackgroundMusic()"
-                                        [rounded]="true"
-                                        [style]="{ margin: '1rem' }"
-                                        icon="pi pi-trash"
-                                        severity="danger"
-                                />
-                                <br/>
-                                <audio controls src="{{ currentGame.backgroundMusic }}"></audio>
-
-                                <input
-                                        (change)="onFileSelected($event, 'audio')"
-                                        id="music-input"
-                                        style="display: none"
-                                        type="file"
-                                />
-                            </div>
-                        </div>
-                        <div class="formDisplay" style="text-align: center">
-                            <h2>Video</h2>
-                            <p-button
-                                    (onClick)="openFileChooser('vide-input')"
-                                    icon="pi pi-plus"
-                            />
-                            <div *ngFor="let video of currentGame.videos | keyvalue">
-                                <video controls src="{{ video.value }}" width="380px"></video>
-                                <br/>
-                                <p-button
-                                        (click)="deleteVideo(video.value)"
-                                        [rounded]="true"
-                                        icon="pi pi-trash"
-                                        severity="danger"
-                                />
-                            </div>
-                            <input
-                                    (change)="onFileSelected($event, 'video')"
-                                    id="vide-input"
-                                    style="display: none"
-                                    type="file"
-                            />
-                        </div>
-                    </ng-container>
-                </div>
-                <div *ngIf="selectedProvider === 'exec'">
-                    <h1>Execution</h1>
-                    <form
-                            (ngSubmit)="saveGameExec()"
-                            [formGroup]="exec"
-                            class="formDisplay"
-                    >
-                        <p-button
-                                (click)="linkGame()"
-                                [style.background-color]="'purple'"
-                                icon="pi pi-link"
-                                id="playbtn"
-                                label="Link"
-                        ></p-button>
-                        <ng-container *ngIf="currentGame">
-                            <div
-                                    *ngFor="let field of currentGame | keyvalue"
-                                    [style.display]="
-									execKeys.includes(field.key) ? 'block' : 'none'
-								"
-                            >
-                                <p-floatLabel *ngIf="execKeys.includes(field.key)">
-                                    <input
-                                            [formControlName]="field.key"
-                                            [id]="field.key"
-                                            pInputText
-                                    />
-                                    <label [for]="field.key">{{ field.key }}</label>
-                                </p-floatLabel>
-                            </div>
-                        </ng-container>
-                        <p-button label="Save" type="submit"></p-button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+								<input
+									(change)="onFileSelected($event, 'audio')"
+									id="music-input"
+									style="display: none"
+									type="file"
+								/>
+							</div>
+						</div>
+						<div class="formDisplay" style="text-align: center">
+							<h2>Video</h2>
+							<p-button
+								(onClick)="openFileChooser('vide-input')"
+								icon="pi pi-plus"
+							/>
+							<div
+								*ngFor="let video of currentGame.videos | keyvalue"
+							>
+								<video
+									controls
+									src="{{ video.value }}"
+									width="380px"
+								>
+								</video>
+								<br />
+								<p-button
+									(click)="deleteVideo(video.value)"
+									[rounded]="true"
+									icon="pi pi-trash"
+									severity="danger"
+								/>
+							</div>
+							<input
+								(change)="onFileSelected($event, 'video')"
+								id="vide-input"
+								style="display: none"
+								type="file"
+							/>
+						</div>
+					</ng-container>
+				</div>
+				<div *ngIf="selectedProvider === 'exec'">
+					<h1>Execution</h1>
+					<form
+						(ngSubmit)="saveGameExec()"
+						[formGroup]="exec"
+						class="formDisplay"
+					>
+						<p-button
+							(click)="linkGame()"
+							[style.background-color]="'purple'"
+							icon="pi pi-link"
+							id="playbtn"
+							label="Link"
+						></p-button>
+						<ng-container *ngIf="currentGame">
+							<div
+								*ngFor="let field of currentGame | keyvalue"
+								[style.display]="execKeys.includes(field.key) ? 'block' : 'none'"
+							>
+								<p-floatLabel
+									*ngIf="execKeys.includes(field.key)"
+								>
+									<input
+										[formControlName]="field.key"
+										[id]="field.key"
+										pInputText
+									/>
+									<label [for]="field.key">{{
+											field.key
+										}}</label>
+								</p-floatLabel>
+							</div>
+						</ng-container>
+						<p-button label="Save" type="submit"></p-button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

@@ -32,13 +32,18 @@ export class DBService {
 			let configDirPath = await configDir();
 			let dplatform = await platform();
 			if (dplatform === 'win32') {
-				configDirPath =
-					configDirPath + 'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+				configDirPath = configDirPath +
+					'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 			} else {
-				configDirPath = configDirPath + 'meteoric/meteoric_extra_content/';
+				configDirPath = configDirPath +
+					'meteoric/meteoric_extra_content/';
 			}
-			game.jaquette = convertFileSrc(configDirPath + id + '/jaquette.jpg');
-			game.background = convertFileSrc(configDirPath + id + '/background.jpg');
+			game.jaquette = convertFileSrc(
+				configDirPath + id + '/jaquette.jpg',
+			);
+			game.background = convertFileSrc(
+				configDirPath + id + '/background.jpg',
+			);
 			game.logo = convertFileSrc(configDirPath + id + '/logo.png');
 			game.icon = convertFileSrc(configDirPath + id + '/icon.png');
 			return await this.get_all_img_and_video(id, game, configDirPath);
@@ -51,25 +56,22 @@ export class DBService {
 		let configDirPath = await configDir();
 		let dplatform = await platform();
 		if (dplatform === 'win32') {
-			configDirPath =
-				configDirPath + 'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+			configDirPath = configDirPath +
+				'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else if (dplatform === 'linux') {
 			configDirPath = configDirPath + 'meteoric/meteoric_extra_content/';
 		}
-		game.jaquette =
-			convertFileSrc(configDirPath + id + '/jaquette.jpg') +
+		game.jaquette = convertFileSrc(configDirPath + id + '/jaquette.jpg') +
 			'?' +
 			new Date().getTime();
 		game.background =
 			convertFileSrc(configDirPath + id + '/background.jpg') +
 			'?' +
 			new Date().getTime();
-		game.logo =
-			convertFileSrc(configDirPath + id + '/logo.png') +
+		game.logo = convertFileSrc(configDirPath + id + '/logo.png') +
 			'?' +
 			new Date().getTime();
-		game.icon =
-			convertFileSrc(configDirPath + id + '/icon.png') +
+		game.icon = convertFileSrc(configDirPath + id + '/icon.png') +
 			'?' +
 			new Date().getTime();
 		return await this.get_all_img_and_video(id, game, configDirPath);
@@ -104,7 +106,9 @@ export class DBService {
 		let settings: ISettings = {};
 		parsedSettings.forEach((setting: { name: string; value: string }) => {
 			if (setting.name === 'gap' || setting.name === 'zoom') {
-				settings[setting.name as keyof ISettings] = parseInt(setting.value);
+				settings[setting.name as keyof ISettings] = parseInt(
+					setting.value,
+				);
 				return;
 			}
 			settings[setting.name as keyof ISettings] = setting.value;
@@ -120,7 +124,9 @@ export class DBService {
 				value: settings[key as keyof ISettings],
 			});
 		}
-		await invoke('set_settings', { settings: JSON.stringify(settingsArray) });
+		await invoke('set_settings', {
+			settings: JSON.stringify(settingsArray),
+		});
 	}
 
 	async addGameToCategory(gameID: string, categoryID: string) {
@@ -145,9 +151,11 @@ export class DBService {
 
 	async getGamesByCategory(category: string) {
 		return new Promise<void | IGame[]>((resolve) => {
-			invoke<string>('get_games_by_category', { category }).then((games) => {
-				resolve(this.JSONParserForGames(games));
-			});
+			invoke<string>('get_games_by_category', { category }).then(
+				(games) => {
+					resolve(this.JSONParserForGames(games));
+				},
+			);
 		});
 	}
 
@@ -193,7 +201,11 @@ export class DBService {
 				elementToDelete: '',
 			});
 		}
-		return invoke('delete_element', { typeOf, id: gameID, elementToDelete });
+		return invoke('delete_element', {
+			typeOf,
+			id: gameID,
+			elementToDelete,
+		});
 	}
 
 	async getGame(id: string) {
@@ -246,9 +258,12 @@ export class DBService {
 		game: IGame,
 		configDirPath: string,
 	) {
-		let allImagesLocation = await invoke<string>('get_all_images_location', {
-			id: id,
-		});
+		let allImagesLocation = await invoke<string>(
+			'get_all_images_location',
+			{
+				id: id,
+			},
+		);
 		let allImagesLocationParsed = JSON.parse(allImagesLocation);
 		game.screenshots = [];
 		for (let i = 0; i < allImagesLocationParsed.length; i++) {
@@ -257,12 +272,17 @@ export class DBService {
 			);
 		}
 		game.videos = [];
-		let allVideosLocation = await invoke<string>('get_all_videos_location', {
-			id: id,
-		});
+		let allVideosLocation = await invoke<string>(
+			'get_all_videos_location',
+			{
+				id: id,
+			},
+		);
 		allVideosLocation = JSON.parse(allVideosLocation);
 		for (let i = 0; i < allVideosLocation.length; i++) {
-			game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
+			game.videos[i] = convertFileSrc(
+				configDirPath + allVideosLocation[i],
+			);
 		}
 		game.backgroundMusic = convertFileSrc(
 			configDirPath + id + '/musics/theme.mp3',
@@ -273,10 +293,11 @@ export class DBService {
 	public async export_games_to_csv() {
 		const path = await save({
 			filters: [{
-			  name: 'CSV',
-			  extensions: ['csv']
-			}],title: 'Export games to CSV'
-		  });
+				name: 'CSV',
+				extensions: ['csv'],
+			}],
+			title: 'Export games to CSV',
+		});
 		return await invoke('export_game_database_to_csv', { path });
 	}
 }

@@ -349,7 +349,10 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			| 'jaquette',
 	) {
 		const file = event.target.files[0];
-		if (file === undefined || file === null || this.currentGame === undefined) {
+		if (
+			file === undefined || file === null ||
+			this.currentGame === undefined
+		) {
 			return;
 		}
 		const reader = new FileReader();
@@ -362,19 +365,24 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			) {
 				return;
 			}
-			this.db.uploadFile(fileContent, type, this.currentGame.id).then(() => {
-				console.log('File uploaded');
-				if (this.currentGame === undefined) {
-					return;
-				}
-				this.db.refreshGameLinks(this.currentGame).then((game) => {
-					if (this.currentGameID === undefined) {
+			this.db.uploadFile(fileContent, type, this.currentGame.id).then(
+				() => {
+					console.log('File uploaded');
+					if (this.currentGame === undefined) {
 						return;
 					}
-					this.currentGame = game;
-					this.gameService.setGame(this.currentGameID, this.currentGame);
-				});
-			});
+					this.db.refreshGameLinks(this.currentGame).then((game) => {
+						if (this.currentGameID === undefined) {
+							return;
+						}
+						this.currentGame = game;
+						this.gameService.setGame(
+							this.currentGameID,
+							this.currentGame,
+						);
+					});
+				},
+			);
 		};
 		reader.readAsArrayBuffer(file);
 	}
@@ -385,11 +393,13 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	}
 
 	deleteVideo(path: any) {
-		if (this.currentGame === undefined || this.currentGameID === undefined) {
+		if (
+			this.currentGame === undefined || this.currentGameID === undefined
+		) {
 			return;
 		}
-		let id =
-			this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
+		let id = this.currentGame
+			.screenshots[this.currentGame.screenshots.indexOf(path)];
 		id = id.toString().split('video-')[1].split('.')[0];
 		this.db
 			.deleteElement('video', this.currentGame.id, id.toString())
@@ -406,20 +416,24 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	}
 
 	deleteScreenshot(path: any) {
-		if (this.currentGame === undefined || this.currentGameID === undefined) {
+		if (
+			this.currentGame === undefined || this.currentGameID === undefined
+		) {
 			return;
 		}
-		let id =
-			this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
+		let id = this.currentGame
+			.screenshots[this.currentGame.screenshots.indexOf(path)];
 		id = id.toString().split('screenshot-')[1].split('.')[0];
-		this.db.deleteElement('screenshot', this.currentGame.id, id).then(() => {
-			this.messageService.add({
-				severity: 'info',
-				summary: 'Screenshot deleted',
-				detail: 'The screenshot has been deleted',
-				life: 3000,
-			});
-		});
+		this.db.deleteElement('screenshot', this.currentGame.id, id).then(
+			() => {
+				this.messageService.add({
+					severity: 'info',
+					summary: 'Screenshot deleted',
+					detail: 'The screenshot has been deleted',
+					life: 3000,
+				});
+			},
+		);
 		delete this.currentGame.screenshots[
 			this.currentGame.screenshots.indexOf(path)
 		];
@@ -446,20 +460,25 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (url === '' || this.currentGame === undefined) {
 			return;
 		}
-		this.genericService.downloadYTAudio(url, this.currentGame?.id).then(() => {
-			console.log('Downloaded');
-			if (this.currentGame === undefined) {
-				return;
-			}
-			this.db.refreshGameLinks(this.currentGame).then((game) => {
-				if (this.currentGameID === undefined) {
+		this.genericService.downloadYTAudio(url, this.currentGame?.id).then(
+			() => {
+				console.log('Downloaded');
+				if (this.currentGame === undefined) {
 					return;
 				}
-				this.currentGame = game;
-				this.gameService.setGame(this.currentGameID, this.currentGame);
-				this.gameService.setGameObservable(this.currentGame);
-			});
-		});
+				this.db.refreshGameLinks(this.currentGame).then((game) => {
+					if (this.currentGameID === undefined) {
+						return;
+					}
+					this.currentGame = game;
+					this.gameService.setGame(
+						this.currentGameID,
+						this.currentGame,
+					);
+					this.gameService.setGameObservable(this.currentGame);
+				});
+			},
+		);
 	}
 
 	selectItem() {
@@ -502,8 +521,12 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		this.stat = new FormGroup({
 			status: new FormControl(this.currentGame?.status),
 			time_played: new FormControl(this.currentGame?.time_played),
-			trophies_unlocked: new FormControl(this.currentGame?.trophies_unlocked),
-			last_time_played: new FormControl(this.currentGame?.last_time_played),
+			trophies_unlocked: new FormControl(
+				this.currentGame?.trophies_unlocked,
+			),
+			last_time_played: new FormControl(
+				this.currentGame?.last_time_played,
+			),
 		});
 		this.exec = new FormGroup({
 			exec_file: new FormControl(this.currentGame?.exec_file),
@@ -518,10 +541,14 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	}
 
 	saveGameExec() {
-		if (this.currentGameID === undefined && this.currentGame === undefined) {
+		if (
+			this.currentGameID === undefined && this.currentGame === undefined
+		) {
 			return;
 		}
-		if (this.currentGameID === undefined && this.currentGame !== undefined) {
+		if (
+			this.currentGameID === undefined && this.currentGame !== undefined
+		) {
 			let game = this.currentGame;
 			for (let key of this.execKeys) {
 				game[key] = this.exec.get(key)?.value;
@@ -548,17 +575,21 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					detail: 'The change has been saved',
 					life: 3000,
 				});
-			}),
+			})
 		);
 		this.gameService.setGame(this.currentGameID, game);
 	}
 
 	saveGameInfo() {
 		this.genericService.changeBlockUI(true);
-		if (this.currentGameID === undefined && this.currentGame === undefined) {
+		if (
+			this.currentGameID === undefined && this.currentGame === undefined
+		) {
 			return;
 		}
-		if (this.currentGameID === undefined && this.currentGame !== undefined) {
+		if (
+			this.currentGameID === undefined && this.currentGame !== undefined
+		) {
 			let game = this.currentGame;
 			for (let key of this.generalKeys) {
 				game[key] = this.info.get(key)?.value;
@@ -587,15 +618,19 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					life: 3000,
 				});
 				this.saveMediaToExternalStorage();
-			}),
+			})
 		);
 	}
 
 	saveGameStat() {
-		if (this.currentGameID === undefined && this.currentGame === undefined) {
+		if (
+			this.currentGameID === undefined && this.currentGame === undefined
+		) {
 			return;
 		}
-		if (this.currentGameID === undefined && this.currentGame !== undefined) {
+		if (
+			this.currentGameID === undefined && this.currentGame !== undefined
+		) {
 			let game = this.currentGame;
 			for (let key of this.statKeys) {
 				game[key] = this.stat.get(key)?.value;
@@ -623,7 +658,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					detail: 'The change has been saved',
 					life: 3000,
 				});
-			}),
+			})
 		);
 		this.gameService.setGame(this.currentGameID, game);
 	}
@@ -715,8 +750,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					this.messageService.add({
 						severity: 'info',
 						summary: 'Metadata saved',
-						detail:
-							'The metadata has been saved for : ' + this.currentGame.name,
+						detail: 'The metadata has been saved for : ' +
+							this.currentGame.name,
 						life: 3000,
 					});
 					this.genericService.changeBlockUI(false);
