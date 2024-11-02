@@ -1,8 +1,13 @@
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
+use anyhow::Context;
+use clap::{Parser, ValueEnum};
+use std::io::prelude::*;
+use zip::{result::ZipError, write::SimpleFileOptions};
 
+use std::fs::File;
+use std::path::{Path, PathBuf};
+use walkdir::{DirEntry, WalkDir};
 use directories::ProjectDirs;
 
 use crate::database::establish_connection;
@@ -310,4 +315,90 @@ pub fn have_no_metadata(games: Vec<IGame>) -> Vec<IGame> {
         }
     }
     missing
+}
+
+
+fn zip_dir<T, P>(
+    it: &mut dyn Iterator<Item = walkdir::DirEntry>,
+    prefix: P,
+    writer: T,
+    method: zip::CompressionMethod,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: Write + Seek,
+    P: AsRef<Path>,
+{
+    let mut zip = zip::ZipWriter::new(writer);
+    let options = zip::write::SimpleFileOptions::default()
+        .compression_method(method)
+        .unix_permissions(0o755);
+    let prefix = prefix.as_ref();
+
+    let mut buffer = Vec::new();
+    for entry in it {
+        let path = entry.path();
+        let name = path
+            .strip_prefix(prefix)?
+            .components()
+            .map(|x| x.as_os_str())
+            .collect::<Vec<_>>()
+            .join(std::ffi::OsStr::new("/"))
+            .to_str()
+            .context("normalize path in UTF-8 format")?
+            .to_string();
+        if path.is_file() {
+            zip.start_file(name, options)?;
+            let mut f = File::open(path)?;
+            f.read_to_end(&mut buffer)?;
+            zip.write_all(&buffer)?;
+            buffer.clear();
+        } else if !name.is_empty() {
+            zip.add_directory(name, options)?;
+        }
+    }
+    zip.finish()?;
+    println!("Zip file created");
+    Ok(())
+}
+
+
+
+fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<()> {
+    fs::create_dir_all(&dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        if ty.is_dir() {
+            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        } else {
+            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        }
+    }
+    Ok(())
+}
+
+pub fn archiveDBAndExtraContent(path: String) -> Result<(), Box<dyn std::error::Error>> {
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
+    let extra_content_dir = proj_dirs.config_dir().join("meteoric_extra_content");
+    let archive_dir = proj_dirs.config_dir().join("meteoric_archive");
+    if !archive_dir.exists() {
+        fs::create_dir_all(archive_dir.clone()).unwrap();
+    }
+    let db_path = proj_dirs.config_dir().join("meteoric.db");
+    let db_archive_path = archive_dir.join("meteoric.db");
+    let extra_content_archive_path = archive_dir.join("meteoric_extra_content");
+    fs::copy(db_path, db_archive_path)?;
+    copy_dir_all(extra_content_dir, extra_content_archive_path)?;
+
+    let path = Path::new(&path);
+    let file = File::create(path)?;
+
+    let walkdir = WalkDir::new(&archive_dir);
+    let it = walkdir.into_iter();
+
+    zip_dir(&mut it.filter_map(|e| e.ok()), &archive_dir, file, zip::CompressionMethod::Stored)?;
+
+    fs::remove_dir_all(&archive_dir)?;
+
+    Ok(())
 }

@@ -300,4 +300,15 @@ export class DBService {
 		});
 		return await invoke('export_game_database_to_csv', { path });
 	}
+
+	public async export_games_to_archive() {
+		const path = await save({
+			filters: [{
+				name: 'ZIP',
+				extensions: ['zip'],
+			}],
+			title: 'Export games to archive',
+		});
+		return await invoke('export_game_database_to_archive', { path });
+	}
 }

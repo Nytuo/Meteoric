@@ -11,3 +11,5 @@
 *.conf text eol=lf
 *.html text eol=lf
 *.css text eol=lf
+*.lock text eol=lf
+.gitattributes text eol=lf

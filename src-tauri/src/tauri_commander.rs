@@ -15,7 +15,7 @@ use crate::database::{
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
-    remove_file,
+    remove_file,archiveDBAndExtraContent,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
 use crate::{routine, send_message_to_frontend, IGame};
@@ -743,5 +743,11 @@ pub fn export_game_database_to_csv(path : String) -> Result<(), String> {
     }
     
     wtr.flush().unwrap();
+    Ok(())
+}
+
+#[tauri::command]
+pub fn export_game_database_to_archive(path : String) -> Result<(), String> {
+    archiveDBAndExtraContent(path);
     Ok(())
 }

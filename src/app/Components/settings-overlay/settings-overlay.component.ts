@@ -18,7 +18,8 @@ import { GogImporterComponent } from '../../plugins/gog-importer/gog-importer.co
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { FormsModule } from '@angular/forms';
-import { CSVEmporter } from '../../plugins/csv_exporter/csv_exporter.component';
+import { CSVExporter } from '../../plugins/csv_exporter/csv_exporter.component';
+import { ArchiveExporter } from '../../plugins/archive_exporter/archive_exporter.component';
 
 @Component({
 	selector: 'app-settings-overlay',
@@ -46,7 +47,8 @@ import { CSVEmporter } from '../../plugins/csv_exporter/csv_exporter.component';
 		ProgressBarModule,
 		FormsModule,
 		NgOptimizedImage,
-		CSVEmporter,
+		CSVExporter,
+		ArchiveExporter,
 	],
 	templateUrl: './settings-overlay.component.html',
 	styleUrl: './settings-overlay.component.css',
@@ -189,6 +191,13 @@ export class SettingsOverlayComponent implements OnInit {
 				icon: 'pi pi-cloud-upload',
 				command: () => {
 					this.activeItem = 'CSV Exporter';
+				},
+			},
+			{
+				label: 'Archive Exporter',
+				icon: 'pi pi-cloud-upload',
+				command: () => {
+					this.activeItem = 'Archive Exporter';
 				},
 			},
 		],

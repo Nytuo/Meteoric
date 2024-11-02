@@ -20,13 +20,13 @@ import { DBService } from '../../services/db.service';
 		DropdownModule,
 	],
 	standalone: true,
-	selector: 'app-csv-exporter',
-	templateUrl: './csv_exporter.component.html',
-	styleUrls: ['./csv_exporter.component.css'],
+	selector: 'app-archive-exporter',
+	templateUrl: './archive_exporter.component.html',
+	styleUrls: ['./archive_exporter.component.css'],
 })
-export class CSVExporter implements OnInit {
-	export_csv() {
-		this.db.export_games_to_csv();
+export class ArchiveExporter implements OnInit {
+	export_archive() {
+		this.db.export_games_to_archive();
 	}
 
 	constructor(private db: DBService) {
