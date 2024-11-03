@@ -12,17 +12,6 @@ import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
 	selector: 'app-epic-importer',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		ListboxModule,
-		NgIf,
-		FormsModule,
-		FloatLabelModule,
-		StepperModule,
-		ConfirmDialogModule,
-		InputTextModule,
-	],
 	templateUrl: './epic-importer.component.html',
 	styleUrl: './epic-importer.component.css',
 	providers: [ConfirmationService],

@@ -6,8 +6,6 @@ import { appWindow } from '@tauri-apps/api/window';
 
 @Component({
 	selector: 'app-splash',
-	standalone: true,
-	imports: [],
 	templateUrl: './splash.component.html',
 	styleUrl: './splash.component.css',
 })

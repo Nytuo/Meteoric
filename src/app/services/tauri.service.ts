@@ -2,48 +2,41 @@ import { Injectable } from '@angular/core';
 import { listen } from '@tauri-apps/api/event';
 import { BehaviorSubject } from 'rxjs';
 import IGameLaunchedMessage from '../../interfaces/IGameLaunchMessage';
+import { MessageService } from 'primeng/api';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class TauriService {
 	message: any = '';
-	messageForLoadingBar: BehaviorSubject<string> = new BehaviorSubject('');
 	messageForGameLaunched: BehaviorSubject<IGameLaunchedMessage> =
 		new BehaviorSubject({ gamePID: 0 });
 
-	possibleMessages = [
-		'ROUTINE_IGDB_TOTAL',
-		'ROUTINE_IGDB_STATUS',
-		'ROUTINE_IGDB_NAME',
-	];
-
-	constructor() {
+	constructor(private messageService: MessageService) {
 		this.listenForMessages();
-	}
-
-	get getPossibleMessages(): string[] {
-		return this.possibleMessages;
-	}
-
-	get getMessage(): string {
-		return this.message;
-	}
-
-	getMessagesForLoadingBar() {
-		return this.messageForLoadingBar.asObservable();
 	}
 
 	getMessagesForGameLaunched() {
 		return this.messageForGameLaunched.asObservable();
 	}
 
+	sendNotification(
+		title: string = 'title',
+		message: string = 'message',
+		type: string = 'info',
+		duration: number = 3000,
+	) {
+		this.messageService.add({
+			severity: type,
+			summary: title,
+			detail: message,
+			life: duration,
+		});
+	}
+
 	private listenForMessages(): void {
 		listen('frontend-message', (event) => {
 			this.message = event.payload;
-			if ((this.message as string).startsWith('ROUTINE_IGDB')) {
-				this.messageForLoadingBar.next(this.message);
-			}
 			if ((this.message as string).includes('-GL-')) {
 				const end = (this.message as string).includes('END');
 				let gamePID = parseInt(
@@ -60,9 +53,11 @@ export class TauriService {
 					isError: error,
 				};
 				this.messageForGameLaunched.next(message);
+			} else {
+				this.sendNotification('Information', this.message, 'info');
 			}
 		}).catch((error) => {
-			console.error('Error listening to message-event', error);
+			this.sendNotification('Error', error, 'error');
 		});
 	}
 }

@@ -10,16 +10,6 @@ import { DropdownModule } from 'primeng/dropdown';
 import { DBService } from '../../services/db.service';
 
 @Component({
-	imports: [
-		NgIf,
-		NgFor,
-		TableModule,
-		HttpClientModule,
-		FileUploadModule,
-		FormsModule,
-		DropdownModule,
-	],
-	standalone: true,
 	selector: 'app-csv-exporter',
 	templateUrl: './csv_exporter.component.html',
 	styleUrls: ['./csv_exporter.component.css'],

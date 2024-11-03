@@ -12,17 +12,6 @@ import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
 	selector: 'app-gog-importer',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		ListboxModule,
-		NgIf,
-		FormsModule,
-		InputTextModule,
-		FloatLabelModule,
-		StepperModule,
-		ConfirmDialogModule,
-	],
 	templateUrl: './gog-importer.component.html',
 	styleUrl: './gog-importer.component.css',
 	providers: [ConfirmationService],

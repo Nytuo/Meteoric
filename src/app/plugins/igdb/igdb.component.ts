@@ -6,15 +6,6 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
 	selector: 'app-igdb',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		ListboxModule,
-		NgIf,
-		FormsModule,
-		NgFor,
-		NgOptimizedImage,
-	],
 	templateUrl: './igdb.component.html',
 	styleUrl: './igdb.component.css',
 })

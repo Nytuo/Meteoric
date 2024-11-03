@@ -1,28 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GenericService } from '../../services/generic.service';
-import { ButtonModule } from 'primeng/button';
-import {
-	KeyValuePipe,
-	Location,
-	NgFor,
-	NgIf,
-	NgOptimizedImage,
-} from '@angular/common';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { SliderModule } from 'primeng/slider';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { DialogModule } from 'primeng/dialog';
-import { ToolbarModule } from 'primeng/toolbar';
-import { SplitButtonModule } from 'primeng/splitbutton';
+import { Location } from '@angular/common';
 import { appWindow } from '@tauri-apps/api/window';
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { TabViewModule } from 'primeng/tabview';
-import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
-import { ListboxModule } from 'primeng/listbox';
-import { AddGameOverlayComponent } from '../add-game-overlay/add-game-overlay.component';
-import { FilterOverlayComponent } from '../filter-overlay/filter-overlay.component';
 import { NavigationEnd, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { GameService } from '../../services/game.service';
@@ -31,41 +10,10 @@ import { dirname } from '@tauri-apps/api/path';
 import { DBService } from '../../services/db.service';
 import { TauriService } from '../../services/tauri.service';
 import IGameLaunchedMessage from '../../../interfaces/IGameLaunchMessage';
-import { EditGameComponent } from '../edit-game/edit-game.component';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { CategoryService } from '../../services/category.service';
-import { CheckboxModule } from 'primeng/checkbox';
-import { CascadeSelectModule } from 'primeng/cascadeselect';
 
 @Component({
 	selector: 'app-topbar',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		NgFor,
-		RadioButtonModule,
-		FormsModule,
-		ReactiveFormsModule,
-		SliderModule,
-		SelectButtonModule,
-		DialogModule,
-		ToolbarModule,
-		SplitButtonModule,
-		NgIf,
-		FloatLabelModule,
-		TabViewModule,
-		KeyValuePipe,
-		InputTextModule,
-		NgOptimizedImage,
-		DropdownModule,
-		ListboxModule,
-		AddGameOverlayComponent,
-		FilterOverlayComponent,
-		EditGameComponent,
-		OverlayPanelModule,
-		CheckboxModule,
-		CascadeSelectModule,
-	],
 	templateUrl: './topbar.component.html',
 	styleUrl: './topbar.component.css',
 })

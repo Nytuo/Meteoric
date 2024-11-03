@@ -1,66 +1,17 @@
-import { KeyValuePipe, NgForOf, NgIf } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { InputTextModule } from 'primeng/inputtext';
-import { ListboxModule } from 'primeng/listbox';
-import {
-	FormControl,
-	FormGroup,
-	FormsModule,
-	ReactiveFormsModule,
-} from '@angular/forms';
-import { MessageService, SharedModule } from 'primeng/api';
-import { TabViewModule } from 'primeng/tabview';
+import { FormControl, FormGroup } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import IGame from '../../../interfaces/IGame';
 import { DBService } from '../../services/db.service';
 import { GameService } from '../../services/game.service';
 import { GenericService } from '../../services/generic.service';
 import simpleSvgPlaceholder from '@cloudfour/simple-svg-placeholder';
 import { Router } from '@angular/router';
-import { IGDBComponent } from '../../plugins/igdb/igdb.component';
-import { YtdlComponent } from '../../plugins/ytdl/ytdl.component';
-import { SteamGridComponent } from '../../plugins/steam_grid/steam_grid.component';
-import { CSVImporter } from '../../plugins/csv_importer/csv_importer.component';
-import { EpicImporterComponent } from '../../plugins/epic-importer/epic-importer.component';
-import { SteamImporterComponent } from '../../plugins/steam-importer/steam-importer.component';
-import { GogImporterComponent } from '../../plugins/gog-importer/gog-importer.component';
 import { open } from '@tauri-apps/api/dialog';
 import { dirname } from '@tauri-apps/api/path';
-import { PanelMenuModule } from 'primeng/panelmenu';
-import { CheckboxModule } from 'primeng/checkbox';
-import { SidebarModule } from 'primeng/sidebar';
 
 @Component({
 	selector: 'app-edit-game',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		DialogModule,
-		DropdownModule,
-		FloatLabelModule,
-		InputTextModule,
-		KeyValuePipe,
-		ListboxModule,
-		NgForOf,
-		PanelMenuModule,
-		NgIf,
-		ReactiveFormsModule,
-		SharedModule,
-		TabViewModule,
-		FormsModule,
-		IGDBComponent,
-		YtdlComponent,
-		SteamGridComponent,
-		CSVImporter,
-		EpicImporterComponent,
-		SteamImporterComponent,
-		GogImporterComponent,
-		CheckboxModule,
-		SidebarModule,
-	],
 	templateUrl: './edit-game.component.html',
 	styleUrl: './edit-game.component.css',
 })

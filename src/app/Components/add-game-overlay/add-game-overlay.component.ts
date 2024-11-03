@@ -6,57 +6,16 @@ import {
 	OnInit,
 	Output,
 } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { InputTextModule } from 'primeng/inputtext';
-import { KeyValuePipe, NgForOf, NgIf } from '@angular/common';
-import { ListboxModule } from 'primeng/listbox';
-import { SharedModule } from 'primeng/api';
-import { TabViewModule } from 'primeng/tabview';
 import IGame from '../../../interfaces/IGame';
 import { DBService } from '../../services/db.service';
 import { GameService } from '../../services/game.service';
 import { GenericService } from '../../services/generic.service';
 import simpleSvgPlaceholder from '@cloudfour/simple-svg-placeholder';
-import { IGDBComponent } from '../../plugins/igdb/igdb.component';
-import { YtdlComponent } from '../../plugins/ytdl/ytdl.component';
-import { SteamGridComponent } from '../../plugins/steam_grid/steam_grid.component';
-import { CSVImporter } from '../../plugins/csv_importer/csv_importer.component';
-import { EpicImporterComponent } from '../../plugins/epic-importer/epic-importer.component';
-import { SteamImporterComponent } from '../../plugins/steam-importer/steam-importer.component';
-import { GogImporterComponent } from '../../plugins/gog-importer/gog-importer.component';
-import { PanelMenuModule } from 'primeng/panelmenu';
-import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
 	selector: 'app-add-game-overlay',
-	standalone: true,
 	templateUrl: './add-game-overlay.component.html',
 	styleUrl: './add-game-overlay.component.css',
-	imports: [
-		ButtonModule,
-		DialogModule,
-		DropdownModule,
-		FloatLabelModule,
-		InputTextModule,
-		KeyValuePipe,
-		ListboxModule,
-		NgForOf,
-		PanelMenuModule,
-		NgIf,
-		SharedModule,
-		TabViewModule,
-		IGDBComponent,
-		YtdlComponent,
-		SteamGridComponent,
-		CSVImporter,
-		EpicImporterComponent,
-		SteamImporterComponent,
-		GogImporterComponent,
-		ProgressBarModule,
-	],
 })
 export class AddGameOverlayComponent implements OnInit {
 	@Input()

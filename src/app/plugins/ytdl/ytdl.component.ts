@@ -7,13 +7,6 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
 	selector: 'app-ytdl',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		ListboxModule,
-		NgIf,
-		FormsModule,
-	],
 	templateUrl: './ytdl.component.html',
 	styleUrl: './ytdl.component.css',
 })

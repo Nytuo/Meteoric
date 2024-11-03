@@ -9,15 +9,6 @@ import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
 	selector: 'app-steam-importer',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		ListboxModule,
-		NgIf,
-		FormsModule,
-		FloatLabelModule,
-		InputTextModule,
-	],
 	templateUrl: './steam-importer.component.html',
 	styleUrl: './steam-importer.component.css',
 })

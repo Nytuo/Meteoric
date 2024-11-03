@@ -9,16 +9,6 @@ import { StepperModule } from 'primeng/stepper';
 
 @Component({
 	selector: 'app-steam-grid',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		ListboxModule,
-		NgIf,
-		NgFor,
-		FormsModule,
-		StepperModule,
-		NgOptimizedImage,
-	],
 	templateUrl: './steam_grid.component.html',
 	styleUrl: './steam_grid.component.css',
 })

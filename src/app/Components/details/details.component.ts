@@ -2,37 +2,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import IGame from '../../../interfaces/IGame';
-import { NgForOf, NgOptimizedImage, NgStyle } from '@angular/common';
-import { RatingModule } from 'primeng/rating';
-import { FormsModule } from '@angular/forms';
-import { TagModule } from 'primeng/tag';
-import { SplitterModule } from 'primeng/splitter';
-import { DividerModule } from 'primeng/divider';
-import { TableModule } from 'primeng/table';
-import { CarouselModule, CarouselResponsiveOptions } from 'primeng/carousel';
-import { ButtonModule } from 'primeng/button';
-import { GalleriaModule } from 'primeng/galleria';
+import { CarouselResponsiveOptions } from 'primeng/carousel';
 import { GenericService } from '../../services/generic.service';
-import * as simpleIcons from 'simple-icons';
 import type { SimpleIcon } from 'simple-icons';
+import * as simpleIcons from 'simple-icons';
 
 @Component({
 	selector: 'app-details',
-	standalone: true,
-	imports: [
-		NgOptimizedImage,
-		NgForOf,
-		RatingModule,
-		FormsModule,
-		TagModule,
-		SplitterModule,
-		NgStyle,
-		DividerModule,
-		TableModule,
-		CarouselModule,
-		ButtonModule,
-		GalleriaModule,
-	],
 	templateUrl: './details.component.html',
 	styleUrl: './details.component.css',
 })

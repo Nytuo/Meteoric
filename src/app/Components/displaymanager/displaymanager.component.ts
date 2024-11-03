@@ -1,22 +1,11 @@
-import { CommonModule } from '@angular/common';
-import {
-	AfterViewChecked,
-	AfterViewInit,
-	Component,
-	type OnInit,
-} from '@angular/core';
-import { CardViewComponent } from '../views/card-view/card-view.component';
+import { Component, type OnInit } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import IGame from '../../../interfaces/IGame';
-import { ListViewComponent } from '../views/listview/listview.component';
 import { GenericService } from '../../services/generic.service';
 import { BehaviorSubject } from 'rxjs';
-import { After } from 'v8';
 
 @Component({
 	selector: 'app-displaymanager',
-	standalone: true,
-	imports: [CommonModule, CardViewComponent, ListViewComponent],
 	templateUrl: './displaymanager.component.html',
 	styleUrl: './displaymanager.component.css',
 })

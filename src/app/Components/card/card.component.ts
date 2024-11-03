@@ -17,18 +17,6 @@ import ISettings from '../../../interfaces/ISettings';
 
 @Component({
 	selector: 'app-card',
-	standalone: true,
-	imports: [
-		NgIf,
-		NgStyle,
-		RouterLink,
-		SkeletonModule,
-		NgForOf,
-		TagModule,
-		RatingModule,
-		FormsModule,
-		NgOptimizedImage,
-	],
 	templateUrl: './card.component.html',
 	styleUrl: './card.component.css',
 })

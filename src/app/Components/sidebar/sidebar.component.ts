@@ -1,33 +1,10 @@
-import {
-	AfterViewInit,
-	Component,
-	DoCheck,
-	OnChanges,
-	OnDestroy,
-	OnInit,
-	SimpleChanges,
-	ViewChild,
-} from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { NgForOf, NgIf } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CategoryService } from '../../services/category.service';
 import { appWindow } from '@tauri-apps/api/window';
-import { TagModule } from 'primeng/tag';
-import { SettingsOverlayComponent } from '../settings-overlay/settings-overlay.component';
-import { SidebarModule } from 'primeng/sidebar';
 import { GenericService } from '../../services/generic.service';
 
 @Component({
 	selector: 'app-sidebar',
-	standalone: true,
-	imports: [
-		RouterLink,
-		NgForOf,
-		NgIf,
-		TagModule,
-		SettingsOverlayComponent,
-		SidebarModule,
-	],
 	templateUrl: './sidebar.component.html',
 	styleUrl: './sidebar.component.css',
 })

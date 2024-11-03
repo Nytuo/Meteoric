@@ -16,15 +16,6 @@ import ISettings from '../../../../interfaces/ISettings';
 
 @Component({
 	selector: 'app-listview',
-	standalone: true,
-	imports: [
-		CommonModule,
-		RouterLink,
-		RatingModule,
-		TagModule,
-		FormsModule,
-		NgOptimizedImage,
-	],
 	templateUrl: './listview.component.html',
 	styleUrl: './listview.component.css',
 })

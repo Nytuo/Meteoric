@@ -9,16 +9,6 @@ import * as Papa from 'papaparse';
 import { DropdownModule } from 'primeng/dropdown';
 
 @Component({
-	imports: [
-		NgIf,
-		NgFor,
-		TableModule,
-		HttpClientModule,
-		FileUploadModule,
-		FormsModule,
-		DropdownModule,
-	],
-	standalone: true,
 	selector: 'app-csv-importer',
 	templateUrl: './csv_importer.component.html',
 	styleUrls: ['./csv_importer.component.css'],

@@ -12,16 +12,6 @@ import ISettings from '../../../interfaces/ISettings';
 
 @Component({
 	selector: 'app-filter-overlay',
-	standalone: true,
-	imports: [
-		ButtonModule,
-		DialogModule,
-		NgIf,
-		RadioButtonModule,
-		SelectButtonModule,
-		SliderModule,
-		FormsModule,
-	],
 	templateUrl: './filter-overlay.component.html',
 	styleUrl: './filter-overlay.component.css',
 })

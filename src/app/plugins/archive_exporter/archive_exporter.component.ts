@@ -10,16 +10,6 @@ import { DropdownModule } from 'primeng/dropdown';
 import { DBService } from '../../services/db.service';
 
 @Component({
-	imports: [
-		NgIf,
-		NgFor,
-		TableModule,
-		HttpClientModule,
-		FileUploadModule,
-		FormsModule,
-		DropdownModule,
-	],
-	standalone: true,
 	selector: 'app-archive-exporter',
 	templateUrl: './archive_exporter.component.html',
 	styleUrls: ['./archive_exporter.component.css'],

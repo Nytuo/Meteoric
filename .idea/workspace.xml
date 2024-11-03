@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="3ff1b6b8-ce61-4b8d-9ee2-4661fd3774a0" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/UniverseCollectorDesktop.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/d7bd4397-6c8d-48db-a964-44fdb8062499.corrupted.20240511-082623.reason.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/d7bd4397-6c8d-48db-a964-44fdb8062499.corrupted.20240511-082623.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/d7bd4397-6c8d-48db-a964-44fdb8062499.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/d7bd4397-6c8d-48db-a964-44fdb8062499/storage_v2/_src_/schema/main.uQUzAA.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/blocking-overlay/blocking-overlay.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/blocking-overlay/blocking-overlay.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/card/card.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/card/card.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/details/details.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/details/details.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/displaymanager/displaymanager.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/displaymanager/displaymanager.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/edit-game/edit-game.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/edit-game/edit-game.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/filter-overlay/filter-overlay.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/filter-overlay/filter-overlay.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/loading-bar/loading-bar.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/loading-bar/loading-bar.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/loading-bar/loading-bar.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/settings-overlay/settings-overlay.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/settings-overlay/settings-overlay.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/splash/splash.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/splash/splash.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/views/card-view/card-view.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/views/card-view/card-view.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/views/listview/listview.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/views/listview/listview.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/app.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/app.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/app.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/app.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/archive_exporter/archive_exporter.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/archive_exporter/archive_exporter.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/csv_exporter/csv_exporter.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/csv_exporter/csv_exporter.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/csv_importer/csv_importer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/csv_importer/csv_importer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/gog-importer/gog-importer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/gog-importer/gog-importer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam-importer/steam-importer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam-importer/steam-importer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam_grid/steam_grid.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam_grid/steam_grid.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/ytdl/ytdl.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/ytdl/ytdl.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/tauri.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/tauri.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="NamedScopeManager">
+    <scope name="angulaR" pattern="file[universeDesktop]:src/*||file[universeDesktop]:src//*" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 1
+}]]></component>
+  <component name="ProjectId" id="2oLewlZtlwelpHmDkyclueqPUv9" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "D:/saver/universeDesktop",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "npm.Angular CLI Server.executor": "Run",
+    "npm.tauri dev.executor": "Run",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "ts.external.directory.path": "D:\\saver\\universeDesktop\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="tauri dev" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="tauri" />
+      </scripts>
+      <arguments value="dev" />
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-WS-242.22855.79" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3ff1b6b8-ce61-4b8d-9ee2-4661fd3774a0" name="Changes" comment="" />
+      <created>1730653524290</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1730653524290</updated>
+      <workItem from="1730653525354" duration="1114000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
