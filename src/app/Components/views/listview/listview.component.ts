@@ -1,4 +1,3 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
 	Component,
 	Input,
@@ -7,12 +6,9 @@ import {
 	SimpleChanges,
 } from '@angular/core';
 import IGame from '../../../../interfaces/IGame';
-import { RouterLink } from '@angular/router';
-import { RatingModule } from 'primeng/rating';
-import { TagModule } from 'primeng/tag';
 import { GenericService } from '../../../services/generic.service';
-import { FormsModule } from '@angular/forms';
 import ISettings from '../../../../interfaces/ISettings';
+import { SettingsService } from '../../../services/settings.service';
 
 @Component({
 	selector: 'app-listview',
@@ -25,11 +21,14 @@ export class ListViewComponent implements OnInit, OnChanges {
 	displayInfo: any = null;
 	settings: ISettings = {};
 
-	constructor(private genericService: GenericService) {
+	constructor(
+		private genericService: GenericService,
+		private settingsService: SettingsService,
+	) {
 	}
 
 	ngOnInit(): void {
-		this.genericService.getSettings().subscribe((settings) => {
+		this.settingsService.getSettings().subscribe((settings) => {
 			this.displayInfo = settings.displayInfo;
 		});
 	}

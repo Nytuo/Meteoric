@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import IGame from '../../../../interfaces/IGame';
 import { GenericService } from '../../../services/generic.service';
+import { SettingsService } from '../../../services/settings.service';
 
 @Component({
 	selector: 'app-card-view',
@@ -12,11 +13,14 @@ export class CardViewComponent implements OnInit {
 	games: IGame[] = [];
 	gap: any;
 
-	constructor(private genericService: GenericService) {
+	constructor(
+		private genericService: GenericService,
+		private settingsService: SettingsService,
+	) {
 	}
 
 	ngOnInit() {
-		this.genericService.getSettings().subscribe((settings) => {
+		this.settingsService.getSettings().subscribe((settings) => {
 			this.gap = (settings.gap || 1) + 'rem';
 		});
 	}

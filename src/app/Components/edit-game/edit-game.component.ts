@@ -158,7 +158,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		protected genericService: GenericService,
 		protected router: Router,
 		private messageService: MessageService,
-	) {}
+	) {
+	}
 
 	get generalKeys() {
 		return Object.keys(this.info.controls);
@@ -304,6 +305,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			file === undefined || file === null ||
 			this.currentGame === undefined
 		) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		const reader = new FileReader();
@@ -314,16 +320,30 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				fileContent === undefined ||
 				this.currentGame === undefined
 			) {
+				this.genericService.sendNotification(
+					'Error',
+					'No file selected',
+					'error',
+				);
 				return;
 			}
 			this.db.uploadFile(fileContent, type, this.currentGame.id).then(
 				() => {
-					console.log('File uploaded');
 					if (this.currentGame === undefined) {
+						this.genericService.sendNotification(
+							'Error',
+							'No file selected',
+							'error',
+						);
 						return;
 					}
 					this.db.refreshGameLinks(this.currentGame).then((game) => {
 						if (this.currentGameID === undefined) {
+							this.genericService.sendNotification(
+								'Error',
+								'No file selected',
+								'error',
+							);
 							return;
 						}
 						this.currentGame = game;
@@ -415,10 +435,20 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			() => {
 				console.log('Downloaded');
 				if (this.currentGame === undefined) {
+					this.genericService.sendNotification(
+						'Error',
+						'No file selected',
+						'error',
+					);
 					return;
 				}
 				this.db.refreshGameLinks(this.currentGame).then((game) => {
 					if (this.currentGameID === undefined) {
+						this.genericService.sendNotification(
+							'Error',
+							'No file selected',
+							'error',
+						);
 						return;
 					}
 					this.currentGame = game;
@@ -436,6 +466,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		this.genericService.changeBlockUI(true);
 		console.log(this.selectedItem);
 		if (this.selectedItem === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		this.selectedItem.id = this.currentGameID;
@@ -495,6 +530,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (
 			this.currentGameID === undefined && this.currentGame === undefined
 		) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		if (
@@ -508,10 +548,20 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			return;
 		}
 		if (this.currentGameID === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		let game = this.gameService.getGame(this.currentGameID);
 		if (game === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 
@@ -536,6 +586,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (
 			this.currentGameID === undefined && this.currentGame === undefined
 		) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		if (
@@ -549,10 +604,20 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			return;
 		}
 		if (this.currentGameID === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		let game = this.gameService.getGame(this.currentGameID);
 		if (game === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 
@@ -577,6 +642,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (
 			this.currentGameID === undefined && this.currentGame === undefined
 		) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		if (
@@ -590,11 +660,21 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			return;
 		}
 		if (this.currentGameID === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 
 		let game = this.gameService.getGame(this.currentGameID);
 		if (game === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		for (let key of this.statKeys) {
@@ -633,6 +713,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			if (this.currentGameID) {
 				let game = this.gameService.getGame(this.currentGameID);
 				if (!game) {
+					this.genericService.sendNotification(
+						'Error',
+						'No file selected',
+						'error',
+					);
 					return;
 				}
 				game.exec_file = execs.exec_file;
@@ -661,6 +746,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			)
 			.then((result) => {
 				if (result === undefined) {
+					this.genericService.sendNotification(
+						'Error',
+						'No file selected',
+						'error',
+					);
 					return;
 				}
 				if (typeof result === 'string') {
@@ -676,12 +766,38 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			});
 	}
 
+	deleteGame() {
+		if (this.currentGameID === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
+			return;
+		}
+		this.db.deleteGame(this.currentGameID).then(() => {
+			this.gameService.getGames().then(() => {
+				this.router.navigate(['/']);
+			});
+		});
+	}
+
 	private saveMediaToExternalStorage() {
 		if (this.currentGame === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No file selected',
+				'error',
+			);
 			return;
 		}
 		this.db.saveMediaToExternalStorage(this.currentGame).then(() => {
 			if (this.currentGame === undefined) {
+				this.genericService.sendNotification(
+					'Error',
+					'No file selected',
+					'error',
+				);
 				return;
 			}
 			this.db.refreshGameLinks(this.currentGame).then((game) => {
@@ -691,6 +807,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 						this.currentGameID === undefined ||
 						this.currentGame === undefined
 					) {
+						this.genericService.sendNotification(
+							'Error',
+							'No file selected',
+							'error',
+						);
 						return;
 					}
 					this.gameService.setGame(
@@ -707,17 +828,6 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					});
 					this.genericService.changeBlockUI(false);
 				});
-			});
-		});
-	}
-
-	deleteGame() {
-		if (this.currentGameID === undefined) {
-			return;
-		}
-		this.db.deleteGame(this.currentGameID).then(() => {
-			this.gameService.getGames().then(() => {
-				this.router.navigate(['/']);
 			});
 		});
 	}

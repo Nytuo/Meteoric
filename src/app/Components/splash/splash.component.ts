@@ -10,7 +10,8 @@ import { appWindow } from '@tauri-apps/api/window';
 	styleUrl: './splash.component.css',
 })
 export class SplashComponent implements OnInit {
-	constructor() {}
+	constructor() {
+	}
 
 	ngOnInit() {
 		const DEV_MODE = false;

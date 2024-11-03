@@ -30,16 +30,16 @@
 			<div class="gameTopHeader">
 				<p-rating
 					[(ngModel)]="gameRating"
-					readonly="true"
 					[cancel]="false"
 					[style]="{ 'margin-right': '10px' }"
+					readonly="true"
 				></p-rating>
 				<img
+					[src]="launcherIcon"
+					alt="launcher"
 					class="svgLauncherIcon"
 					height="32"
 					width="32"
-					[src]="launcherIcon"
-					alt="launcher"
 				/>
 			</div>
 			<p-tag

@@ -49,6 +49,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 			content: 'Reached 785 hours',
 		},
 	];
+	launcherIcon: string = 'meteor';
 	protected friends: {
 		player: string;
 		trophies: number;
@@ -80,13 +81,13 @@ export class DetailsComponent implements OnInit, OnDestroy {
 	];
 	protected game: IGame | undefined;
 	private id: number = 0;
-	launcherIcon: string = 'meteor';
 
 	constructor(
 		private route: ActivatedRoute,
 		private gameService: GameService,
 		private genericService: GenericService,
-	) {}
+	) {
+	}
 
 	ngOnInit(): void {
 		this.route.params.subscribe((params) => {

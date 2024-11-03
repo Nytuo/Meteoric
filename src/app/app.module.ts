@@ -30,43 +30,43 @@ import {
 import { ToastModule } from 'primeng/toast';
 
 import { routes } from './app.routes';
-import {CardComponent} from "./Components/card/card.component";
-import {CSVExporter} from "./plugins/csv_exporter/csv_exporter.component";
-import {ArchiveExporter} from "./plugins/archive_exporter/archive_exporter.component";
-import {CSVImporter} from "./plugins/csv_importer/csv_importer.component";
-import {EpicImporterComponent} from "./plugins/epic-importer/epic-importer.component";
-import {FilterOverlayComponent} from "./Components/filter-overlay/filter-overlay.component";
-import {YtdlComponent} from "./plugins/ytdl/ytdl.component";
-import {SteamGridComponent} from "./plugins/steam_grid/steam_grid.component";
-import {SteamImporterComponent} from "./plugins/steam-importer/steam-importer.component";
-import {SettingsOverlayComponent} from "./Components/settings-overlay/settings-overlay.component";
-import {ListViewComponent} from "./Components/views/listview/listview.component";
-import {IGDBComponent} from "./plugins/igdb/igdb.component";
-import {GogImporterComponent} from "./plugins/gog-importer/gog-importer.component";
-import {DialogModule} from "primeng/dialog";
-import {FloatLabelModule} from "primeng/floatlabel";
-import {Button} from "primeng/button";
-import {ProgressBarModule} from "primeng/progressbar";
-import {NgOptimizedImage} from "@angular/common";
-import {RatingModule} from "primeng/rating";
-import {TagModule} from "primeng/tag";
-import {FileUploadModule} from "primeng/fileupload";
-import {DropdownModule} from "primeng/dropdown";
-import {TableModule} from "primeng/table";
-import {DividerModule} from "primeng/divider";
-import {CarouselModule} from "primeng/carousel";
-import {GalleriaModule} from "primeng/galleria";
-import {SidebarModule} from "primeng/sidebar";
-import {PanelMenuModule} from "primeng/panelmenu";
-import {CheckboxModule} from "primeng/checkbox";
-import {StepperModule} from "primeng/stepper";
-import {ConfirmDialogModule} from "primeng/confirmdialog";
-import {SelectButtonModule} from "primeng/selectbutton";
-import {SliderModule} from "primeng/slider";
-import {RadioButtonModule} from "primeng/radiobutton";
-import {ListboxModule} from "primeng/listbox";
-import {OverlayPanelModule} from "primeng/overlaypanel";
-import {CascadeSelectModule} from "primeng/cascadeselect";
+import { CardComponent } from './Components/card/card.component';
+import { CSVExporter } from './plugins/csv_exporter/csv_exporter.component';
+import { ArchiveExporter } from './plugins/archive_exporter/archive_exporter.component';
+import { CSVImporter } from './plugins/csv_importer/csv_importer.component';
+import { EpicImporterComponent } from './plugins/epic-importer/epic-importer.component';
+import { FilterOverlayComponent } from './Components/filter-overlay/filter-overlay.component';
+import { YtdlComponent } from './plugins/ytdl/ytdl.component';
+import { SteamGridComponent } from './plugins/steam_grid/steam_grid.component';
+import { SteamImporterComponent } from './plugins/steam-importer/steam-importer.component';
+import { SettingsOverlayComponent } from './Components/settings-overlay/settings-overlay.component';
+import { ListViewComponent } from './Components/views/listview/listview.component';
+import { IGDBComponent } from './plugins/igdb/igdb.component';
+import { GogImporterComponent } from './plugins/gog-importer/gog-importer.component';
+import { DialogModule } from 'primeng/dialog';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { Button } from 'primeng/button';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { NgOptimizedImage } from '@angular/common';
+import { RatingModule } from 'primeng/rating';
+import { TagModule } from 'primeng/tag';
+import { FileUploadModule } from 'primeng/fileupload';
+import { DropdownModule } from 'primeng/dropdown';
+import { TableModule } from 'primeng/table';
+import { DividerModule } from 'primeng/divider';
+import { CarouselModule } from 'primeng/carousel';
+import { GalleriaModule } from 'primeng/galleria';
+import { SidebarModule } from 'primeng/sidebar';
+import { PanelMenuModule } from 'primeng/panelmenu';
+import { CheckboxModule } from 'primeng/checkbox';
+import { StepperModule } from 'primeng/stepper';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { SliderModule } from 'primeng/slider';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { ListboxModule } from 'primeng/listbox';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { CascadeSelectModule } from 'primeng/cascadeselect';
 
 @NgModule({
 	declarations: [
@@ -92,7 +92,7 @@ import {CascadeSelectModule} from "primeng/cascadeselect";
 		SettingsOverlayComponent,
 		ListViewComponent,
 		IGDBComponent,
-		GogImporterComponent
+		GogImporterComponent,
 	],
 	imports: [
 		BrowserModule,
@@ -139,4 +139,5 @@ import {CascadeSelectModule} from "primeng/cascadeselect";
 	],
 	bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule {
+}

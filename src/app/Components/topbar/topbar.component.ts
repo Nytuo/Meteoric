@@ -38,7 +38,6 @@ export class TopbarComponent implements OnInit {
 	gameOpt: any = true;
 	gameFromUrl: BehaviorSubject<string> = new BehaviorSubject<string>('');
 	searchQuery: string = '';
-	protected readonly appWindow = appWindow;
 	selectedFilter: any = 'null';
 	selectedSort: any = 'name';
 	filters: any[] = [] as any;
@@ -54,6 +53,7 @@ export class TopbarComponent implements OnInit {
 		{ name: 'User Rating', value: 'rating' },
 		{ name: 'tags', value: 'tags' },
 	];
+	protected readonly appWindow = appWindow;
 
 	constructor(
 		protected genericService: GenericService,
@@ -63,7 +63,8 @@ export class TopbarComponent implements OnInit {
 		private dbService: DBService,
 		private tauri: TauriService,
 		private categoryService: CategoryService,
-	) {}
+	) {
+	}
 
 	addCategory() {
 		let name =
@@ -75,6 +76,10 @@ export class TopbarComponent implements OnInit {
 			['All', 'Installed', 'Not Installed'],
 			['Grid', 'List'],
 			'',
+		);
+		this.genericService.sendNotification(
+			'Category',
+			'Game added to category',
 		);
 	}
 

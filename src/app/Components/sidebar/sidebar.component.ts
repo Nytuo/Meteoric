@@ -13,13 +13,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 	showSidebar = true;
 	categories: any[] = [];
 	currentCategory = '0';
-	protected readonly appWindow = appWindow;
 	public logoAnimation = true;
+	protected readonly appWindow = appWindow;
 
 	constructor(
 		private categoryService: CategoryService,
 		private genericService: GenericService,
-	) {}
+	) {
+	}
 
 	openSettings() {
 		this.settingsOpen = true;
@@ -47,7 +48,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 		this.categoryService.setCurrentCategory(id);
 	}
 
-	ngOnDestroy() {}
+	ngOnDestroy() {
+	}
 
 	async toggleFullscreen() {
 		if (await this.appWindow.isFullscreen()) {

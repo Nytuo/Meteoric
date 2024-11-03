@@ -3,6 +3,7 @@ import { GameService } from '../../services/game.service';
 import IGame from '../../../interfaces/IGame';
 import { GenericService } from '../../services/generic.service';
 import { BehaviorSubject } from 'rxjs';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
 	selector: 'app-displaymanager',
@@ -17,14 +18,16 @@ export class DisplaymanagerComponent implements OnInit {
 	constructor(
 		private gameService: GameService,
 		private genericService: GenericService,
-	) {}
+		private settingsService: SettingsService,
+	) {
+	}
 
 	ngOnInit(): void {
 		this.gameService.getGamesObservable().subscribe((games) => {
 			this.games = games;
 		});
 		if (this.genericService.getAsAlreadyLaunched()) {
-			this.genericService.getSettings().subscribe((settings) => {
+			this.settingsService.getSettings().subscribe((settings) => {
 				this.currentView.next(settings.view || 'card');
 			});
 			let logo = document.getElementById('logo');
@@ -32,7 +35,7 @@ export class DisplaymanagerComponent implements OnInit {
 		} else {
 			setTimeout(() => {
 				this.genericService.setAsAlreadyLaunched();
-				this.genericService.getSettings().subscribe((settings) => {
+				this.settingsService.getSettings().subscribe((settings) => {
 					this.currentView.next(settings.view || 'card');
 				});
 			}, 3000);

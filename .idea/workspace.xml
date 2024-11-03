@@ -8,13 +8,106 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3ff1b6b8-ce61-4b8d-9ee2-4661fd3774a0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/universeDesktop.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/universeDesktop.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src-tauri/src/database/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/database/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src-tauri/src/file_operations/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/file_operations/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src-tauri/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src-tauri/src/tauri_commander.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/tauri_commander.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/add-game-overlay/add-game-overlay.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/blocking-overlay/blocking-overlay.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/blocking-overlay/blocking-overlay.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/blocking-overlay/blocking-overlay.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/blocking-overlay/blocking-overlay.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/blocking-overlay/blocking-overlay.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/blocking-overlay/blocking-overlay.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/card/card.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/card/card.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/card/card.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/card/card.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/card/card.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/card/card.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/card/card.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/card/card.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/details/details.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/details/details.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/details/details.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/details/details.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/details/details.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/details/details.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/details/details.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/details/details.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/displaymanager/displaymanager.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/displaymanager/displaymanager.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/displaymanager/displaymanager.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/displaymanager/displaymanager.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/edit-game/edit-game.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/edit-game/edit-game.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/edit-game/edit-game.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/edit-game/edit-game.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/edit-game/edit-game.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/edit-game/edit-game.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/filter-overlay/filter-overlay.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/filter-overlay/filter-overlay.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/filter-overlay/filter-overlay.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/filter-overlay/filter-overlay.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/filter-overlay/filter-overlay.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/filter-overlay/filter-overlay.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/settings-overlay/settings-overlay.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/settings-overlay/settings-overlay.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/settings-overlay/settings-overlay.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/settings-overlay/settings-overlay.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/settings-overlay/settings-overlay.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/settings-overlay/settings-overlay.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/sidebar/sidebar.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/splash/splash.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/splash/splash.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/splash/splash.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/splash/splash.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/splash/splash.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/splash/splash.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/splash/splash.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/splash/splash.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/topbar/topbar.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/views/card-view/card-view.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/views/card-view/card-view.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/views/card-view/card-view.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/views/card-view/card-view.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/views/card-view/card-view.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/views/card-view/card-view.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/views/listview/listview.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/views/listview/listview.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/views/listview/listview.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/views/listview/listview.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Components/views/listview/listview.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Components/views/listview/listview.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/app.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/app.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/app.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/app.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/app.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/app.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/app.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/app.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/app.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/app.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/app.routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/IPlugin.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/IPlugin.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/archive_exporter/archive_exporter.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/archive_exporter/archive_exporter.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/archive_exporter/archive_exporter.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/archive_exporter/archive_exporter.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/archive_exporter/archive_exporter.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/archive_exporter/archive_exporter.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/csv_exporter/csv_exporter.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/csv_exporter/csv_exporter.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/csv_exporter/csv_exporter.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/csv_exporter/csv_exporter.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/csv_exporter/csv_exporter.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/csv_exporter/csv_exporter.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/csv_importer/csv_importer.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/csv_importer/csv_importer.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/csv_importer/csv_importer.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/csv_importer/csv_importer.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/csv_importer/csv_importer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/csv_importer/csv_importer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/epic-importer/epic-importer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/gog-importer/gog-importer.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/gog-importer/gog-importer.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/gog-importer/gog-importer.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/gog-importer/gog-importer.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/gog-importer/gog-importer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/gog-importer/gog-importer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/igdb/igdb.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam-importer/steam-importer.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam-importer/steam-importer.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam-importer/steam-importer.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam-importer/steam-importer.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam-importer/steam-importer.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam-importer/steam-importer.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam_grid/ISGDB.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam_grid/ISGDB.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam_grid/steam_grid.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam_grid/steam_grid.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam_grid/steam_grid.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam_grid/steam_grid.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/steam_grid/steam_grid.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/steam_grid/steam_grid.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/ytdl/ytdl.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/ytdl/ytdl.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/ytdl/ytdl.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/ytdl/ytdl.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/plugins/ytdl/ytdl.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/plugins/ytdl/ytdl.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/category.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/category.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/category.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/category.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/db.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/db.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/db.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/db.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/game-service.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/game-service.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/game.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/game.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/generic.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/generic.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/services/generic.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/generic.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/services/tauri.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/services/tauri.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/logo.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/logo.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/platforms/xbox.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/platforms/xbox.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/interfaces/ICategory.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/interfaces/ICategory.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/interfaces/IGame.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/interfaces/IGame.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/interfaces/IGameLaunchMessage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/interfaces/IGameLaunchMessage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/interfaces/ISettings.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/interfaces/ISettings.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/styles.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,35 +126,37 @@
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="ProjectErrors" />
   </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 1
-}</component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "6c5b3dc6",
+  "associatedIndex": 1
+}]]></component>
   <component name="ProjectId" id="2oLewlZtlwelpHmDkyclueqPUv9" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.rust.reset.selective.auto.import&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/saver/universeDesktop&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;npm.Angular CLI Server.executor&quot;: &quot;Run&quot;,
-    &quot;npm.tauri dev.executor&quot;: &quot;Run&quot;,
-    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;language.rust.cargo.check&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;D:\\saver\\universeDesktop\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/TAKION/Documents/GitHub/Meteoric",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "npm.Angular CLI Server.executor": "Run",
+    "npm.tauri dev.executor": "Run",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "terminal",
+    "ts.external.directory.path": "C:\\Users\\TAKION\\Documents\\GitHub\\Meteoric\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="tauri dev" type="js.build_tools.npm" nameIsGenerated="true">
       <package-json value="$PROJECT_DIR$/package.json" />
@@ -96,6 +191,11 @@
       <workItem from="1730653525354" duration="1114000" />
       <workItem from="1730655045960" duration="2770000" />
       <workItem from="1730657929133" duration="1937000" />
+      <workItem from="1730664273548" duration="247000" />
+      <workItem from="1730664570652" duration="398000" />
+      <workItem from="1730665326613" duration="836000" />
+      <workItem from="1730666402763" duration="571000" />
+      <workItem from="1730667128075" duration="5288000" />
     </task>
     <servers />
   </component>

@@ -6,16 +6,25 @@ import ICategory from '../../interfaces/ICategory';
 import { platform } from '@tauri-apps/api/os';
 import ISettings from '../../interfaces/ISettings';
 import { save } from '@tauri-apps/api/dialog';
-import { title } from 'process';
+import { GenericService } from './generic.service';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class DBService {
+	constructor(private genericService: GenericService) {}
+
 	async deleteGame(currentGameID: string) {
-		await invoke('delete_game', { id: currentGameID });
+		await invoke('delete_game', { id: currentGameID }).then(() => {
+			this.genericService.sendNotification(
+				'Game deleted',
+				'The game has been deleted',
+				'success',
+			);
+		}).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
+		});
 	}
-	constructor() {}
 
 	JSONParserForGames(games: string): IGame[] {
 		// Remove all unicode characters
@@ -97,6 +106,14 @@ export class DBService {
 			filters: filters,
 			views: views,
 			background: background,
+		}).then(() => {
+			this.genericService.sendNotification(
+				'Category created',
+				'The category has been created',
+				'success',
+			);
+		}).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
 		});
 	}
 
@@ -126,14 +143,29 @@ export class DBService {
 		}
 		await invoke('set_settings', {
 			settings: JSON.stringify(settingsArray),
+		}).then(() => {
+			this.genericService.sendNotification(
+				'Settings saved',
+				'The settings have been saved',
+				'success',
+			);
+		}).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
 		});
 	}
 
 	async addGameToCategory(gameID: string, categoryID: string) {
-		console.log('Adding game to category', gameID, categoryID);
 		await invoke('add_game_to_category', {
 			gameId: gameID,
 			categoryId: categoryID,
+		}).then(() => {
+			this.genericService.sendNotification(
+				'Game added',
+				'The game has been added',
+				'success',
+			);
+		}).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
 		});
 	}
 
@@ -163,10 +195,19 @@ export class DBService {
 		return new Promise<string>((resolve, reject) => {
 			invoke('post_game', { game: JSON.stringify(game) })
 				.then((id) => {
-					console.log('Game posted with id', id);
+					this.genericService.sendNotification(
+						'Game saved',
+						'The game has been saved',
+						'success',
+					);
 					resolve(id as string);
 				})
 				.catch((error) => {
+					this.genericService.sendNotification(
+						'Error',
+						error,
+						'error',
+					);
 					reject(error);
 				});
 		});
@@ -185,7 +226,15 @@ export class DBService {
 		id: string,
 	) {
 		let fileContent = Array.from(new Uint8Array(file));
-		return invoke('upload_file', { fileContent, typeOf, id });
+		return invoke('upload_file', { fileContent, typeOf, id }).then(() => {
+			this.genericService.sendNotification(
+				'File uploaded',
+				'The file has been uploaded',
+				'success',
+			);
+		}).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
+		});
 	}
 
 	async deleteElement(
@@ -193,18 +242,33 @@ export class DBService {
 		gameID: string,
 		elementToDelete?: string,
 	) {
-		console.log('Deleting element', typeOf, gameID, elementToDelete);
 		if (elementToDelete === undefined) {
 			return invoke('delete_element', {
 				typeOf,
 				id: gameID,
 				elementToDelete: '',
+			}).then(() => {
+				this.genericService.sendNotification(
+					'Element deleted',
+					'The element has been deleted',
+					'success',
+				);
+			}).catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
 			});
 		}
 		return invoke('delete_element', {
 			typeOf,
 			id: gameID,
 			elementToDelete,
+		}).then(() => {
+			this.genericService.sendNotification(
+				'Element deleted',
+				'The element has been deleted',
+				'success',
+			);
+		}).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
 		});
 	}
 
@@ -236,11 +300,20 @@ export class DBService {
 			})
 				.then(() => {
 					setTimeout(() => {
-						console.log('Media saved to external storage');
+						this.genericService.sendNotification(
+							'Metadata saved',
+							'The metadata has been saved',
+							'success',
+						);
 						resolve();
 					}, 4000);
 				})
 				.catch((error) => {
+					this.genericService.sendNotification(
+						'Error',
+						error,
+						'error',
+					);
 					reject(error);
 				});
 		});
@@ -250,6 +323,56 @@ export class DBService {
 		return invoke('remove_game_from_category', {
 			gameId: gameID,
 			categoryId: id,
+		}).then(() => {
+			this.genericService.sendNotification(
+				'Game removed',
+				'The game has been removed',
+				'success',
+			);
+		}).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
+		});
+	}
+
+	public async export_games_to_csv() {
+		const path = await save({
+			filters: [{
+				name: 'CSV',
+				extensions: ['csv'],
+			}],
+			title: 'Export games to CSV',
+		});
+		return await invoke('export_game_database_to_csv', { path }).then(
+			() => {
+				this.genericService.sendNotification(
+					'Games exported',
+					'The games have been exported',
+					'success',
+				);
+			},
+		).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
+		});
+	}
+
+	public async export_games_to_archive() {
+		const path = await save({
+			filters: [{
+				name: 'ZIP',
+				extensions: ['zip'],
+			}],
+			title: 'Export games to archive',
+		});
+		return await invoke('export_game_database_to_archive', { path }).then(
+			() => {
+				this.genericService.sendNotification(
+					'Games exported',
+					'The games have been exported',
+					'success',
+				);
+			},
+		).catch((error) => {
+			this.genericService.sendNotification('Error', error, 'error');
 		});
 	}
 
@@ -288,27 +411,5 @@ export class DBService {
 			configDirPath + id + '/musics/theme.mp3',
 		);
 		return game;
-	}
-
-	public async export_games_to_csv() {
-		const path = await save({
-			filters: [{
-				name: 'CSV',
-				extensions: ['csv'],
-			}],
-			title: 'Export games to CSV',
-		});
-		return await invoke('export_game_database_to_csv', { path });
-	}
-
-	public async export_games_to_archive() {
-		const path = await save({
-			filters: [{
-				name: 'ZIP',
-				extensions: ['zip'],
-			}],
-			title: 'Export games to archive',
-		});
-		return await invoke('export_game_database_to_archive', { path });
 	}
 }

@@ -16,7 +16,8 @@ export class GameService {
 	constructor(
 		private db: DBService,
 		private genericService: GenericService,
-	) {}
+	) {
+	}
 
 	getGamesObservable(): Observable<IGame[]> {
 		return this.gamesObservable.asObservable();
@@ -28,6 +29,11 @@ export class GameService {
 
 	setGameObservable(game: IGame | undefined) {
 		if (game === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'No game found',
+				'error',
+			);
 			return;
 		}
 		this.gameObservable.next(game);
@@ -207,7 +213,11 @@ export class GameService {
 	async getGames() {
 		await this.db.getGames().then((games) => {
 			if (games === undefined) {
-				console.log('getGames: no games found');
+				this.genericService.sendNotification(
+					'Error',
+					'No games found',
+					'error',
+				);
 				return;
 			}
 			this.games = games;
@@ -218,6 +228,11 @@ export class GameService {
 	loadGamesOfACategory(category: string) {
 		this.db.getGamesByCategory(category).then((games) => {
 			if (games === undefined) {
+				this.genericService.sendNotification(
+					'Error',
+					'No games found',
+					'error',
+				);
 				return;
 			}
 			this.games = games;
@@ -280,7 +295,11 @@ export class GameService {
 		return new Promise<number | void>(async (resolve, reject) => {
 			await this.db.getGames().then((games) => {
 				if (games === undefined) {
-					console.log('getGames: no games found');
+					this.genericService.sendNotification(
+						'Error',
+						'No games found',
+						'error',
+					);
 					reject();
 					return;
 				}
@@ -326,9 +345,19 @@ export class GameService {
 				strict: true,
 			}).then((games) => {
 				if (games === undefined) {
+					this.genericService.sendNotification(
+						'Error',
+						'No games found',
+						'error',
+					);
 					reject('No games found');
 				}
 				if (games === 'No credentials found') {
+					this.genericService.sendNotification(
+						'Error',
+						'No credentials found, please check your configuration',
+						'error',
+					);
 					reject(
 						'No credentials found, please check your configuration',
 					);
@@ -367,10 +396,20 @@ export class GameService {
 				if (
 					games === undefined || games.length === 0 || games === '[]'
 				) {
+					this.genericService.sendNotification(
+						'Error',
+						'No games found',
+						'error',
+					);
 					reject('No games found');
 					return;
 				}
 				if (games === 'No credentials found') {
+					this.genericService.sendNotification(
+						'Error',
+						'No credentials found, please check your configuration',
+						'error',
+					);
 					reject(
 						'No credentials found, please check your configuration',
 					);

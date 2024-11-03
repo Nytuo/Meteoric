@@ -1,14 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { NgIf } from '@angular/common';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { SliderModule } from 'primeng/slider';
 import { GenericService } from '../../services/generic.service';
-import { FormControl, FormGroup, FormsModule } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import ISettings from '../../../interfaces/ISettings';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
 	selector: 'app-filter-overlay',
@@ -37,8 +32,11 @@ export class FilterOverlayComponent {
 	zoomLevel: any;
 	gapLevel: any;
 
-	constructor(protected genericService: GenericService) {
-		this.genericService.getSettings().subscribe((settings) => {
+	constructor(
+		protected genericService: GenericService,
+		protected settingsService: SettingsService,
+	) {
+		this.settingsService.getSettings().subscribe((settings) => {
 			this.settings.next(settings);
 			this.viewState = settings.view || 'card';
 			this.displayInfo = new FormGroup({
@@ -57,7 +55,7 @@ export class FilterOverlayComponent {
 	changeView() {
 		let settings = this.settings.getValue();
 		settings.view = this.viewState;
-		this.genericService.applySettings(settings);
+		this.settingsService.applySettings(settings);
 	}
 
 	updateVisible() {
@@ -69,7 +67,7 @@ export class FilterOverlayComponent {
 		let settings = this.settings.getValue();
 		settings.displayInfo = (this.displayInfo as ISettings['displayInfo']) ||
 			{};
-		this.genericService.applySettings(settings);
+		this.settingsService.applySettings(settings);
 	}
 
 	clearDisplayInfo() {
@@ -81,30 +79,30 @@ export class FilterOverlayComponent {
 		});
 		let settings = this.settings.getValue();
 		settings.displayInfo = '';
-		this.genericService.applySettings(settings);
+		this.settingsService.applySettings(settings);
 	}
 
 	changeZoom() {
 		let settings = this.settings.getValue();
 		settings.zoom = this.zoomLevel.toString();
-		this.genericService.changeSettings(settings);
+		this.settingsService.changeSettings(settings);
 	}
 
 	changeGap() {
 		let settings = this.settings.getValue();
 		settings.gap = this.gapLevel.toString();
-		this.genericService.changeSettings(settings);
+		this.settingsService.changeSettings(settings);
 	}
 
 	applyZoom() {
 		let settings = this.settings.getValue();
 		settings.zoom = this.zoomLevel.toString();
-		this.genericService.applySettings(settings);
+		this.settingsService.applySettings(settings);
 	}
 
 	applyGap() {
 		let settings = this.settings.getValue();
 		settings.gap = this.gapLevel.toString();
-		this.genericService.applySettings(settings);
+		this.settingsService.applySettings(settings);
 	}
 }

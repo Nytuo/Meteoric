@@ -6,14 +6,9 @@ import {
 	SimpleChanges,
 	ViewChild,
 } from '@angular/core';
-import { NgForOf, NgIf, NgOptimizedImage, NgStyle } from '@angular/common';
 import { GenericService } from '../../services/generic.service';
-import { RouterLink } from '@angular/router';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TagModule } from 'primeng/tag';
-import { RatingModule } from 'primeng/rating';
-import { FormsModule } from '@angular/forms';
 import ISettings from '../../../interfaces/ISettings';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
 	selector: 'app-card',
@@ -43,7 +38,10 @@ export class CardComponent implements OnInit, OnChanges {
 	height: string = 'auto';
 	protected parsedTags: string[] = [];
 
-	constructor(private genericService: GenericService) {
+	constructor(
+		private genericService: GenericService,
+		private settingsService: SettingsService,
+	) {
 	}
 
 	ngOnInit(): void {
@@ -51,7 +49,7 @@ export class CardComponent implements OnInit, OnChanges {
 			this.gameName = 'Game Name';
 		}
 
-		this.genericService.getSettings().subscribe((settings) => {
+		this.settingsService.getSettings().subscribe((settings) => {
 			this.settings = settings;
 			this.displayInfo = settings.displayInfo;
 			this.width = (settings.zoom) + 'rem';

@@ -1,11 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
-import { ListboxModule } from 'primeng/listbox';
-import { NgFor, NgIf, NgOptimizedImage } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import ISGDB from './ISGDB';
 import { invoke } from '@tauri-apps/api/tauri';
-import { StepperModule } from 'primeng/stepper';
 
 @Component({
 	selector: 'app-steam-grid',
@@ -81,7 +76,6 @@ export class SteamGridComponent implements OnInit {
 		}).then((grids) => {
 			return grids;
 		});
-		console.log(this.availableGrids);
 		this.availableGrids = this.availableGrids.map((grid: any) => {
 			return {
 				image: grid.url,
@@ -96,7 +90,6 @@ export class SteamGridComponent implements OnInit {
 		}).then((heroes) => {
 			return heroes;
 		});
-		console.log(this.availableHeroes);
 		this.availableHeroes = this.availableHeroes.map((hero: any) => {
 			return {
 				image: hero.url,
@@ -111,7 +104,6 @@ export class SteamGridComponent implements OnInit {
 		}).then((logos) => {
 			return logos;
 		});
-		console.log(this.availableLogos);
 		this.availableLogos = this.availableLogos.map((logo: any) => {
 			return {
 				image: logo.url,
@@ -126,7 +118,6 @@ export class SteamGridComponent implements OnInit {
 		}).then((icons) => {
 			return icons;
 		});
-		console.log(this.availableIcons);
 		this.availableIcons = this.availableIcons.map((icon: any) => {
 			return {
 				image: icon.url,

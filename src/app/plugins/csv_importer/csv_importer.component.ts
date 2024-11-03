@@ -1,12 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
-import { NgFor, NgIf } from '@angular/common';
-import { TableModule } from 'primeng/table';
-import { FileUploadModule } from 'primeng/fileupload';
-import { FormsModule } from '@angular/forms';
 import { invoke } from '@tauri-apps/api/tauri';
 import * as Papa from 'papaparse';
-import { DropdownModule } from 'primeng/dropdown';
+import { GenericService } from '../../services/generic.service';
 
 @Component({
 	selector: 'app-csv-importer',
@@ -19,7 +14,7 @@ export class CSVImporter implements OnInit {
 	dbColumns: string[] = [];
 	columnMapping: { [key: string]: string } = {};
 
-	constructor() {
+	constructor(private genericService: GenericService) {
 	}
 
 	ngOnInit(): void {
@@ -67,6 +62,11 @@ export class CSVImporter implements OnInit {
 			return mappedRow;
 		});
 
-		await invoke('upload_csv_to_db', { data: mappedData });
+		await invoke('upload_csv_to_db', { data: mappedData }).then(() => {
+			this.genericService.sendNotification(
+				'CSV Upload',
+				'Data imported successfully',
+			);
+		});
 	}
 }

@@ -4,6 +4,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { invoke } from '@tauri-apps/api/tauri';
 import ISettings from '../../interfaces/ISettings';
 import { DBService } from './db.service';
+import { MessageService } from 'primeng/api';
 
 @Injectable({
 	providedIn: 'root',
@@ -26,36 +27,16 @@ export class GenericService {
 		true,
 	);
 	private audioInterval: string | number | NodeJS.Timeout | undefined;
-	private settings: BehaviorSubject<ISettings> = new BehaviorSubject<
-		ISettings
-	>(
-		{},
-	);
 	private asAlreadyLaunched = false;
 
-	constructor(protected router: Router, protected db: DBService) {
+	constructor(
+		protected router: Router,
+		private messageService: MessageService,
+	) {
 		this.router.events.subscribe((event) => {
 			if (event instanceof NavigationEnd && this.isAuthorizedToBookmark) {
 				this.changeDisplayBookmark(false);
 			}
-		});
-
-		this.db.getSettings().then((settings) => {
-			console.log(settings);
-			if (settings.gap) {
-				if (Number.isNaN(settings.gap)) {
-					settings.gap = '1';
-				}
-				settings.gap = settings.gap.toString();
-			}
-			if (settings.zoom) {
-				if (Number.isNaN(settings.gap)) {
-					settings.zoom = '10';
-				}
-				settings.zoom = settings.zoom.toString();
-			}
-			console.log(settings);
-			this.settings.next(settings);
 		});
 	}
 
@@ -96,8 +77,6 @@ export class GenericService {
 	}
 
 	playBackgroundMusic(backgroundMusic: string) {
-		console.log('Playing background music');
-		console.log(backgroundMusic);
 		if (!backgroundMusic) return;
 
 		if (this.audioInterval) {
@@ -115,7 +94,6 @@ export class GenericService {
 	}
 
 	stopBackgroundMusic() {
-		console.log('Stopping background music');
 		if (!this.audio) return;
 
 		let volume = this.audio.volume;
@@ -161,20 +139,23 @@ export class GenericService {
 
 	async killGame(gamePID: number) {
 		invoke('kill_game', { pid: gamePID }).then((response) => {
-			console.log(response);
+			this.sendNotification('Game Ended', 'Game has been ended', 'info');
 		});
 	}
 
-	changeSettings(settings: ISettings) {
-		this.settings.next(settings);
-	}
-
-	applySettings(settings: ISettings) {
-		this.settings.next(settings);
-		this.db.setSettings(settings);
-	}
-
-	getSettings() {
-		return this.settings.asObservable();
+	sendNotification(
+		title: string = 'title',
+		message: string = 'message',
+		type: string = 'info',
+		duration: number = 3000,
+		sticky: boolean = false,
+	) {
+		this.messageService.add({
+			severity: type,
+			summary: title,
+			detail: message,
+			life: duration,
+			sticky: sticky,
+		});
 	}
 }

@@ -56,36 +56,36 @@
 		</div>
 		<p-overlayPanel #filter_overlay>
 			<p-cascadeSelect
-				[(ngModel)]="selectedFilter"
-				[options]="filters"
-				optionLabel="cname"
-				optionGroupLabel="name"
-				[optionGroupChildren]="['values']"
-				[style]="{ minWidth: '14rem' }"
-				placeholder="Filter By"
 				(onChange)="filterGames()"
+				[(ngModel)]="selectedFilter"
+				[optionGroupChildren]="['values']"
+				[options]="filters"
+				[style]="{ minWidth: '14rem' }"
+				optionGroupLabel="name"
+				optionLabel="cname"
+				placeholder="Filter By"
 			>
 			</p-cascadeSelect>
 		</p-overlayPanel>
 		<p-overlayPanel #sort_overlay>
 			<p-dropdown
+				(onChange)="sortGames()"
 				[(ngModel)]="selectedSort"
 				[options]="sorts"
 				optionLabel="name"
 				placeholder="Sort By"
-				(onChange)="sortGames()"
 			/>
 		</p-overlayPanel>
 		<div class="filter">
 			<p-button
-				icon="pi pi-filter"
 				(onClick)="filter_overlay.toggle($event)"
+				icon="pi pi-filter"
 			></p-button>
 		</div>
 		<div class="sort">
 			<p-button
-				icon="pi pi-sort"
 				(onClick)="sort_overlay.toggle($event)"
+				icon="pi pi-sort"
 			></p-button>
 		</div>
 		<div (click)="toggleOverlay()" class="more">
