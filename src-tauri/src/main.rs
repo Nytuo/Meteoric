@@ -320,18 +320,13 @@ fn populate_info() {
     let conn = establish_connection().unwrap();
     let all_games = hash2_games(query_all_data(&conn, "games").unwrap());
     let games = have_no_metadata(all_games);
-    if games.len() > 0 {
-        send_message_to_frontend(&format!("ROUTINE_IGDB_TOTAL: {}", games.len()));
-    } else {
-        send_message_to_frontend("ROUTINE_IGDB_TOTAL: -1");
-        return;
-    }
+    if games.len() == 0 { return; }
+    send_message_to_frontend(&format!("[Routine-INFO-3000]{} games need a metadata update", games.len()));
     let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
     let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
     igdb::set_credentials(Vec::from([client_id, client_secret]));
     for (index, game) in games.iter().enumerate() {
-        send_message_to_frontend(&format!("ROUTINE_IGDB_STATUS: {}", index));
-        send_message_to_frontend(&format!("ROUTINE_IGDB_NAME: {}", game.name));
+        send_message_to_frontend(&format!("[Routine-INFO-NL]Processing {}, {}/{}", game.name, index + 1, games.len()));
         let _ = igdb::routine(game.clone().name, game.clone().id);
     }
 }

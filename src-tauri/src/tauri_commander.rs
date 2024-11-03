@@ -15,7 +15,7 @@ use crate::database::{
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
-    remove_file,archiveDBAndExtraContent,
+    remove_file, archiveDBAndExtraContent,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
 use crate::{routine, send_message_to_frontend, IGame};
@@ -125,7 +125,6 @@ pub fn set_settings(settings: String) -> Result<(), String> {
     let conn = establish_connection().unwrap();
     let settings: Vec<HashMap<String, String>> =
         serde_json::from_str(&settings).map_err(|e| e.to_string())?;
-    println!("{:?}", settings);
     for setting in settings {
         let name = setting.get("name").unwrap();
         let value = setting.get("value").unwrap();
@@ -136,14 +135,12 @@ pub fn set_settings(settings: String) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn upload_csv_to_db(data: Vec<HashMap<String, String>>) -> Result<(), String> {
-    println!("{:?}", data);
     let conn = establish_connection().unwrap();
     for row in data {
         let json_map: serde_json::Map<String, serde_json::Value> = row
             .into_iter()
             .map(|(k, v)| (k, serde_json::Value::String(v)))
             .collect();
-        println!("{:?}", json_map);
         let mut game: IGame = serde_json::from_value(serde_json::Value::Object(json_map.clone()))
             .unwrap_or_else(|_| {
                 let mut default_map = json_map;
@@ -155,7 +152,6 @@ pub async fn upload_csv_to_db(data: Vec<HashMap<String, String>>) -> Result<(), 
                 serde_json::from_value(serde_json::Value::Object(default_map)).unwrap()
             });
         game.id = "-1".to_string();
-        println!("{:?}", game);
         update_game(&conn, game).expect("Error updating game");
     }
     Ok(())
@@ -187,15 +183,19 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
         id = &new_game_id;
     }
     if id.is_empty() {
+        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] Game name is empty".to_string());
         return Err("Game name is empty".to_string());
     }
     if type_of.is_empty() {
+        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] Type of is empty".to_string());
         return Err("Type of is empty".to_string());
     }
     if file_content.is_empty() {
+        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] File content is empty".to_string());
         return Err("File content is empty".to_string());
     }
     if file_content.len() > 100000000 {
+        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] File content is too big".to_string());
         return Err("File content is too big".to_string());
     }
     if type_of != "screenshot"
@@ -206,9 +206,11 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
         && type_of != "logo"
         && type_of != "icon"
     {
+        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] Type of is not valid".to_string());
         return Err("Type of is not valid".to_string());
     }
     if id.contains("/") || id.contains("\\") {
+        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] Game name is not valid".to_string());
         return Err("Game name is not valid".to_string());
     }
 
@@ -236,6 +238,7 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
     };
 
     if let Err(e) = std::fs::write(&file_path, &file_content) {
+        send_message_to_frontend(&format!("[File Uploader Error-ERROR-3000] Error writing file: {:?}", e));
         return Err(format!("Error writing file: {:?}", e));
     }
     Ok(())
@@ -259,9 +262,11 @@ pub fn delete_element(
 ) -> Result<(), String> {
     let id = &id;
     if id.is_empty() {
+        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] Game id is empty".to_string());
         return Err("Game id is empty".to_string());
     }
     if type_of.is_empty() {
+        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] Type of is empty".to_string());
         return Err("Type of is empty".to_string());
     }
     if type_of != "screenshot"
@@ -272,9 +277,11 @@ pub fn delete_element(
         && type_of != "logo"
         && type_of != "icon"
     {
+        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] Type of is not valid".to_string());
         return Err("Type of is not valid".to_string());
     }
     if id.contains("/") || id.contains("\\") {
+        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] Game id is not valid".to_string());
         return Err("Game id is not valid".to_string());
     }
 
@@ -294,10 +301,12 @@ pub fn delete_element(
     };
 
     if !file_path.exists() {
+        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] File does not exist".to_string());
         return Err("File does not exist".to_string());
     }
 
     if let Err(e) = remove_file(&file_path.to_str().unwrap()) {
+        send_message_to_frontend(&format!("[Element Deleter Error-ERROR-3000] Error removing file: {:?}", e));
         return Err(format!("Error removing file: {:?}", e));
     }
 
@@ -314,7 +323,7 @@ pub fn get_games_by_category(category: String) -> String {
         vec![("name", &*("'".to_string() + &category + "'"))],
         false,
     )
-    .unwrap();
+        .unwrap();
     let games = query_data(
         &conn,
         vec!["games"],
@@ -322,14 +331,16 @@ pub fn get_games_by_category(category: String) -> String {
         vec![("id", &game_ids_from_cat[0]["games"])],
         true,
     )
-    .unwrap()
-    .iter()
-    .map(|row| format!("{:?}", row))
-    .collect::<Vec<String>>()
-    .join(",");
+        .unwrap()
+        .iter()
+        .map(|row| format!("{:?}", row))
+        .collect::<Vec<String>>()
+        .join(",");
     format!("[{}]", games)
 }
 
+
+// TODO send error messages to frontend
 #[tauri::command]
 pub async fn search_metadata(game_name: String, plugin_name: String, strict: bool) -> String {
     // ADD API HERE
@@ -450,7 +461,7 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
         vec![("id", &game_id)],
         false,
     )
-    .unwrap();
+        .unwrap();
     let game = game.get(0);
     let mut game_object: IGame = IGame::from_hashmap(game.unwrap().clone());
     if let Some(row) = game {
@@ -464,7 +475,7 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
             .spawn()
             .map_err(|_| "Failed to launch game".to_string())?;
         let pid = cmd.id().ok_or("Failed to get process ID".to_string())?;
-        send_message_to_frontend(&format!("O-GL-{:?}", pid));
+        send_message_to_frontend(&format!("GL-{:?}", pid));
         let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         game_object.last_time_played = date;
         let _ = update_game(&conn, game_object.clone());
@@ -478,9 +489,10 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
         let time_played = time_played_db + played_time_u128;
         game_object.time_played = time_played.to_string();
         let _ = update_game(&conn, game_object.clone());
-        send_message_to_frontend(&format!("O-GL-END-{}", pid));
+        send_message_to_frontend(&format!("GL-END-{}", pid));
         Ok(pid)
     } else {
+        send_message_to_frontend(&"[Game Launcher Error-ERROR-3000] Game not found".to_string());
         Err("Game not found".to_string())
     }
 }
@@ -493,6 +505,7 @@ pub async fn kill_game(pid: u32) -> Result<(), String> {
     } else if os == "linux" {
         kill_game_linux(pid)?;
     } else {
+        send_message_to_frontend(&"[Game Killer Error-ERROR-3000] Unsupported operating system".to_string());
         return Err("Unsupported operating system".to_string());
     }
     Ok(())
@@ -506,8 +519,13 @@ fn kill_game_windows(pid: u32) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
 
     if output.status.success() {
+        send_message_to_frontend(&format!("Game with PID {} killed", pid));
         Ok(())
     } else {
+        send_message_to_frontend(&format!(
+            "[Game Killer Error-ERROR-3000] Failed to kill process: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
         Err(format!(
             "Failed to kill process: {}",
             String::from_utf8_lossy(&output.stderr)
@@ -524,8 +542,13 @@ fn kill_game_linux(pid: u32) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
 
     if output.status.success() {
+        send_message_to_frontend(&format!("Game with PID {} killed", pid));
         Ok(())
     } else {
+        send_message_to_frontend(&format!(
+            "[Game Killer Error-ERROR-3000] Failed to kill process: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
         Err(format!(
             "Failed to kill process: {}",
             String::from_utf8_lossy(&output.stderr)
@@ -555,12 +578,15 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
         id = &new_game_id;
     }
     if id.is_empty() {
+        send_message_to_frontend(&"[Media Downloader Error-ERROR-3000] Game name is empty".to_string());
         return Err("Game name is empty".to_string());
     }
     if game.is_empty() {
+        send_message_to_frontend(&"[Media Downloader Error-ERROR-3000] Game is empty".to_string());
         return Err("Urls are empty".to_string());
     }
     if id.contains("/") || id.contains("\\") {
+        send_message_to_frontend(&"[Media Downloader Error-ERROR-3000] Game name is not valid".to_string());
         return Err("Game name is not valid".to_string());
     }
 
@@ -593,6 +619,7 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                         );
                         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
                         if let Err(e) = std::fs::write(&file_path, &file_content) {
+                            send_message_to_frontend(&format!("[Media Downloader Error-ERROR-3000] Error writing file: {:?}", e));
                             return Err(format!("Error writing file: {:?}", e));
                         }
                     }
@@ -616,15 +643,16 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                                 video_path.to_str().unwrap().to_string(),
                                 "video-".to_string() + &get_nb_of_videos.to_string(),
                             )
-                            .await
+                                .await
                             {
-                                Ok(_) => println!("Youtube video downloaded"),
-                                Err(e) => println!("Error downloading youtube video: {:?}", e),
+                                Ok(_) => send_message_to_frontend(&"[Media Downloader-INFO-3000] Youtube Video Downloaded".to_string()),
+                                Err(e) => send_message_to_frontend(&format!("[Media Downloader Error-ERROR-3000] Cannot Download This Youtube Video: {:?}", e)),
                             }
                         } else {
                             let file_content =
                                 cl.get(url).send().await.unwrap().bytes().await.unwrap();
                             if let Err(e) = std::fs::write(&file_path, &file_content) {
+                                send_message_to_frontend(&format!("[Media Downloader Error-ERROR-3000] Error writing file: {:?}", e));
                                 return Err(format!("Error writing file: {:?}", e));
                             }
                         }
@@ -655,6 +683,7 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                     _ => game_dir_clone,
                 };
                 if let Err(e) = std::fs::write(&file_path, &file_content) {
+                    send_message_to_frontend(&format!("[Media Downloader Error-ERROR-3000] Error writing file: {:?}", e));
                     return Err(format!("Error writing file: {:?}", e));
                 }
             }
@@ -667,12 +696,15 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
 pub async fn download_yt_audio(url: String, id: String) -> Result<(), String> {
     let id = &id;
     if id.is_empty() {
+        send_message_to_frontend("[Youtube Downloader Error-ERROR-3000] Game name is empty");
         return Err("Game name is empty".to_string());
     }
     if url.is_empty() {
+        send_message_to_frontend("[Youtube Downloader Error-ERROR-3000] Url is empty");
         return Err("Url is empty".to_string());
     }
     if id.contains("/") || id.contains("\\") {
+        send_message_to_frontend("[Youtube Downloader Error-ERROR-3000] Game name is not valid");
         return Err("Game name is not valid".to_string());
     }
 
@@ -682,11 +714,10 @@ pub async fn download_yt_audio(url: String, id: String) -> Result<(), String> {
         .join("musics")
         .join("theme.mp3");
 
-    send_message_to_frontend("YT_BG_MUSIC: Begin");
+    send_message_to_frontend("[Youtube Downloader-INFO-3000] Downloading Youtube Audio");
     if let Err(e) = download_youtube_audio(&url, game_dir).await {
         return Err(format!("Error downloading youtube audio: {:?}", e));
     }
-    send_message_to_frontend("YT_BG_MUSIC: Done");
 
     Ok(())
 }
@@ -704,9 +735,12 @@ pub async fn download_youtube_video(
     };
     let video = Video::new_with_options(url, video_options).unwrap();
     match video.download(path).await {
-        Ok(_) => Ok(()),
+        Ok(_) => {
+            send_message_to_frontend("[Youtube Downloader-INFO-3000] Youtube Video Downloaded");
+            Ok(())
+        }
         Err(err) => {
-            println!("Error downloading video: {}", err);
+            send_message_to_frontend("[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Video");
             Err(VideoError::DownloadError(err.to_string()))
         }
     }
@@ -721,19 +755,21 @@ pub async fn download_youtube_audio(url: &str, location: PathBuf) -> Result<(), 
     };
     let video = Video::new_with_options(url, video_options).unwrap();
     match video.download(path).await {
-        Ok(_) => Ok(()),
+        Ok(_) => {
+            send_message_to_frontend("[Youtube Downloader-INFO-3000] Youtube Audio Downloaded");
+            Ok(())
+        }
         Err(err) => {
-            println!("Error downloading video: {}", err);
+            send_message_to_frontend("[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Audio");
             Err(VideoError::DownloadError(err.to_string()))
         }
     }
 }
 
 #[tauri::command]
-pub fn export_game_database_to_csv(path : String) -> Result<(), String> {
+pub fn export_game_database_to_csv(path: String) -> Result<(), String> {
     let conn = establish_connection().unwrap();
     let results = query_all_data(&conn, "games").unwrap();
-    println!("{:?}", results);
     let mut wtr = csv::Writer::from_path(path.clone()).unwrap();
     for row in results {
         let mut game: IGame = IGame::from_hashmap(row.clone());
@@ -741,13 +777,12 @@ pub fn export_game_database_to_csv(path : String) -> Result<(), String> {
         game.description = game.description.replace("\n", " ");
         wtr.serialize(game).unwrap();
     }
-    
     wtr.flush().unwrap();
     Ok(())
 }
 
 #[tauri::command]
-pub fn export_game_database_to_archive(path : String) -> Result<(), String> {
-    archiveDBAndExtraContent(path);
+pub fn export_game_database_to_archive(path: String) -> Result<(), String> {
+    archiveDBAndExtraContent(path).expect("Failed to archive database and extra content");
     Ok(())
 }

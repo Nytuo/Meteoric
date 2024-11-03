@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use directories::ProjectDirs;
 use rusqlite::{Connection, params};
 
-use crate::IGame;
+use crate::{send_message_to_frontend, IGame};
 
 mod test;
 
@@ -373,9 +373,15 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             .collect::<Vec<String>>()
             .join("', '");
         let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, time_played, trophies_unlocked, last_time_played) VALUES ('{}')", all_fields);
-        println!("SQL: {}", sql_insert);
-        conn.execute(&sql_insert, []).map_err(|e| e.to_string())?;
-        println!("Game inserted");
+        match conn.execute(&sql_insert, []).map_err(|e| e.to_string()){
+            Ok(_) => {
+                println!("Game inserted");
+            },
+            Err(e) => {
+                send_message_to_frontend(&format!("[Database Error-ERROR-3000]{} cannot be updated",game_name.clone()));
+                return Err(e.to_string());
+            }
+        }
     }
     let id = get_game_id_by_name(&conn, &game_name)
         .map_err(|e| e.to_string())

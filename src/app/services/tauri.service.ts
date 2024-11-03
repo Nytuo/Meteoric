@@ -37,10 +37,16 @@ export class TauriService {
 	private listenForMessages(): void {
 		listen('frontend-message', (event) => {
 			this.message = event.payload;
-			if ((this.message as string).includes('-GL-')) {
+			let messageParams = (this.message as string).split(/[\[\]]/)[1].split('-');
+			let messageTitle = messageParams[0];
+			let messageType = messageParams[1];
+			let messageLifetime = parseInt(messageParams[2], 10);
+			let messageContent = (this.message as string).split(']')[1];
+			console.log('Received message:', messageTitle, messageType, messageLifetime, messageContent);
+			if ((this.message as string).includes('GL')) {
 				const end = (this.message as string).includes('END');
 				let gamePID = parseInt(
-					(this.message as string).split('-GL-')[1],
+					(this.message as string).split('GL-')[1],
 					10,
 				);
 				const error = (this.message as string).startsWith('E-');
@@ -54,7 +60,7 @@ export class TauriService {
 				};
 				this.messageForGameLaunched.next(message);
 			} else {
-				this.sendNotification('Information', this.message, 'info');
+				this.sendNotification(messageTitle, messageContent, messageType, messageLifetime);
 			}
 		}).catch((error) => {
 			this.sendNotification('Error', error, 'error');

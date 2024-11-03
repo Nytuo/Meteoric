@@ -395,10 +395,7 @@ pub fn archiveDBAndExtraContent(path: String) -> Result<(), Box<dyn std::error::
 
     let walkdir = WalkDir::new(&archive_dir);
     let it = walkdir.into_iter();
-
     zip_dir(&mut it.filter_map(|e| e.ok()), &archive_dir, file, zip::CompressionMethod::Stored)?;
-
     fs::remove_dir_all(&archive_dir)?;
-
     Ok(())
 }
