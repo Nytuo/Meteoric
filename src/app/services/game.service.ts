@@ -385,8 +385,12 @@ export class GameService {
 		provider: string,
 		strict: boolean,
 		currentGame?: IGame,
-	): Promise<IGame[] |{ jaquette: string; name: string; url: string }[] | string> {
-		return new Promise<IGame[] |{ jaquette: string; name: string; url: string }[] | string>(async (resolve, reject) => {
+	): Promise<
+		IGame[] | { jaquette: string; name: string; url: string }[] | string
+	> {
+		return new Promise<
+			IGame[] | { jaquette: string; name: string; url: string }[] | string
+		>(async (resolve, reject) => {
 			await invoke<string>('search_metadata', {
 				gameName: gameName,
 				pluginName: provider,
@@ -426,10 +430,18 @@ export class GameService {
 				type = type.url ? 'audio' : 'game';
 				if (type === 'audio') {
 					searchedGames = JSON.parse(games);
-					let parsedGames: { jaquette: string; name: string; url: string }[] = [];
+					let parsedGames: {
+						jaquette: string;
+						name: string;
+						url: string;
+					}[] = [];
 					searchedGames.forEach((audio) => {
 						audio = JSON.parse(audio);
-						let newAudio: { jaquette: string; name: string; url: string } = {
+						let newAudio: {
+							jaquette: string;
+							name: string;
+							url: string;
+						} = {
 							name: audio.name ? audio.name : '',
 							url: audio.url ? audio.url : '',
 							jaquette: audio.jaquette ? audio.jaquette : '',
@@ -522,7 +534,7 @@ export class GameService {
 		if (game.backgroundMusic !== '') {
 			return;
 		}
-		this.searchGameInAPI(game.name,'ytdl',true,game).then((audios) => {
+		this.searchGameInAPI(game.name, 'ytdl', true, game).then((audios) => {
 			if (audios === undefined) {
 				this.genericService.sendNotification(
 					'Error',
@@ -539,13 +551,18 @@ export class GameService {
 				);
 				return;
 			}
-			let audio:{ jaquette: string; name: string; url: string } = (audios as { jaquette: string; name: string; url: string }[])[0];
-			this.genericService.downloadYTAudio(audio.url, game.id).then((response) => {
-				this.db.refreshGameLinks(game).then((game) => {
-					this.setGame(game.id, game);
-					this.gameObservable.next(game);
-				});
-			});
+			let audio: { jaquette: string; name: string; url: string } =
+				(audios as { jaquette: string; name: string; url: string }[])[
+					0
+				];
+			this.genericService.downloadYTAudio(audio.url, game.id).then(
+				(response) => {
+					this.db.refreshGameLinks(game).then((game) => {
+						this.setGame(game.id, game);
+						this.setGameObservable(game);
+					});
+				},
+			);
 		});
 	}
 }

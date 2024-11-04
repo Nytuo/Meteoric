@@ -131,3 +131,5 @@ dist
 /extensions_src/metadata_extensions/YT_BG/target
 .idea/
 qodana.yaml
+/.idea/
+/.vscode/

@@ -4496,7 +4496,7 @@ checksum = "80af6f9131f277a45a3fba6ce8e2258037bb0477a67e610d3c1fe046ab31de47"
 [[package]]
 name = "rusty_ytdl"
 version = "0.7.4"
-source = "git+https://github.com/Mithronn/rusty_ytdl#f02ce9fcd6dec6112200d9928cfe663b0598f1f1"
+source = "git+https://github.com/Mithronn/rusty_ytdl#af7e85e0e6618ccd3d6081fbae18c757a8ec82ad"
 dependencies = [
  "aes",
  "async-trait",

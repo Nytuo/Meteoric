@@ -110,15 +110,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
 				this.genericService.playBackgroundMusic(
 					this.game.backgroundMusic,
 				);
-			}else{
-					this.gameService.autoDownloadBackgroundMusic(this.game).then( ()=> {
-						if (this.game === undefined) {
-							return;
-						}
-							this.genericService.playBackgroundMusic(
-								this.game.backgroundMusic,
-							);
-					});
+			} else {
+				this.gameService.autoDownloadBackgroundMusic(this.game);
 			}
 		});
 
@@ -231,7 +224,9 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		}
 		image.style.opacity = (0.6 - event.target.scrollTop / 1000).toString();
 
-		let logo = document.getElementById('logo') as HTMLImageElement;
+		let logo = document.getElementById(
+			'game-logo-details',
+		) as HTMLImageElement;
 		if (logo === null) {
 			return;
 		}
@@ -269,7 +264,9 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		document.getElementsByClassName('gameInfo')[0].scrollTo(0, 0);
 		document.querySelector('#gameContent')?.classList.add('hidden');
 		document.querySelector('#gameHeaderOptional')?.classList.add('hidden');
-		document.querySelector('#logo')?.classList.add('logoLaunch');
+		document.querySelector('#game-logo-details')?.classList.add(
+			'logoLaunch',
+		);
 		document.querySelector('#title')?.classList.add('logoLaunch');
 		document.querySelector('#bg')?.classList.add('bgLaunch');
 	}
