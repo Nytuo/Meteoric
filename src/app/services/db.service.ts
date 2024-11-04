@@ -1,12 +1,13 @@
-import { Injectable } from '@angular/core';
-import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+import {Injectable} from '@angular/core';
+import {convertFileSrc, invoke} from '@tauri-apps/api/tauri';
 import IGame from '../../interfaces/IGame';
-import { configDir } from '@tauri-apps/api/path';
+import {BaseDirectory, configDir} from '@tauri-apps/api/path';
 import ICategory from '../../interfaces/ICategory';
-import { platform } from '@tauri-apps/api/os';
+import {platform} from '@tauri-apps/api/os';
 import ISettings from '../../interfaces/ISettings';
-import { save } from '@tauri-apps/api/dialog';
-import { GenericService } from './generic.service';
+import {save} from '@tauri-apps/api/dialog';
+import {GenericService} from './generic.service';
+import {exists} from "@tauri-apps/api/fs";
 
 @Injectable({
 	providedIn: 'root',
@@ -407,9 +408,18 @@ export class DBService {
 				configDirPath + allVideosLocation[i],
 			);
 		}
-		game.backgroundMusic = convertFileSrc(
-			configDirPath + id + '/musics/theme.mp3',
-		);
+
+		let configDirPathMusic;
+		let dplatform = await platform();
+		if (dplatform === 'win32') {
+			configDirPathMusic = 'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+		} else if (dplatform === 'linux') {
+			configDirPathMusic = 'meteoric/meteoric_extra_content/';
+		}
+
+
+		let musicFilePath =configDirPathMusic + id + '/musics/theme.mp3';
+		game.backgroundMusic = await exists(musicFilePath, {dir: BaseDirectory.Config}) ? musicFilePath : '';
 		return game;
 	}
 }

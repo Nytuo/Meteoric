@@ -16,6 +16,19 @@
 				"all": false,
 				"setFullscreen": true
 			},
+			"fs": {
+				"all": true,
+				"readFile": true,
+				"writeFile":  false,
+				"readDir": true,
+				"copyFile": false,
+				"createDir": false,
+				"removeDir": false,
+				"removeFile": false,
+				"renameFile": false,
+				"exists": true,
+				"scope": ["*/**"]
+			},
 			"dialog": {
 				"all": false,
 				"ask": false,

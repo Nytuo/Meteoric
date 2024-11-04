@@ -385,8 +385,8 @@ export class GameService {
 		provider: string,
 		strict: boolean,
 		currentGame?: IGame,
-	): Promise<IGame[] | string> {
-		return new Promise<IGame[] | string>(async (resolve, reject) => {
+	): Promise<IGame[] |{ jaquette: string; name: string; url: string }[] | string> {
+		return new Promise<IGame[] |{ jaquette: string; name: string; url: string }[] | string>(async (resolve, reject) => {
 			await invoke<string>('search_metadata', {
 				gameName: gameName,
 				pluginName: provider,
@@ -426,10 +426,10 @@ export class GameService {
 				type = type.url ? 'audio' : 'game';
 				if (type === 'audio') {
 					searchedGames = JSON.parse(games);
-					let parsedGames: any[] = [];
+					let parsedGames: { jaquette: string; name: string; url: string }[] = [];
 					searchedGames.forEach((audio) => {
 						audio = JSON.parse(audio);
-						let newAudio = {
+						let newAudio: { jaquette: string; name: string; url: string } = {
 							name: audio.name ? audio.name : '',
 							url: audio.url ? audio.url : '',
 							jaquette: audio.jaquette ? audio.jaquette : '',
@@ -516,5 +516,36 @@ export class GameService {
 			screenshots: api_game.screenshots ? api_game.screenshots : [],
 			videos: api_game.videos ? api_game.videos : [],
 		};
+	}
+
+	public async autoDownloadBackgroundMusic(game: IGame): Promise<void> {
+		if (game.backgroundMusic !== '') {
+			return;
+		}
+		this.searchGameInAPI(game.name,'ytdl',true,game).then((audios) => {
+			if (audios === undefined) {
+				this.genericService.sendNotification(
+					'Error',
+					'No audio found',
+					'error',
+				);
+				return;
+			}
+			if (audios === 'No credentials found') {
+				this.genericService.sendNotification(
+					'Error',
+					'No credentials found, please check your configuration',
+					'error',
+				);
+				return;
+			}
+			let audio:{ jaquette: string; name: string; url: string } = (audios as { jaquette: string; name: string; url: string }[])[0];
+			this.genericService.downloadYTAudio(audio.url, game.id).then((response) => {
+				this.db.refreshGameLinks(game).then((game) => {
+					this.setGame(game.id, game);
+					this.gameObservable.next(game);
+				});
+			});
+		});
 	}
 }

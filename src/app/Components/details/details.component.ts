@@ -110,6 +110,15 @@ export class DetailsComponent implements OnInit, OnDestroy {
 				this.genericService.playBackgroundMusic(
 					this.game.backgroundMusic,
 				);
+			}else{
+					this.gameService.autoDownloadBackgroundMusic(this.game).then( ()=> {
+						if (this.game === undefined) {
+							return;
+						}
+							this.genericService.playBackgroundMusic(
+								this.game.backgroundMusic,
+							);
+					});
 			}
 		});
 
