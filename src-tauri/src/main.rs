@@ -92,6 +92,7 @@ struct IGame {
     trophies: String,
     trophies_unlocked: String,
     last_time_played: String,
+    hidden: String,
 }
 
 impl IGame {
@@ -118,6 +119,7 @@ impl IGame {
             "trophies",
             "trophies_unlocked",
             "last_time_played",
+            "hidden",
         ]
     }
 
@@ -144,6 +146,7 @@ impl IGame {
             trophies: String::new(),
             trophies_unlocked: String::new(),
             last_time_played: String::new(),
+            hidden: String::new(),
         }
     }
 
@@ -170,6 +173,7 @@ impl IGame {
             "trophies" => self.trophies == "",
             "trophies_unlocked" => self.trophies_unlocked == "",
             "last_time_played" => self.last_time_played == "",
+            "hidden" => self.hidden == "",
             _ => false,
         }
     }
@@ -197,35 +201,36 @@ impl IGame {
             trophies: hashmap["trophies"].clone(),
             trophies_unlocked: hashmap["trophies_unlocked"].clone(),
             last_time_played: hashmap["last_time_played"].clone(),
+            hidden: hashmap["hidden"].clone(),
         }
     }
 
-    pub fn get(&self, field: &str) -> Option<&String> {
-        match field {
-            "id" => return Some(&self.id),
-            "name" => return Some(&self.name),
-            "sort_name" => return Some(&self.sort_name),
-            "rating" => return Some(&self.rating),
-            "platforms" => return Some(&self.platforms),
-            "description" => return Some(&self.description),
-            "critic_score" => return Some(&self.critic_score),
-            "genres" => return Some(&self.genres),
-            "styles" => return Some(&self.styles),
-            "release_date" => return Some(&self.release_date),
-            "developers" => return Some(&self.developers),
-            "editors" => return Some(&self.editors),
-            "game_dir" => return Some(&self.game_dir),
-            "exec_file" => return Some(&self.exec_file),
-            "exec_args" => return Some(&self.exec_args),
-            "tags" => return Some(&self.tags),
-            "status" => return Some(&self.status),
-            "time_played" => return Some(&self.time_played),
-            "trophies" => return Some(&self.trophies),
-            "trophies_unlocked" => return Some(&self.trophies_unlocked),
-            "last_time_played" => return Some(&self.last_time_played),
-            _ => (),
-        }
-        None
+    pub fn get(&self, field: &str) -> Option<String> {
+     match field {
+        "id" => Some(self.id.clone()),
+        "name" => Some(self.name.clone()),
+        "sort_name" => Some(self.sort_name.clone()),
+        "rating" => Some(self.rating.clone()),
+        "platforms" => Some(self.platforms.clone()),
+        "description" => Some(self.description.clone()),
+        "critic_score" => Some(self.critic_score.clone()),
+        "genres" => Some(self.genres.clone()),
+        "styles" => Some(self.styles.clone()),
+        "release_date" => Some(self.release_date.clone()),
+        "developers" => Some(self.developers.clone()),
+        "editors" => Some(self.editors.clone()),
+        "game_dir" => Some(self.game_dir.clone()),
+        "exec_file" => Some(self.exec_file.clone()),
+        "exec_args" => Some(self.exec_args.clone()),
+        "tags" => Some(self.tags.clone()),
+        "status" => Some(self.status.clone()),
+        "time_played" => Some(self.time_played.clone()),
+        "trophies" => Some(self.trophies.clone()),
+        "trophies_unlocked" => Some(self.trophies_unlocked.clone()),
+        "last_time_played" => Some(self.last_time_played.clone()),
+        "hidden" => Some(self.hidden.clone()),
+        _ => None,
+    }
     }
 
     fn check_if_game_has_minimum_requirements(&self) -> bool {

@@ -59,6 +59,7 @@ export class AddGameOverlayComponent implements OnInit {
 			time_played: '',
 			trophies_unlocked: '',
 			last_time_played: '',
+			hidden: 'false',
 			jaquette: simpleSvgPlaceholder({
 				text: 'Placeholder',
 				textColor: '#ffffff',

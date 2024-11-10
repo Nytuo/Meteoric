@@ -114,6 +114,10 @@ export class GameService {
 				name: 'Rating';
 				values: { cname: string; value: string; code: string }[];
 			},
+			{
+				name: 'Hidden';
+				values: { cname: string; value: string; code: string }[];
+			},
 		] = [] as any;
 
 		filters.push({
@@ -207,6 +211,14 @@ export class GameService {
 				}),
 		});
 
+		filters.push({
+			name: 'Hidden',
+			values: [
+				{ cname: 'Yes', value: 'true', code: 'hidden' },
+				{ cname: 'No', value: 'false', code: 'hidden' },
+			],
+		});
+
 		return filters;
 	}
 
@@ -221,7 +233,7 @@ export class GameService {
 				return;
 			}
 			this.games = games;
-			this.gamesObservable.next(this.games);
+			this.filterGames('hidden', 'false');
 		});
 	}
 
@@ -527,6 +539,7 @@ export class GameService {
 			game_dir: api_game.game_dir ? api_game.game_dir : '',
 			screenshots: api_game.screenshots ? api_game.screenshots : [],
 			videos: api_game.videos ? api_game.videos : [],
+			hidden: api_game.hidden ? api_game.hidden : 'false',
 		};
 	}
 

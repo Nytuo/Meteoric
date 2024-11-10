@@ -38,7 +38,7 @@ export class DisplaymanagerComponent implements OnInit {
 				this.settingsService.getSettings().subscribe((settings) => {
 					this.currentView.next(settings.view || 'card');
 				});
-			}, 3000);
+			}, this.genericService.getDevMode() ? 0 : 3000);
 		}
 	}
 }

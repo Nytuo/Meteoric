@@ -21,6 +21,17 @@
 				severity="danger"
 			></p-button>
 		</div>
+		<div
+			style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem"
+		>
+			<p-button
+				[routerLink]="['/game/' + currentGame?.id]"
+				[icon]="currentGame?.hidden === 'true' ? 'pi pi-eye' : 'pi pi-eye-slash'"
+				[severity]="currentGame?.hidden === 'true' ? 'success' : 'danger'"
+				(click)="toggleHiddenStatusForGame()"
+				[label]="currentGame?.hidden === 'true' ? 'Show' : 'Hide'"
+			></p-button>
+		</div>
 	</p-sidebar>
 	<div [style]="{ width: '80vw' }">
 		<div class="content">

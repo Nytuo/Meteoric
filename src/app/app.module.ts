@@ -6,15 +6,15 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
-import { SidebarComponent } from './Components/sidebar/sidebar.component';
-import { TopbarComponent } from './Components/topbar/topbar.component';
-import { CardViewComponent } from './Components/views/card-view/card-view.component';
-import { BlockingOverlayComponent } from './Components/blocking-overlay/blocking-overlay.component';
-import { EditGameComponent } from './Components/edit-game/edit-game.component';
-import { SplashComponent } from './Components/splash/splash.component';
-import { DisplaymanagerComponent } from './Components/displaymanager/displaymanager.component';
-import { DetailsComponent } from './Components/details/details.component';
-import { AddGameOverlayComponent } from './Components/add-game-overlay/add-game-overlay.component';
+import { SidebarComponent } from './components/sidebar/sidebar.component';
+import { TopbarComponent } from './components/topbar/topbar.component';
+import { CardViewComponent } from './components/views/card-view/card-view.component';
+import { BlockingOverlayComponent } from './components/blocking-overlay/blocking-overlay.component';
+import { EditGameComponent } from './components/edit-game/edit-game.component';
+import { SplashComponent } from './components/splash/splash.component';
+import { DisplaymanagerComponent } from './components/displaymanager/displaymanager.component';
+import { DetailsComponent } from './components/details/details.component';
+import { AddGameOverlayComponent } from './components/add-game-overlay/add-game-overlay.component';
 
 import { GameService } from './services/game.service';
 import { CategoryService } from './services/category.service';
@@ -30,22 +30,21 @@ import {
 import { ToastModule } from 'primeng/toast';
 
 import { routes } from './app.routes';
-import { CardComponent } from './Components/card/card.component';
+import { CardComponent } from './components/card/card.component';
 import { CSVExporter } from './plugins/csv_exporter/csv_exporter.component';
 import { ArchiveExporter } from './plugins/archive_exporter/archive_exporter.component';
 import { CSVImporter } from './plugins/csv_importer/csv_importer.component';
 import { EpicImporterComponent } from './plugins/epic-importer/epic-importer.component';
-import { FilterOverlayComponent } from './Components/filter-overlay/filter-overlay.component';
+import { FilterOverlayComponent } from './components/filter-overlay/filter-overlay.component';
 import { YtdlComponent } from './plugins/ytdl/ytdl.component';
 import { SteamGridComponent } from './plugins/steam_grid/steam_grid.component';
 import { SteamImporterComponent } from './plugins/steam-importer/steam-importer.component';
-import { SettingsOverlayComponent } from './Components/settings-overlay/settings-overlay.component';
-import { ListViewComponent } from './Components/views/listview/listview.component';
+import { SettingsOverlayComponent } from './components/settings-overlay/settings-overlay.component';
+import { ListViewComponent } from './components/views/listview/listview.component';
 import { IGDBComponent } from './plugins/igdb/igdb.component';
 import { GogImporterComponent } from './plugins/gog-importer/gog-importer.component';
 import { DialogModule } from 'primeng/dialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { Button } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { NgOptimizedImage } from '@angular/common';
 import { RatingModule } from 'primeng/rating';
@@ -67,6 +66,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { ListboxModule } from 'primeng/listbox';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { CascadeSelectModule } from 'primeng/cascadeselect';
+import { InputSwitchModule } from 'primeng/inputswitch';
 
 @NgModule({
 	declarations: [
@@ -104,7 +104,7 @@ import { CascadeSelectModule } from 'primeng/cascadeselect';
 		ToastModule,
 		DialogModule,
 		FloatLabelModule,
-		Button,
+		InputSwitchModule,
 		ProgressBarModule,
 		NgOptimizedImage,
 		RatingModule,

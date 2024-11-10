@@ -28,6 +28,7 @@ export class GenericService {
 	);
 	private audioInterval: string | number | NodeJS.Timeout | undefined;
 	private asAlreadyLaunched = false;
+	private devMode = true;
 
 	constructor(
 		protected router: Router,
@@ -38,6 +39,10 @@ export class GenericService {
 				this.changeDisplayBookmark(false);
 			}
 		});
+	}
+
+	getDevMode() {
+		return this.devMode;
 	}
 
 	setAsAlreadyLaunched() {

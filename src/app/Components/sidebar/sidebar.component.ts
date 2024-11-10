@@ -27,6 +27,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit() {
+		this.logoAnimation = this.genericService.getDevMode() ? false : true;
 		this.categoryService.getCategories();
 		this.categoryService.getCategoriesObservable().subscribe(
 			(categories) => {

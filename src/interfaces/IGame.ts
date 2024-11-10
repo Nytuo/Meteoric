@@ -38,6 +38,7 @@ export default interface IGame {
 	trophies: string;
 	trophies_unlocked: string;
 	last_time_played: string;
+	hidden: string;
 
 	[key: string]: any;
 }

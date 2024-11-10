@@ -193,6 +193,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			time_played: '',
 			trophies_unlocked: '',
 			last_time_played: '',
+			hidden: 'false',
 			jaquette: simpleSvgPlaceholder({
 				text: 'Placeholder',
 				textColor: '#ffffff',
@@ -828,6 +829,40 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					});
 					this.genericService.changeBlockUI(false);
 				});
+			});
+		});
+	}
+
+	toggleHiddenStatusForGame() {
+		if (this.currentGame === undefined) {
+			this.genericService.sendNotification(
+				'Error',
+				'Impossible to hide a game that does not exist',
+				'error',
+			);
+			return;
+		}
+		this.currentGame.hidden = this.currentGame.hidden === 'true'
+			? 'false'
+			: 'true';
+		this.db.postGame(this.currentGame).then(() => {
+			if (
+				this.currentGameID === undefined ||
+				this.currentGame === undefined
+			) {
+				this.genericService.sendNotification(
+					'Error',
+					'Impossible to hide a game that does not exist',
+					'error',
+				);
+				return;
+			}
+			this.gameService.setGame(this.currentGameID, this.currentGame);
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Hidden status changed',
+				detail: 'The hidden status has been changed',
+				life: 3000,
 			});
 		});
 	}

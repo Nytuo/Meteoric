@@ -3,6 +3,7 @@ import { platform } from '@tauri-apps/api/os';
 import { configDir } from '@tauri-apps/api/path';
 import { convertFileSrc } from '@tauri-apps/api/tauri';
 import { appWindow } from '@tauri-apps/api/window';
+import { GenericService } from '../../services/generic.service';
 
 @Component({
 	selector: 'app-splash',
@@ -10,11 +11,11 @@ import { appWindow } from '@tauri-apps/api/window';
 	styleUrl: './splash.component.css',
 })
 export class SplashComponent implements OnInit {
-	constructor() {
+	constructor(private genericService: GenericService) {
 	}
 
 	ngOnInit() {
-		const DEV_MODE = false;
+		const DEV_MODE = this.genericService.getDevMode();
 		if (!DEV_MODE) {
 			this.loadVideo().then(() => console.log('Video loaded'));
 		} else {

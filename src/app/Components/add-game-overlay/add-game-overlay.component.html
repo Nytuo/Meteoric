@@ -1,16 +1,26 @@
-<p-dialog (onHide)="hide()" [(visible)]="visible" draggable="false" header="Add A Game" modal="true" resizable="false">
-    <br />
-    <p-floatLabel>
-        <input id="name" pInputText style="width: 1000px" />
-        <label for="name">Name</label>
-    </p-floatLabel>
-    <br />
-    <p-button (click)="addGame()" label="Add"></p-button>
+<p-dialog
+	(onHide)="hide()"
+	[(visible)]="visible"
+	draggable="false"
+	header="Add A Game"
+	modal="true"
+	resizable="false"
+>
+	<br />
+	<p-floatLabel>
+		<input id="name" pInputText style="width: 1000px" />
+		<label for="name">Name</label>
+	</p-floatLabel>
+	<br />
+	<p-button (click)="addGame()" label="Add"></p-button>
 
-    <div *ngIf="loading" class="overlayLoading">
-        <p>Adding The Game, Please Wait...</p>
-        <p-progressBar *ngIf="loading" [style]="{ height: '6px', zIndex: 9999, width: '400px' }"
-            mode="indeterminate"></p-progressBar>
-        <p>{{ statusOfImport }}</p>
-    </div>
+	<div *ngIf="loading" class="overlayLoading">
+		<p>Adding The Game, Please Wait...</p>
+		<p-progressBar
+			*ngIf="loading"
+			[style]="{ height: '6px', zIndex: 9999, width: '400px' }"
+			mode="indeterminate"
+		></p-progressBar>
+		<p>{{ statusOfImport }}</p>
+	</div>
 </p-dialog>

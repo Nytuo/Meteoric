@@ -25,7 +25,7 @@
 		"material-symbols": "^0.17.4",
 		"papaparse": "^5.4.1",
 		"primeicons": "^7.0.0",
-		"primeng": "^17.15.0",
+		"primeng": "17.18.11",
 		"rxjs": "~7.8.0",
 		"simple-icons": "^13.10.0",
 		"tslib": "^2.6.2",
