@@ -67,6 +67,7 @@ import { ListboxModule } from 'primeng/listbox';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { CascadeSelectModule } from 'primeng/cascadeselect';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { InputTextModule } from 'primeng/inputtext';
 
 @NgModule({
 	declarations: [
@@ -126,6 +127,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 		ListboxModule,
 		OverlayPanelModule,
 		CascadeSelectModule,
+		InputTextModule,
 	],
 	providers: [
 		GameService,
