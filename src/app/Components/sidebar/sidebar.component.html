@@ -52,12 +52,12 @@
 						style="font-size: 1.5rem"
 					></i>
 
-					<span [routerLink]="['/stats']">Stats</span>
+					<span [routerLink]="['/stats']">{{ 'stats' | translate }}</span>
 				</div>
 			</div>
 
 			<div class="categories">
-				<p>Categories</p>
+				<p>{{ 'categories' | translate }}</p>
 				<div
 					(click)="setCurrentCategory(category.id)"
 					*ngFor="let category of categories"

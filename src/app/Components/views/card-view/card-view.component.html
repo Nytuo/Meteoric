@@ -1,6 +1,6 @@
 <div class="gameList">
 	<div [style.gap]="gap" class="griddy">
-		<h1 *ngIf="games.length === 0">No games found</h1>
+		<h1 *ngIf="games.length === 0">{{ 'noGamesFound' | translate }}</h1>
 		<app-card
 			*ngFor="let card of games"
 			[gameId]="card.id"

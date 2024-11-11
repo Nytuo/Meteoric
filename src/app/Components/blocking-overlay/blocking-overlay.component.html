@@ -1,5 +1,5 @@
 <div *ngIf="loading" class="overlayLoading">
-	<p>Something that cannot be interrupted is happening...</p>
+	<p>{{ 'overlayText' | translate }}</p>
 	<p-progressBar
 		*ngIf="loading"
 		[style]="{ height: '6px', zIndex: 99999999, width: '400px' }"

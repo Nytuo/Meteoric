@@ -9,6 +9,7 @@ import {
 import { GenericService } from '../../services/generic.service';
 import ISettings from '../../../interfaces/ISettings';
 import { SettingsService } from '../../services/settings.service';
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
 	selector: 'app-card',
@@ -41,6 +42,7 @@ export class CardComponent implements OnInit, OnChanges {
 	constructor(
 		private genericService: GenericService,
 		private settingsService: SettingsService,
+		private translate: TranslateService,
 	) {
 	}
 
@@ -55,9 +57,9 @@ export class CardComponent implements OnInit, OnChanges {
 			this.width = (settings.zoom) + 'rem';
 		});
 
-		this.parsedTags = this.gameTags.split(',') || ['No tags'];
+		this.parsedTags = this.gameTags.split(',') || [this.translate.instant('no_tags')];
 		if (this.gameTags === '') {
-			this.parsedTags = ['No tags'];
+			this.parsedTags = [this.translate.instant('no_tags')];
 		}
 	}
 

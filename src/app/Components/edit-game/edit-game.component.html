@@ -2,7 +2,7 @@
 	<p-sidebar [visible]="true" class="editmode">
 		<ng-template pTemplate="header">
 			<div class="flex align-items-center gap-2">
-				<span class="font-bold"> Editing {{ currentGame?.name }} </span>
+				<span class="font-bold"> {{ 'editing-currentgame-name' | translate }} {{ currentGame?.name }} </span>
 			</div>
 		</ng-template>
 		<p-panelMenu [model]="items" styleClass="w-full md:w-20rem" />
@@ -11,13 +11,13 @@
 			<p-button
 				[routerLink]="['/game/' + currentGame?.id]"
 				icon="pi pi-times"
-				label="Close"
+				label="{{ 'close' | translate }}"
 			></p-button>
 			<p-button
 				(onClick)="deleteGame()"
 				[routerLink]="['/games']"
 				icon="pi pi-trash"
-				label="Delete"
+				label="{{ 'delete' | translate }}"
 				severity="danger"
 			></p-button>
 		</div>
@@ -46,18 +46,18 @@
 						id="searchGame"
 						pInputText
 					/>
-					<label for="searchGame">Search A Game</label>
+					<label for="searchGame">{{ 'search-a-game' | translate }}</label>
 				</p-floatLabel>
-				<p-button (click)="searchGameInAPI()" label="Search"></p-button>
+				<p-button (click)="searchGameInAPI()" label="{{ 'search' | translate }}"></p-button>
 				<p-checkbox
 					[(ngModel)]="strict"
 					[binary]="true"
-					label="Strict"
+					label="{{ 'strict' | translate }}"
 				></p-checkbox>
 				<p-button
 					(click)="selectItem()"
 					*ngIf="hideSelectBtn"
-					label="Select"
+					label="{{ 'select' | translate }}"
 				></p-button>
 			</div>
 			<div *ngIf="hideSearch" id="providers">
@@ -85,7 +85,7 @@
 			</div>
 			<div *ngIf="currentGame && !hideSearch" id="gameInfo">
 				<div *ngIf="selectedProvider === 'general'">
-					<h1>General Info</h1>
+					<h1>{{ 'general-info' | translate }}</h1>
 					<form
 						(ngSubmit)="saveGameInfo()"
 						[formGroup]="info"
@@ -94,7 +94,7 @@
 						<p-button
 							class="posBL"
 							icon="pi pi-save"
-							label="Save"
+							label="{{ 'save' | translate }}"
 							type="submit"
 						></p-button>
 						<ng-container *ngIf="currentGame">
@@ -118,14 +118,14 @@
 									*ngIf="field.key === 'tags'"
 									id="tags-helper"
 								>
-									Tags are separated by commas
+									{{ 'tags-are-separated-by-commas' | translate }}
 								</small>
 							</div>
 						</ng-container>
 					</form>
 				</div>
 				<div *ngIf="selectedProvider === 'personal'">
-					<h1>Personal Stats</h1>
+					<h1>{{ 'personal-stats' | translate }}</h1>
 					<form
 						(ngSubmit)="saveGameStat()"
 						[formGroup]="stat"
@@ -155,17 +155,17 @@
 								[formControlName]="'status'"
 								[options]="statuses"
 								[showClear]="true"
-								placeholder="Select a status"
+								placeholder="{{ 'select-a-status' | translate }}"
 							/>
 						</ng-container>
-						<p-button label="Save" type="submit"></p-button>
+						<p-button label="{{ 'save' | translate }}" type="submit"></p-button>
 					</form>
 				</div>
 				<div *ngIf="selectedProvider === 'media'">
-					<h1>Media</h1>
+					<h1>{{ 'media' | translate }}</h1>
 					<ng-container *ngIf="currentGame">
 						<div class="formDisplay">
-							<h2>Background</h2>
+							<h2>{{ 'background' | translate }}</h2>
 							<div>
 								<img
 									(click)="openFileChooser('background-input')"
@@ -182,7 +182,7 @@
 							</div>
 						</div>
 						<div class="formDisplay">
-							<h2>Jaquette</h2>
+							<h2>{{ 'jaquette' | translate }}</h2>
 							<div>
 								<img
 									(click)="openFileChooser('jaquette-input')"
@@ -199,7 +199,7 @@
 							</div>
 						</div>
 						<div class="formDisplay">
-							<h2>Logo</h2>
+							<h2>{{ 'logo' | translate }}</h2>
 							<div>
 								<img
 									(click)="openFileChooser('logo-input')"
@@ -216,7 +216,7 @@
 							</div>
 						</div>
 						<div class="formDisplay">
-							<h2>Icon</h2>
+							<h2>{{ 'icon' | translate }}</h2>
 							<div>
 								<img
 									(click)="openFileChooser('icon-input')"
@@ -233,7 +233,7 @@
 							</div>
 						</div>
 						<div class="formDisplay">
-							<h2>Screenshots</h2>
+							<h2>{{ 'screenshots' | translate }}</h2>
 							<p-button
 								(onClick)="openFileChooser('screen-input')"
 								icon="pi pi-plus"
@@ -263,7 +263,7 @@
 							/>
 						</div>
 						<div class="formDisplay">
-							<h2>Background Music</h2>
+							<h2>{{ 'background-music' | translate }}</h2>
 
 							<div style="text-align: center">
 								<p-button
@@ -278,7 +278,7 @@
 											pInputText
 										/>
 										<label for="music-name"
-										>Youtube Video URL</label>
+										>{{ 'youtube-video-url' | translate }}</label>
 									</p-floatLabel>
 								</div>
 								<p-button
@@ -310,7 +310,7 @@
 							</div>
 						</div>
 						<div class="formDisplay" style="text-align: center">
-							<h2>Video</h2>
+							<h2>{{ 'video' | translate }}</h2>
 							<p-button
 								(onClick)="openFileChooser('vide-input')"
 								icon="pi pi-plus"
@@ -342,7 +342,7 @@
 					</ng-container>
 				</div>
 				<div *ngIf="selectedProvider === 'exec'">
-					<h1>Execution</h1>
+					<h1>{{ 'execution' | translate }}</h1>
 					<form
 						(ngSubmit)="saveGameExec()"
 						[formGroup]="exec"
@@ -353,7 +353,7 @@
 							[style.background-color]="'purple'"
 							icon="pi pi-link"
 							id="playbtn"
-							label="Link"
+							label="{{ 'link-0' | translate }}"
 						></p-button>
 						<ng-container *ngIf="currentGame">
 							<div
@@ -374,7 +374,7 @@
 								</p-floatLabel>
 							</div>
 						</ng-container>
-						<p-button label="Save" type="submit"></p-button>
+						<p-button label="{{ 'save' | translate }}" type="submit"></p-button>
 					</form>
 				</div>
 			</div>

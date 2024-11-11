@@ -1,7 +1,7 @@
 <div>
 	<h1>Steam Grid DB</h1>
 	<p-stepper (activeStepChange)="onStepChange($event)">
-		<p-stepperPanel header="Game">
+		<p-stepperPanel header="{{'game' | translate}}">
 			<ng-template
 				let-index="index"
 				let-nextCallback="nextCallback"
@@ -9,7 +9,7 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-						<h2>Select the game you want to add</h2>
+						<h2>{{'selectTheGameYouWantToAdd' | translate}}</h2>
 						<p *ngIf="message">{{ message }}</p>
 						<div *ngIf="!message">
 							<p-listbox
@@ -26,7 +26,7 @@
 						(onClick)="nextCallback.emit()"
 						icon="pi pi-arrow-right"
 						iconPos="right"
-						label="Next"
+						label="{{'next' | translate}}"
 					/>
 				</div>
 			</ng-template>
@@ -40,7 +40,7 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-						<h2>Select the Grid</h2>
+						<h2>{{'selectTheGrid' | translate}}</h2>
 						<div class="container">
 							<div
 								*ngFor="let grid of availableGrids; let i = index"
@@ -62,13 +62,13 @@
 					<p-button
 						(onClick)="prevCallback.emit()"
 						icon="pi pi-arrow-left"
-						label="Back"
+						label="{{'back' | translate}}"
 					/>
 					<p-button
 						(onClick)="nextCallback.emit()"
 						icon="pi pi-arrow-right"
 						iconPos="right"
-						label="Next"
+						label="{{'next' | translate}}"
 					/>
 				</div>
 			</ng-template>
@@ -82,7 +82,7 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-						<h2>Select the Hero</h2>
+                        <h2>{{'selectTheHero' | translate}}</h2>
 						<div class="container">
 							<div
 								*ngFor="let hero of availableHeroes; let i = index"
@@ -104,18 +104,18 @@
 					<p-button
 						(onClick)="prevCallback.emit()"
 						icon="pi pi-arrow-left"
-						label="Back"
+						label="{{'back' | translate}}"
 					/>
 					<p-button
 						(onClick)="nextCallback.emit()"
 						icon="pi pi-arrow-right"
 						iconPos="right"
-						label="Next"
+						label="{{'next' | translate}}"
 					/>
 				</div>
 			</ng-template>
 		</p-stepperPanel>
-		<p-stepperPanel header="Logo">
+		<p-stepperPanel header="{{'logo' | translate}}">
 			<ng-template
 				let-index="index"
 				let-nextCallback="nextCallback"
@@ -124,7 +124,7 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-						<h2>Select the Logo</h2>
+						<h2>{{'selectTheLogo' | translate}}</h2>
 						<div class="container">
 							<div
 								*ngFor="let logo of availableLogos; let i = index"
@@ -146,13 +146,13 @@
 					<p-button
 						(onClick)="prevCallback.emit()"
 						icon="pi pi-arrow-left"
-						label="Back"
+						label="{{'back' | translate}}"
 					/>
 					<p-button
 						(onClick)="nextCallback.emit()"
 						icon="pi pi-arrow-right"
 						iconPos="right"
-						label="Next"
+						label="{{'next' | translate}}"
 					/>
 				</div>
 			</ng-template>
@@ -164,7 +164,7 @@
 				pTemplate="content"
 			>
 				<div style="width: 100%">
-					<p>Select the Icon</p>
+					<p>{{'selectTheIcon' | translate}}</p>
 					<div class="container">
 						<div *ngFor="let icon of availableIcons; let i = index">
 							<img
@@ -183,12 +183,12 @@
 					<p-button
 						(onClick)="prevCallback.emit()"
 						icon="pi pi-arrow-left"
-						label="Back"
+						label="{{'back' | translate}}"
 					/>
 					<p-button
 						(click)="send()"
 						icon="pi pi-save"
-						label="Save"
+						label="{{'save' | translate}}"
 					></p-button>
 				</div>
 			</ng-template>

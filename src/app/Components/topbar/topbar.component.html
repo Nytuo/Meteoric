@@ -1,133 +1,132 @@
 <div class="topbar" data-tauri-drag-region>
-	<div class="navAndBookmarks">
-		<p-button (click)="location.back()" icon="pi pi-chevron-left"></p-button
-		>
-		<p-button
-			(click)="location.forward()"
-			icon="pi pi-chevron-right"
-		></p-button>
-		<p-button
-			(onClick)="op.toggle($event)"
-			[style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
-			icon="pi pi-bookmark"
-		></p-button>
-		<p-button
-			(onClick)="toggleFavorites()"
-			[icon]="isFavoritesChecked() ? 'pi pi-star-fill' : 'pi pi-star'"
-			[style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
-		></p-button>
-		<p-overlayPanel #op>
-			<input
-				[style]="{ marginRight: '10px' }"
-				id="addcat"
-				pInputText
-				placeholder="Add new category"
-			/>
-			<p-button (click)="addCategory()" icon="pi pi-plus"></p-button>
-			<div *ngFor="let cat of allCategories">
-				<label class="form-control" for="addtocat">
-					<input
-						(change)="toggleCategory($event, cat.id)"
-						[defaultChecked]="isCategoryChecked(cat.id)"
-						id="addtocat"
-						name="addtocat"
-						type="checkbox"
-					/>
-					{{ cat.name }}
-				</label>
-			</div>
-		</p-overlayPanel>
-	</div>
-	<div *ngIf="!onGamePage" class="main">
-		<div class="searchBar">
-			<input
-				(input)="searchGame()"
-				[(ngModel)]="searchQuery"
-				placeholder="Search"
-				type="text"
-			/>
-			<span class="material-symbols-outlined"> search </span>
-		</div>
-		<div class="addGame">
-			<p-button
-				(click)="toggleOverlay('game')"
-				icon="pi pi-plus-circle"
-			></p-button>
-		</div>
-		<p-overlayPanel #filter_overlay>
-			<p-cascadeSelect
-				(onChange)="filterGames()"
-				[(ngModel)]="selectedFilter"
-				[optionGroupChildren]="['values']"
-				[options]="filters"
-				[style]="{ minWidth: '14rem' }"
-				optionGroupLabel="name"
-				optionLabel="cname"
-				placeholder="Filter By"
-			>
-			</p-cascadeSelect>
-		</p-overlayPanel>
-		<p-overlayPanel #sort_overlay>
-			<p-dropdown
-				(onChange)="sortGames()"
-				[(ngModel)]="selectedSort"
-				[options]="sorts"
-				optionLabel="name"
-				placeholder="Sort By"
-			/>
-		</p-overlayPanel>
-		<div class="filter">
-			<p-button
-				(onClick)="filter_overlay.toggle($event)"
-				icon="pi pi-filter"
-			></p-button>
-		</div>
-		<div class="sort">
-			<p-button
-				(onClick)="sort_overlay.toggle($event)"
-				icon="pi pi-sort"
-			></p-button>
-		</div>
-		<div (click)="toggleOverlay()" class="more">
-			<p-button icon="pi pi-ellipsis-v"></p-button>
-		</div>
-	</div>
-	<div *ngIf="onGamePage" class="main">
-		<div class="launchGame">
-			<p-button
-				(click)="playGame()"
-				[icon]="btnicon"
-				[label]="displayPlayForGame"
-				[loading]="loading"
-				[style]="color"
-				id="playbtn"
-			></p-button>
-		</div>
-		<div class="more">
-			<p-button [routerLink]="editPage" icon="pi pi-pencil"></p-button>
-		</div>
-	</div>
-	<div [style.visibility]="'hidden'" class="windowManagement">
-		<p-button
-			(click)="toggleMinimize()"
-			icon="pi pi-window-minimize"
-		></p-button>
-		<p-button
-			(click)="toggleMaximize()"
-			icon="pi pi-window-maximize"
-		></p-button>
-		<p-button
-			(click)="appWindow.close()"
-			icon="pi pi-times-circle"
-		></p-button>
-	</div>
+    <div class="navAndBookmarks">
+        <p-button (click)="location.back()" icon="pi pi-chevron-left"></p-button>
+        <p-button
+                (click)="location.forward()"
+                icon="pi pi-chevron-right"
+        ></p-button>
+        <p-button
+                (onClick)="op.toggle($event)"
+                [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
+                icon="pi pi-bookmark"
+        ></p-button>
+        <p-button
+                (onClick)="toggleFavorites()"
+                [icon]="isFavoritesChecked() ? 'pi pi-star-fill' : 'pi pi-star'"
+                [style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
+        ></p-button>
+        <p-overlayPanel #op>
+            <input
+                    [style]="{ marginRight: '10px' }"
+                    id="addcat"
+                    pInputText
+                    placeholder='{{ "addNewCategory" | translate }}'
+            />
+            <p-button (click)="addCategory()" icon="pi pi-plus"></p-button>
+            <div *ngFor="let cat of allCategories">
+                <label class="form-control" for="addtocat">
+                    <input
+                            (change)="toggleCategory($event, cat.id)"
+                            [defaultChecked]="isCategoryChecked(cat.id)"
+                            id="addtocat"
+                            name="addtocat"
+                            type="checkbox"
+                    />
+                    {{ cat.name }}
+                </label>
+            </div>
+        </p-overlayPanel>
+    </div>
+    <div *ngIf="!onGamePage" class="main">
+        <div class="searchBar">
+            <input
+                    (input)="searchGame()"
+                    [(ngModel)]="searchQuery"
+                    placeholder="{{ 'search' | translate }}"
+                    type="text"
+            />
+            <span class="material-symbols-outlined"> search </span>
+        </div>
+        <div class="addGame">
+            <p-button
+                    (click)="toggleOverlay('game')"
+                    icon="pi pi-plus-circle"
+            ></p-button>
+        </div>
+        <p-overlayPanel #filter_overlay>
+            <p-cascadeSelect
+                    (onChange)="filterGames()"
+                    [(ngModel)]="selectedFilter"
+                    [optionGroupChildren]="['values']"
+                    [options]="filters"
+                    [style]="{ minWidth: '14rem' }"
+                    optionGroupLabel="name"
+                    optionLabel="cname"
+                    placeholder="{{ 'filterBy' | translate }}"
+            >
+            </p-cascadeSelect>
+        </p-overlayPanel>
+        <p-overlayPanel #sort_overlay>
+            <p-dropdown
+                    (onChange)="sortGames()"
+                    [(ngModel)]="selectedSort"
+                    [options]="sorts"
+                    optionLabel="name"
+                    placeholder="{{ 'sortBy' | translate }}"
+            />
+        </p-overlayPanel>
+        <div class="filter">
+            <p-button
+                    (onClick)="filter_overlay.toggle($event)"
+                    icon="pi pi-filter"
+            ></p-button>
+        </div>
+        <div class="sort">
+            <p-button
+                    (onClick)="sort_overlay.toggle($event)"
+                    icon="pi pi-sort"
+            ></p-button>
+        </div>
+        <div (click)="toggleOverlay()" class="more">
+            <p-button icon="pi pi-ellipsis-v"></p-button>
+        </div>
+    </div>
+    <div *ngIf="onGamePage" class="main">
+        <div class="launchGame">
+            <p-button
+                    (click)="playGame()"
+                    [icon]="btnicon"
+                    [label]="displayPlayForGame"
+                    [loading]="loading"
+                    [style]="color"
+                    id="playbtn"
+            ></p-button>
+        </div>
+        <div class="more">
+            <p-button [routerLink]="editPage" icon="pi pi-pencil"></p-button>
+        </div>
+    </div>
+    <div [style.visibility]="'hidden'" class="windowManagement">
+        <p-button
+                (click)="toggleMinimize()"
+                icon="pi pi-window-minimize"
+        ></p-button>
+        <p-button
+                (click)="toggleMaximize()"
+                icon="pi pi-window-maximize"
+        ></p-button>
+        <p-button
+                (click)="appWindow.close()"
+                icon="pi pi-times-circle"
+        ></p-button>
+    </div>
 </div>
 
 <app-filter-overlay
-	*ngIf="!onGamePage && overlayVisible"
-	[(visible)]="overlayVisible"
+        *ngIf="!onGamePage && overlayVisible"
+        [(visible)]="overlayVisible"
 ></app-filter-overlay>
 <app-add-game-overlay
-	*ngIf="gameOverlayOpen"
-	[(visible)]="gameOverlayOpen"
+        *ngIf="gameOverlayOpen"
+        [(visible)]="gameOverlayOpen"
 ></app-add-game-overlay>

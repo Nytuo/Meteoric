@@ -6,6 +6,7 @@ import { CarouselResponsiveOptions } from 'primeng/carousel';
 import { GenericService } from '../../services/generic.service';
 import type { SimpleIcon } from 'simple-icons';
 import * as simpleIcons from 'simple-icons';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-details',
@@ -18,7 +19,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 	allPlayersTrophyAvg: number = 0;
 	allPlayersTimePlayedAvg: number = 0;
 	gameRating: any;
-	gameTags: any = ['No tags'];
+	gameTags: any = [this.translate.instant('no-tags')]
 	media: any = {
 		images: [],
 		videos: [],
@@ -86,6 +87,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		private route: ActivatedRoute,
 		private gameService: GameService,
 		private genericService: GenericService,
+		private translate: TranslateService
 	) {
 	}
 
@@ -294,7 +296,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		this.game = game;
 		this.gameTags = this.game?.tags.split(',');
 		this.gameRating = this.game?.rating;
-		if (this.game.tags === '') this.gameTags = ['No tags'];
+		if (this.game.tags === '') this.gameTags = [this.translate.instant('no-tags')];
 		this.media.images = this.game?.screenshots;
 		this.media.videos = this.game?.videos;
 		console.log(this.media);

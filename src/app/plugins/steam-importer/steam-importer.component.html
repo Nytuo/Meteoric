@@ -1,5 +1,5 @@
 <div>
-	<h1>Steam Library Importer</h1>
+	<h1>{{'steamLibraryImporter' | translate}}</h1>
 	<br />
 	<p-floatLabel>
 		<input [(ngModel)]="authCode" id="AuthCode" pInputText />
@@ -8,6 +8,6 @@
 	<p-button
 		(click)="loginAndSync()"
 		[style]="{ margin: '40px' }"
-		label="Import"
+		label="{{'import' | translate}}"
 	></p-button>
 </div>

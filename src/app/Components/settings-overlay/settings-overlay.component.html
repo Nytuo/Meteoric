@@ -14,30 +14,30 @@
 		<div style="width: 100%">
 			<div id="content">
 				<div *ngIf="activeItem === 'Themes'" id="themes">
-					<h3>Themes</h3>
-					<p>Choose a theme:</p>
+					<h3>{{ 'themes' | translate }}</h3>
+					<p>{{ 'choose-a-theme' | translate }}</p>
 					<p-dropdown
 						(onChange)="changeTheme()"
 						[(ngModel)]="selectedTheme"
 						[options]="themes"
 						optionLabel="label"
-						placeholder="Change Theme"
+						placeholder="{{ 'change-theme' | translate }}"
 					/>
 				</div>
 				<div *ngIf="activeItem === 'Languages'" id="languages">
-					<h3>Languages</h3>
-					<p>Choose a language:</p>
+					<h3>{{ 'languages' | translate }}</h3>
+					<p>{{ 'choose-a-language' | translate }}</p>
 					<p-dropdown
 						(onChange)="changeLanguage()"
 						[(ngModel)]="selectedLanguage"
 						[options]="languages"
 						optionLabel="label"
-						placeholder="Change language"
+						placeholder="{{ 'change-language' | translate }}"
 					/>
 				</div>
                 <div *ngIf="activeItem === 'APIKEYS'" id="APIKEYS">
-                    <h3>API Keys</h3>
-                    <p>In this section you will be able to add your API keys for the different services that Meteoric uses.</p>
+                    <h3>{{ 'api-keys' | translate }}</h3>
+                    <p>{{ 'settings.api-keys' | translate }}</p>
                 </div>
 
 				<app-csv-importer
@@ -59,35 +59,33 @@
 					*ngIf="activeItem === 'GOG Importer'"
 				></app-gog-importer>
 				<div *ngIf="activeItem === 'About'" id="about">
-					<h3>About</h3>
+					<h3>{{ 'about' | translate }}</h3>
 					<img
-						alt="Meteoric Logo"
+						alt="{{ 'meteoric-logo' | translate }}"
 						height="235"
 						ngSrc="assets/logo.svg"
 						style="width: 100px; height: 100px"
 						width="240"
 					/>
 					<p>Meteoric</p>
-					<p>Version: {{ appVersion }}</p>
+					<p>{{ 'version-appversion' | translate }}</p>
 					<br />
 					<p>
-						This is a project by <a href="https://github.com/Nytuo"
+						{{ 'this-is-a-project-by' | translate }} <a href="https://github.com/Nytuo"
 						>Nytuo</a>
 					</p>
 					<p>
-						It is a work in progress, expect some issues. In some
-						case you may need to manually refresh / restart the
-						launcher.
+						{{ 'dev-warning' | translate }}
 					</p>
 					<p>
-						For any issues, please report them on the
+						{{ 'reportIssue' | translate }}
 						<a href="https://github.com/Nytuo/Meteoric/issues"
-						>GitHub page</a>
+						>GitHub</a>
 					</p>
 					<p>
-						For any feature requests, please report them on the
+						{{ 'features-report' | translate }}
 						<a href="https://github.com/Nytuo/Meteoric/issues"
-						>GitHub page</a>
+						>GitHub</a>
 					</p>
 				</div>
 			</div>
