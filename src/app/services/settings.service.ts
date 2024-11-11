@@ -44,4 +44,19 @@ export class SettingsService {
 	getSettings() {
 		return this.settings.asObservable();
 	}
+
+	changeLanguage(selectedTheme: string) {
+		//TODO MAKE LANGUAGE
+		this.settings.next( { ...this.settings.getValue(), theme: selectedTheme });
+		this.applySettings(this.settings.getValue());
+	}
+
+	changeTheme(selectedTheme: string, justSwitch: boolean = false) {
+		let themeLinker = document.getElementById(
+			'themeLinker',
+		) as HTMLLinkElement;
+		themeLinker.href = selectedTheme;
+		this.settings.next( { ...this.settings.getValue(), theme: selectedTheme });
+		if (!justSwitch) this.applySettings(this.settings.getValue());
+	}
 }

@@ -1,4 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {SettingsService} from "../../services/settings.service";
+import {BehaviorSubject} from "rxjs";
+import ISettings from "../../../interfaces/ISettings";
 
 @Component({
 	selector: 'app-settings-overlay',
@@ -10,6 +13,7 @@ export class SettingsOverlayComponent implements OnInit {
 	visible: boolean = false;
 	@Output()
 	visibleChange = new EventEmitter<boolean>();
+	settings: BehaviorSubject<ISettings> = new BehaviorSubject<ISettings>({});
 	themes: any[] = [
 		{ label: 'Bootstrap4 Light Blue', value: 'bootstrap4-light-blue.css' },
 		{
@@ -98,6 +102,13 @@ export class SettingsOverlayComponent implements OnInit {
 					this.activeItem = 'Languages';
 				},
 			},
+			{
+				label: 'API Settings',
+				icon: 'pi pi-sliders-h',
+				command: () => {
+					this.activeItem = 'APIKEYS';
+				},
+			}
 		],
 	}, {
 		label: 'Game Importers',
@@ -164,25 +175,30 @@ export class SettingsOverlayComponent implements OnInit {
 	selectedLanguage: any;
 	appVersion: string = '1.0.0';
 
+	constructor(private settingsService: SettingsService) {}
+
 	changeLanguage() {
-		throw new Error('Method not implemented.');
+		//TODO MAKE LANGUAGE
+		this.settingsService.changeLanguage(this.selectedLanguage.value);
 	}
 
 	changeTheme() {
-		let themeLinker = document.getElementById(
-			'themeLinker',
-		) as HTMLLinkElement;
-		themeLinker.href = this.selectedTheme.value;
+		this.settingsService.changeTheme(this.selectedTheme.value);
 	}
 
 	hide() {
 		this.visibleChange.emit(false);
 	}
 
+	searchThemeFromValue(value: string) {
+		return this.themes.find((theme) => theme.value === value);
+	}
+
 	ngOnInit(): void {
 		this.selectedTheme =
 			(document.getElementById('themeLinker') as HTMLLinkElement).href
 				.split('/').pop();
-		this.appVersion = '1.0.0'; // TODO get version from package.json
+		this.selectedTheme = this.searchThemeFromValue(this.selectedTheme);
+		this.appVersion = '1.0.0';
 	}
 }

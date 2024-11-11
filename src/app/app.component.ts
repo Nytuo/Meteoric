@@ -3,6 +3,9 @@ import { GameService } from './services/game.service';
 import { CategoryService } from './services/category.service';
 import { GenericService } from './services/generic.service';
 import { PrimeNGConfig } from 'primeng/api';
+import {SettingsService} from "./services/settings.service";
+import ISettings from "../interfaces/ISettings";
+import {BehaviorSubject} from "rxjs";
 
 @Component({
 	selector: 'app-root',
@@ -15,6 +18,7 @@ export class AppComponent implements OnInit {
 		private categoryService: CategoryService,
 		private genericService: GenericService,
 		private primengConfig: PrimeNGConfig,
+		private settingsService: SettingsService,
 	) {
 	}
 
@@ -23,6 +27,9 @@ export class AppComponent implements OnInit {
 		this.categoryService.refreshCategories();
 		this.genericService.startRoutine();
 		this.primengConfig.ripple = true;
+		this.settingsService.getSettings().subscribe((settings) => {
+			this.settingsService.changeTheme(settings.theme || 'viva-dark.css', true);
+		});
 		this.changeBackground();
 	}
 

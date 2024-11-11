@@ -35,6 +35,11 @@
 						placeholder="Change language"
 					/>
 				</div>
+                <div *ngIf="activeItem === 'APIKEYS'" id="APIKEYS">
+                    <h3>API Keys</h3>
+                    <p>In this section you will be able to add your API keys for the different services that Meteoric uses.</p>
+                </div>
+
 				<app-csv-importer
 					*ngIf="activeItem === 'CSV Importer'"
 				></app-csv-importer>

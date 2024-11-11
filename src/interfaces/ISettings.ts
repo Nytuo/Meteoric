@@ -5,4 +5,7 @@ export default interface ISettings {
 	gap?: string;
 	zoom?: string;
 	displayInfo?: any;
+	language?: string;
+	theme?: string;
+	apiKeys?: string[];
 }
