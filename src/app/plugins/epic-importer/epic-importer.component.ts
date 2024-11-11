@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { invoke } from '@tauri-apps/api/tauri';
 import { ConfirmationService } from 'primeng/api';
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
 	selector: 'app-epic-importer',
@@ -23,7 +24,7 @@ export class EpicImporterComponent {
 	selectedItemChange: EventEmitter<string> = new EventEmitter<string>();
 	authCode: any;
 
-	constructor(private confirmationService: ConfirmationService) {
+	constructor(private confirmationService: ConfirmationService, private translateService: TranslateService) {
 	}
 
 	openLinkInBrowser(link: string) {
@@ -48,9 +49,8 @@ export class EpicImporterComponent {
 
 	confirm() {
 		this.confirmationService.confirm({
-			header: 'Readme',
-			message:
-				'You will be redirected to the Epic Games website to get an authentication code. This code will be used to sync your library. You will have to copy/paste the AuthCode for the next step. Do you want to continue?',
+			header: this.translateService.instant('epic-importer.readme'),
+			message: this.translateService.instant('epic-importer.popup'),
 			acceptIcon: 'pi pi-check mr-2',
 			rejectIcon: 'pi pi-times mr-2',
 			rejectButtonStyleClass: 'p-button-sm',

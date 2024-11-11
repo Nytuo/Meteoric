@@ -145,30 +145,30 @@
 		<div class="gameDetails">
 			<div class="gameDetail">
 				<p class="fadedText">
-					Critics Score :
+					{{ 'critics-score' | translate }}
 					<span class="whiterized">{{ game?.critic_score }}</span>
 				</p>
 				<p class="fadedText">
-					Genres : <span class="whiterized">{{ game?.genres }}</span>
+					{{ 'genres-0' | translate }} <span class="whiterized">{{ game?.genres }}</span>
 				</p>
 				<p class="fadedText">
-					Styles : <span class="whiterized">{{ game?.styles }}</span>
+					{{ 'styles' | translate }} <span class="whiterized">{{ game?.styles }}</span>
 				</p>
 				<p class="fadedText">
-					Release Date :
+					{{ 'release-date-0' | translate }}
 					<span class="whiterized">{{ game?.release_date }}</span>
 				</p>
 				<p class="fadedText">
-					Developers : <span class="whiterized">{{
+					{{ 'developers' | translate }} <span class="whiterized">{{
 							game?.developers
 						}}</span>
 				</p>
 				<p class="fadedText">
-					Editors : <span class="whiterized">{{ game?.editors }}</span
+					{{ 'editors-0' | translate }} <span class="whiterized">{{ game?.editors }}</span
 					>
 				</p>
 				<p class="fadedText">
-					Status : <span class="whiterized">{{ game?.status }}</span>
+					{{ 'status-0' | translate }} <span class="whiterized">{{ game?.status }}</span>
 				</p>
 			</div>
 		</div>

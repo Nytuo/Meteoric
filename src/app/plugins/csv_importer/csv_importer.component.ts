@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { invoke } from '@tauri-apps/api/tauri';
 import * as Papa from 'papaparse';
 import { GenericService } from '../../services/generic.service';
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
 	selector: 'app-csv-importer',
@@ -14,7 +15,7 @@ export class CSVImporter implements OnInit {
 	dbColumns: string[] = [];
 	columnMapping: { [key: string]: string } = {};
 
-	constructor(private genericService: GenericService) {
+	constructor(private genericService: GenericService, private  tr: TranslateService) {
 	}
 
 	ngOnInit(): void {
@@ -64,8 +65,8 @@ export class CSVImporter implements OnInit {
 
 		await invoke('upload_csv_to_db', { data: mappedData }).then(() => {
 			this.genericService.sendNotification(
-				'CSV Upload',
-				'Data imported successfully',
+				this.tr.instant('csvUpload'),
+				this.tr.instant('dataImportedSuccessfully'),
 			);
 		});
 	}

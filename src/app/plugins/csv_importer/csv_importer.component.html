@@ -1,5 +1,5 @@
 <div class="card">
-	<h2>CSV to Database Importer</h2>
+	<h2>{{ 'csvToDatabaseImporter' | translate }}</h2>
 	<p-fileUpload
 		(onSelect)="onFileSelect($event)"
 		accept=".csv"
@@ -10,7 +10,7 @@
 	></p-fileUpload>
 
 	<div *ngIf="csvData.length">
-		<h2>Bind CSV Columns to Database Columns:</h2>
+		<h2>{{ 'bindCSV' | translate }}</h2>
 
 		<div *ngFor="let csvHeader of csvHeaders; let i = index">
 			<label style="margin-right: 15px">{{ csvHeader }}:</label>
@@ -22,7 +22,7 @@
 		<br />
 		<button
 			(click)="importData()"
-			label="Import to Database"
+			label="{{ 'importToDatabase' | translate }}"
 			pButton
 			type="button"
 		>

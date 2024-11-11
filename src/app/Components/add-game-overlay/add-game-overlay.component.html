@@ -2,20 +2,20 @@
 	(onHide)="hide()"
 	[(visible)]="visible"
 	draggable="false"
-	header="Add A Game"
+	header="{{ 'addAGame' | translate }}"
 	modal="true"
 	resizable="false"
 >
 	<br />
 	<p-floatLabel>
 		<input id="name" pInputText style="width: 1000px" />
-		<label for="name">Name</label>
+		<label for="name">{{ 'name' | translate }}</label>
 	</p-floatLabel>
 	<br />
-	<p-button (click)="addGame()" label="Add"></p-button>
+	<p-button (click)="addGame()" label="{{ 'add' | translate }}"></p-button>
 
 	<div *ngIf="loading" class="overlayLoading">
-		<p>Adding The Game, Please Wait...</p>
+		<p>{{ 'adding_game_pls_wait' | translate }}</p>
 		<p-progressBar
 			*ngIf="loading"
 			[style]="{ height: '6px', zIndex: 9999, width: '400px' }"

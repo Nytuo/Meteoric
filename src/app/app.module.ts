@@ -68,6 +68,7 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { CascadeSelectModule } from 'primeng/cascadeselect';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
+import {TranslateModule} from '@ngx-translate/core';
 
 @NgModule({
 	declarations: [
@@ -128,6 +129,10 @@ import { InputTextModule } from 'primeng/inputtext';
 		OverlayPanelModule,
 		CascadeSelectModule,
 		InputTextModule,
+		BrowserModule,
+		TranslateModule.forRoot({
+			defaultLanguage: 'en',
+		}),
 	],
 	providers: [
 		GameService,
@@ -141,5 +146,6 @@ import { InputTextModule } from 'primeng/inputtext';
 	],
 	bootstrap: [AppComponent],
 })
+
 export class AppModule {
 }

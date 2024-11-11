@@ -4,6 +4,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import ISettings from '../../../interfaces/ISettings';
 import { SettingsService } from '../../services/settings.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-filter-overlay',
@@ -18,8 +19,8 @@ export class FilterOverlayComponent {
 
 	viewState: any = 'card';
 	stateOptions: any[] | undefined = [
-		{ label: 'List', value: 'list' },
-		{ label: 'Grid', value: 'card' },
+		{ label: this.translate.instant('view.list'), value: 'list' },
+		{ label: this.translate.instant('view.grid'), value: 'card' },
 	];
 	displayInfo: FormGroup = new FormGroup({
 		name: new FormControl(''),
@@ -35,6 +36,7 @@ export class FilterOverlayComponent {
 	constructor(
 		protected genericService: GenericService,
 		protected settingsService: SettingsService,
+		private translate: TranslateService
 	) {
 		this.settingsService.getSettings().subscribe((settings) => {
 			this.settings.next(settings);

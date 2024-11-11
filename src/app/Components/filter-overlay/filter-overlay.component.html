@@ -14,7 +14,7 @@
 			optionValue="value"
 		></p-selectButton>
 		<div>
-			<div>Zoom</div>
+			<div>{{ 'zoom' | translate }}</div>
 			<p-slider
 				(onChange)="changeZoom()"
 				(onSlideEnd)="applyZoom()"
@@ -24,7 +24,7 @@
 				step="2"
 			></p-slider>
 			<br />
-			<div>Gap</div>
+			<div>{{ 'gap' | translate }}</div>
 			<p-slider
 				(onChange)="changeGap()"
 				(onSlideEnd)="applyGap()"
@@ -45,7 +45,7 @@
 							name="displayInfo"
 							value="name"
 						></p-radioButton>
-						<label class="ml-2" for="name">Name</label>
+						<label class="ml-2" for="name">{{ 'name' | translate }}</label>
 					</div>
 					<div class="flex align-items-center">
 						<p-radioButton
@@ -56,7 +56,7 @@
 							name="displayInfo"
 							value="platforms"
 						></p-radioButton>
-						<label class="ml-2" for="platforms">Platforms</label>
+						<label class="ml-2" for="platforms">{{ 'platforms' | translate }}</label>
 					</div>
 
 					<div class="flex align-items-center">
@@ -68,7 +68,7 @@
 							name="displayInfo"
 							value="tags"
 						></p-radioButton>
-						<label class="ml-2" for="tags">Tags</label>
+						<label class="ml-2" for="tags">{{ 'tags' | translate }}</label>
 					</div>
 
 					<div class="flex align-items-center">
@@ -80,10 +80,10 @@
 							name="displayInfo"
 							value="rating"
 						></p-radioButton>
-						<label class="ml-2" for="rating">Rating</label>
+						<label class="ml-2" for="rating">{{ 'rating' | translate }}</label>
 					</div>
 				</div>
-				<p-button (click)="clearDisplayInfo()" label="Reset"></p-button>
+				<p-button (click)="clearDisplayInfo()" label="{{ 'reset' | translate }}"></p-button>
 			</div>
 		</div>
 	</div>

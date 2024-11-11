@@ -1,8 +1,8 @@
 <div style="padding: 20px">
-	<h1>Epic Games Importer</h1>
+	<h1>Epic Games {{ 'importer' | translate }}</h1>
 
 	<p-stepper>
-		<p-stepperPanel header="Sign In">
+		<p-stepperPanel header="{{ 'signIn' | translate }}">
 			<ng-template
 				let-index="index"
 				let-nextCallback="nextCallback"
@@ -11,21 +11,16 @@
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
 						<p>
-							You will be redirected to the Epic Games website to
-							get an authentication code. This code will be used
-							to sync your library. You will have to copy/paste
-							the AuthCode for the next step.
+							{{ 'epic-importer.howto' | translate }}
 						</p>
-						<p>
-							If you are already connected then you can skip to
-							step 3
+						<p>{{ 'epic-importer.alreadyConnected' | translate }}
 						</p>
 						<p-confirmDialog>
 							<ng-template let-message pTemplate="message">
 								<p>{{ message.message }}</p>
 							</ng-template>
 						</p-confirmDialog>
-						<p-button (onClick)="confirm()" label="Sign In" />
+						<p-button (onClick)="confirm()" label="{{ 'signIn' | translate }}" />
 					</div>
 				</div>
 				<div style="display: flex; justify-content: flex-end">
@@ -33,12 +28,12 @@
 						(onClick)="nextCallback.emit()"
 						icon="pi pi-arrow-right"
 						iconPos="right"
-						label="Next"
+						label="{{ 'next' | translate }}"
 					/>
 				</div>
 			</ng-template>
 		</p-stepperPanel>
-		<p-stepperPanel header="Insert the AuthCode">
+		<p-stepperPanel header="{{ 'insertTheAuthcode' | translate }}">
 			<ng-template
 				let-index="index"
 				let-nextCallback="nextCallback"
@@ -53,7 +48,7 @@
 								id="AuthCode"
 								pInputText
 							/>
-							<label for="AuthCode">AuthCode</label>
+							<label for="AuthCode">{{ 'authcode' | translate }}</label>
 						</p-floatLabel>
 					</div>
 				</div>
@@ -61,18 +56,18 @@
 					<p-button
 						(onClick)="prevCallback.emit()"
 						icon="pi pi-arrow-left"
-						label="Back"
+						label="{{ 'back' | translate }}"
 					/>
 					<p-button
 						(onClick)="nextCallback.emit()"
 						icon="pi pi-arrow-right"
 						iconPos="right"
-						label="Next"
+						label="{{ 'next' | translate }}"
 					/>
 				</div>
 			</ng-template>
 		</p-stepperPanel>
-		<p-stepperPanel header="Login">
+		<p-stepperPanel header="{{ 'login' | translate }}">
 			<ng-template
 				let-index="index"
 				let-prevCallback="prevCallback"
@@ -91,11 +86,11 @@
 						<p-button
 							(click)="loginAndSync()"
 							[style]="{ marginLeft: '20px' }"
-							label="Login And Sync"
+							label="{{ 'loginAndSync' | translate }}"
 						></p-button>
 						<p-button
 							(click)="syncOnly()"
-							label="Sync (Already Logged in)"
+							label="{{ 'sync-loggedin' | translate }}"
 						></p-button>
 					</div>
 				</div>
@@ -103,7 +98,7 @@
 					<p-button
 						(onClick)="prevCallback.emit()"
 						icon="pi pi-arrow-left"
-						label="Back"
+						label="{{ 'back' | translate }}"
 					/>
 				</div>
 			</ng-template>

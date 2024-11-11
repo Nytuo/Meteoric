@@ -9,6 +9,7 @@ import simpleSvgPlaceholder from '@cloudfour/simple-svg-placeholder';
 import { Router } from '@angular/router';
 import { open } from '@tauri-apps/api/dialog';
 import { dirname } from '@tauri-apps/api/path';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-edit-game',
@@ -28,23 +29,23 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	strict: boolean = false;
 	hideSelectBtn: boolean = false;
 	statuses: any = [
-		'Not started',
-		'In progress',
-		'Completed',
-		'On hold',
-		'Dropped',
-		'Platinum',
+		this.translate.instant('not-started'),
+		this.translate.instant('in-progress'),
+		this.translate.instant('completed'),
+		this.translate.instant('on-hold'),
+		this.translate.instant('dropped'),
+		this.translate.instant('platinum'),
 	];
 	// ADD API HERE
 	hideSearch: boolean = false;
 	items = [
 		{
-			label: 'Game information',
+			label: this.translate.instant('game-information'),
 			icon: 'pi pi-info-circle',
 			expanded: true,
 			items: [
 				{
-					label: 'General',
+					label: this.translate.instant('general'),
 					icon: 'pi pi-file',
 					command: () => {
 						this.selectedProvider = 'general';
@@ -53,7 +54,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					},
 				},
 				{
-					label: 'Personal',
+					label: this.translate.instant('personal'),
 					icon: 'pi pi-id-card',
 					command: () => {
 						this.searchedGames = [];
@@ -62,7 +63,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					},
 				},
 				{
-					label: 'Media',
+					label: this.translate.instant('media'),
 					icon: 'pi pi-images',
 					command: () => {
 						this.searchedGames = [];
@@ -71,7 +72,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					},
 				},
 				{
-					label: 'Execution',
+					label: this.translate.instant('execution'),
 					icon: 'pi pi-play',
 					command: () => {
 						this.searchedGames = [];
@@ -82,12 +83,12 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			],
 		},
 		{
-			label: 'Metadata Providers',
+			label: this.translate.instant('metadata-providers'),
 			icon: 'pi pi-pencil',
 			expanded: true,
 			items: [
 				{
-					label: 'Youtube Background Music Provider',
+					label: this.translate.instant('youtube-background-music-provider'),
 					icon: 'pi pi-youtube',
 					command: () => {
 						this.selectedProvider = 'ytdl';
@@ -97,7 +98,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					},
 				},
 				{
-					label: 'Steam Grid DB Provider',
+					label: this.translate.instant('steam-grid-db-provider'),
 					icon: 'pi pi-desktop',
 					command: () => {
 						this.selectedProvider = 'steam_grid';
@@ -107,7 +108,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					},
 				},
 				{
-					label: 'IGDB Provider',
+					label: this.translate.instant('igdb-provider'),
 					icon: 'pi pi-desktop',
 					command: () => {
 						this.selectedProvider = 'igdb';
@@ -158,6 +159,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		protected genericService: GenericService,
 		protected router: Router,
 		private messageService: MessageService,
+		private translate: TranslateService
 	) {
 	}
 
@@ -195,28 +197,28 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			last_time_played: '',
 			hidden: 'false',
 			jaquette: simpleSvgPlaceholder({
-				text: 'Placeholder',
+				text: this.translate.instant('placeholder'),
 				textColor: '#ffffff',
 				bgColor: '#7a7a7a',
 				width: 200,
 				height: 300,
 			}),
 			background: simpleSvgPlaceholder({
-				text: 'Placeholder',
+				text: this.translate.instant('placeholder'),
 				textColor: '#ffffff',
 				bgColor: '#7a7a7a',
 				width: 300,
 				height: 200,
 			}),
 			logo: simpleSvgPlaceholder({
-				text: 'Placeholder',
+				text: this.translate.instant('placeholder'),
 				textColor: '#ffffff',
 				bgColor: '#7a7a7a',
 				width: 200,
 				height: 200,
 			}),
 			icon: simpleSvgPlaceholder({
-				text: 'Placeholder',
+				text: this.translate.instant('placeholder'),
 				textColor: '#ffffff',
 				bgColor: '#7a7a7a',
 				width: 200,
@@ -307,8 +309,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.currentGame === undefined
 		) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -322,8 +324,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				this.currentGame === undefined
 			) {
 				this.genericService.sendNotification(
-					'Error',
-					'No file selected',
+					this.translate.instant('error'),
+					this.translate.instant('no-file-selected'),
 					'error',
 				);
 				return;
@@ -332,8 +334,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				() => {
 					if (this.currentGame === undefined) {
 						this.genericService.sendNotification(
-							'Error',
-							'No file selected',
+							this.translate.instant('error'),
+							this.translate.instant('no-file-selected'),
 							'error',
 						);
 						return;
@@ -341,8 +343,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					this.db.refreshGameLinks(this.currentGame).then((game) => {
 						if (this.currentGameID === undefined) {
 							this.genericService.sendNotification(
-								'Error',
-								'No file selected',
+								this.translate.instant('error'),
+								this.translate.instant('no-file-selected'),
 								'error',
 							);
 							return;
@@ -378,8 +380,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			.then(() => {
 				this.messageService.add({
 					severity: 'info',
-					summary: 'Video deleted',
-					detail: 'The video has been deleted',
+					summary: this.translate.instant('video-deleted'),
+					detail: this.translate.instant('the-video-has-been-deleted'),
 					life: 3000,
 				});
 			});
@@ -400,8 +402,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			() => {
 				this.messageService.add({
 					severity: 'info',
-					summary: 'Screenshot deleted',
-					detail: 'The screenshot has been deleted',
+					summary: this.translate.instant('screenshot-deleted'),
+					detail: this.translate.instant('the-screenshot-has-been-deleted'),
 					life: 3000,
 				});
 			},
@@ -419,8 +421,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		this.db.deleteElement('audio', this.currentGame.id).then(() => {
 			this.messageService.add({
 				severity: 'info',
-				summary: 'Audio deleted',
-				detail: 'The audio has been deleted',
+				summary: this.translate.instant('audio-deleted'),
+				detail: this.translate.instant('the-audio-has-been-deleted'),
 				life: 3000,
 			});
 		});
@@ -437,8 +439,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				console.log('Downloaded');
 				if (this.currentGame === undefined) {
 					this.genericService.sendNotification(
-						'Error',
-						'No file selected',
+						this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 						'error',
 					);
 					return;
@@ -446,8 +448,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				this.db.refreshGameLinks(this.currentGame).then((game) => {
 					if (this.currentGameID === undefined) {
 						this.genericService.sendNotification(
-							'Error',
-							'No file selected',
+							this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 							'error',
 						);
 						return;
@@ -468,8 +470,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		console.log(this.selectedItem);
 		if (this.selectedItem === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -532,8 +534,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.currentGameID === undefined && this.currentGame === undefined
 		) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -550,8 +552,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		}
 		if (this.currentGameID === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -559,8 +561,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		let game = this.gameService.getGame(this.currentGameID);
 		if (game === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -573,8 +575,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.gameService.getGames().then(() => {
 				this.messageService.add({
 					severity: 'info',
-					summary: 'Saved',
-					detail: 'The change has been saved',
+					summary: this.translate.instant('saved'),
+					detail: this.translate.instant('the-change-has-been-saved'),
 					life: 3000,
 				});
 			})
@@ -588,8 +590,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.currentGameID === undefined && this.currentGame === undefined
 		) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -606,8 +608,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		}
 		if (this.currentGameID === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -615,8 +617,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		let game = this.gameService.getGame(this.currentGameID);
 		if (game === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -630,8 +632,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.gameService.getGames().then(() => {
 				this.messageService.add({
 					severity: 'info',
-					summary: 'Saved',
-					detail: 'The change has been saved',
+					summary: this.translate.instant('saved'),
+					detail: this.translate.instant('the-change-has-been-saved'),
 					life: 3000,
 				});
 				this.saveMediaToExternalStorage();
@@ -644,8 +646,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.currentGameID === undefined && this.currentGame === undefined
 		) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -662,8 +664,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		}
 		if (this.currentGameID === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -672,8 +674,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		let game = this.gameService.getGame(this.currentGameID);
 		if (game === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -686,8 +688,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.gameService.getGames().then(() => {
 				this.messageService.add({
 					severity: 'info',
-					summary: 'Saved',
-					detail: 'The change has been saved',
+					summary: this.translate.instant('saved'),
+					detail: this.translate.instant('the-change-has-been-saved'),
 					life: 3000,
 				});
 			})
@@ -715,8 +717,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				let game = this.gameService.getGame(this.currentGameID);
 				if (!game) {
 					this.genericService.sendNotification(
-						'Error',
-						'No file selected',
+						this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 						'error',
 					);
 					return;
@@ -728,8 +730,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				this.gameService.setGame(this.currentGameID, game!);
 				this.messageService.add({
 					severity: 'info',
-					summary: 'Game Linked',
-					detail: 'The game has been linked',
+					summary: this.translate.instant('game-linked'),
+					detail: this.translate.instant('the-game-has-been-linked'),
 					life: 3000,
 				});
 			}
@@ -748,8 +750,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			.then((result) => {
 				if (result === undefined) {
 					this.genericService.sendNotification(
-						'Error',
-						'No file selected',
+						this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 						'error',
 					);
 					return;
@@ -757,7 +759,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				if (typeof result === 'string') {
 					this.messageService.add({
 						severity: 'error',
-						summary: 'Error',
+						summary: 				this.translate.instant('error'),
 						detail: result,
 						life: 3000,
 					});
@@ -770,8 +772,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	deleteGame() {
 		if (this.currentGameID === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -786,8 +788,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	private saveMediaToExternalStorage() {
 		if (this.currentGame === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'No file selected',
+				this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -795,8 +797,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		this.db.saveMediaToExternalStorage(this.currentGame).then(() => {
 			if (this.currentGame === undefined) {
 				this.genericService.sendNotification(
-					'Error',
-					'No file selected',
+					this.translate.instant('error'),
+					this.translate.instant('no-file-selected'),
 					'error',
 				);
 				return;
@@ -809,8 +811,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 						this.currentGame === undefined
 					) {
 						this.genericService.sendNotification(
-							'Error',
-							'No file selected',
+							this.translate.instant('error'),
+							this.translate.instant('no-file-selected'),
 							'error',
 						);
 						return;
@@ -822,8 +824,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					this.gameService.setGameObservable(this.currentGame);
 					this.messageService.add({
 						severity: 'info',
-						summary: 'Metadata saved',
-						detail: 'The metadata has been saved for : ' +
+						summary: this.translate.instant('metadata-saved'),
+						detail: this.translate.instant('the-metadata-has-been-saved-for') +
 							this.currentGame.name,
 						life: 3000,
 					});
@@ -836,8 +838,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	toggleHiddenStatusForGame() {
 		if (this.currentGame === undefined) {
 			this.genericService.sendNotification(
-				'Error',
-				'Impossible to hide a game that does not exist',
+				this.translate.instant('error'),
+				this.translate.instant('impossible-to-hide-a-game-that-does-not-exist'),
 				'error',
 			);
 			return;
@@ -851,8 +853,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				this.currentGame === undefined
 			) {
 				this.genericService.sendNotification(
-					'Error',
-					'Impossible to hide a game that does not exist',
+					this.translate.instant('error'),
+					this.translate.instant('impossible-to-hide-a-game-that-does-not-exist'),
 					'error',
 				);
 				return;
@@ -860,8 +862,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.gameService.setGame(this.currentGameID, this.currentGame);
 			this.messageService.add({
 				severity: 'info',
-				summary: 'Hidden status changed',
-				detail: 'The hidden status has been changed',
+				summary: this.translate.instant('hidden-status-changed'),
+				detail: this.translate.instant('the-hidden-status-has-been-changed'),
 				life: 3000,
 			});
 		});

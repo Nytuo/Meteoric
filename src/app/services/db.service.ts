@@ -1,25 +1,27 @@
-import { Injectable } from '@angular/core';
-import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+import {Injectable} from '@angular/core';
+import {convertFileSrc, invoke} from '@tauri-apps/api/tauri';
 import IGame from '../../interfaces/IGame';
-import { BaseDirectory, configDir } from '@tauri-apps/api/path';
+import {BaseDirectory, configDir} from '@tauri-apps/api/path';
 import ICategory from '../../interfaces/ICategory';
-import { platform } from '@tauri-apps/api/os';
+import {platform} from '@tauri-apps/api/os';
 import ISettings from '../../interfaces/ISettings';
-import { save } from '@tauri-apps/api/dialog';
-import { GenericService } from './generic.service';
-import { exists } from '@tauri-apps/api/fs';
+import {save} from '@tauri-apps/api/dialog';
+import {GenericService} from './generic.service';
+import {exists} from '@tauri-apps/api/fs';
+import {TranslateService} from "@ngx-translate/core";
 
 @Injectable({
 	providedIn: 'root',
 })
 export class DBService {
-	constructor(private genericService: GenericService) {}
+	constructor(private genericService: GenericService, private translateService: TranslateService) {
+	}
 
 	async deleteGame(currentGameID: string) {
 		await invoke('delete_game', { id: currentGameID }).then(() => {
 			this.genericService.sendNotification(
-				'Game deleted',
-				'The game has been deleted',
+				this.translateService.instant('gameDeleted'),
+				this.translateService.instant('gameDeletedMessage'),
 				'success',
 			);
 		}).catch((error) => {
@@ -109,8 +111,8 @@ export class DBService {
 			background: background,
 		}).then(() => {
 			this.genericService.sendNotification(
-				'Category created',
-				'The category has been created',
+				this.translateService.instant('categoryCreated'),
+				this.translateService.instant('categoryCreatedMessage'),
 				'success',
 			);
 		}).catch((error) => {
@@ -146,8 +148,8 @@ export class DBService {
 			settings: JSON.stringify(settingsArray),
 		}).then(() => {
 			this.genericService.sendNotification(
-				'Settings saved',
-				'The settings have been saved',
+				this.translateService.instant('settingsSaved'),
+				this.translateService.instant('settingsSavedMessage'),
 				'success',
 			);
 		}).catch((error) => {
@@ -161,8 +163,8 @@ export class DBService {
 			categoryId: categoryID,
 		}).then(() => {
 			this.genericService.sendNotification(
-				'Game added',
-				'The game has been added',
+				this.translateService.instant('gameAdded'),
+				this.translateService.instant('gameAddedMessage'),
 				'success',
 			);
 		}).catch((error) => {
@@ -197,15 +199,15 @@ export class DBService {
 			invoke('post_game', { game: JSON.stringify(game) })
 				.then((id) => {
 					this.genericService.sendNotification(
-						'Game saved',
-						'The game has been saved',
+						this.translateService.instant('gameSaved'),
+						this.translateService.instant('gameSavedMessage'),
 						'success',
 					);
 					resolve(id as string);
 				})
 				.catch((error) => {
 					this.genericService.sendNotification(
-						'Error',
+						this.translateService.instant('error'),
 						error,
 						'error',
 					);
@@ -229,8 +231,8 @@ export class DBService {
 		let fileContent = Array.from(new Uint8Array(file));
 		return invoke('upload_file', { fileContent, typeOf, id }).then(() => {
 			this.genericService.sendNotification(
-				'File uploaded',
-				'The file has been uploaded',
+				this.translateService.instant('fileUploaded'),
+				this.translateService.instant('fileUploadedMessage'),
 				'success',
 			);
 		}).catch((error) => {
@@ -250,8 +252,8 @@ export class DBService {
 				elementToDelete: '',
 			}).then(() => {
 				this.genericService.sendNotification(
-					'Element deleted',
-					'The element has been deleted',
+					this.translateService.instant('elementDeleted'),
+					this.translateService.instant('elementDeletedMessage'),
 					'success',
 				);
 			}).catch((error) => {
@@ -264,8 +266,8 @@ export class DBService {
 			elementToDelete,
 		}).then(() => {
 			this.genericService.sendNotification(
-				'Element deleted',
-				'The element has been deleted',
+				this.translateService.instant('elementDeleted'),
+				this.translateService.instant('elementDeletedMessage'),
 				'success',
 			);
 		}).catch((error) => {
@@ -302,8 +304,8 @@ export class DBService {
 				.then(() => {
 					setTimeout(() => {
 						this.genericService.sendNotification(
-							'Metadata saved',
-							'The metadata has been saved',
+							this.translateService.instant('metadataSaved'),
+							this.translateService.instant('metadataSavedMessage'),
 							'success',
 						);
 						resolve();
@@ -311,7 +313,7 @@ export class DBService {
 				})
 				.catch((error) => {
 					this.genericService.sendNotification(
-						'Error',
+						this.translateService.instant('error'),
 						error,
 						'error',
 					);
@@ -326,8 +328,8 @@ export class DBService {
 			categoryId: id,
 		}).then(() => {
 			this.genericService.sendNotification(
-				'Game removed',
-				'The game has been removed',
+				this.translateService.instant('gameRemoved'),
+				this.translateService.instant('gameRemovedMessage'),
 				'success',
 			);
 		}).catch((error) => {
@@ -341,13 +343,13 @@ export class DBService {
 				name: 'CSV',
 				extensions: ['csv'],
 			}],
-			title: 'Export games to CSV',
+			title: this.translateService.instant('exportGamesToCSV'),
 		});
 		return await invoke('export_game_database_to_csv', { path }).then(
 			() => {
 				this.genericService.sendNotification(
-					'Games exported',
-					'The games have been exported',
+					this.translateService.instant('gamesExported'),
+					this.translateService.instant('theGamesHaveBeenExported'),
 					'success',
 				);
 			},
@@ -362,13 +364,13 @@ export class DBService {
 				name: 'ZIP',
 				extensions: ['zip'],
 			}],
-			title: 'Export games to archive',
+			title: this.translateService.instant('exportGamesToArchive'),
 		});
 		return await invoke('export_game_database_to_archive', { path }).then(
 			() => {
 				this.genericService.sendNotification(
-					'Games exported',
-					'The games have been exported',
+					this.translateService.instant('gamesExported'),
+					this.translateService.instant('theGamesHaveBeenExported'),
 					'success',
 				);
 			},

@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {SettingsService} from "../../services/settings.service";
 import {BehaviorSubject} from "rxjs";
 import ISettings from "../../../interfaces/ISettings";
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-settings-overlay',
@@ -75,35 +76,30 @@ export class SettingsOverlayComponent implements OnInit {
 		{ label: 'Français', value: 'fr' },
 		{ label: 'Italiano', value: 'it' },
 		{ label: 'Español', value: 'es' },
-		{ label: 'Polski', value: 'pl' },
-		{ label: 'Português', value: 'pt' },
-		{ label: 'Русский', value: 'ru' },
-		{ label: '中文', value: 'zh' },
-		{ label: '日本語', value: 'ja' },
-		{ label: '한국어', value: 'ko' },
+		{ label: 'Dev', value: 'dev' },
 	];
 	activeItem: any;
 	items = [{
-		label: 'General',
+		label: this.translate.instant('general'),
 		icon: 'pi pi-info-circle',
 		expanded: true,
 		items: [
 			{
-				label: 'Themes',
+				label: this.translate.instant('themes'),
 				icon: 'pi pi-file',
 				command: () => {
 					this.activeItem = 'Themes';
 				},
 			},
 			{
-				label: 'Languages',
+				label: this.translate.instant('languages'),
 				icon: 'pi pi-id-card',
 				command: () => {
 					this.activeItem = 'Languages';
 				},
 			},
 			{
-				label: 'API Settings',
+				label: this.translate.instant('api-settings'),
 				icon: 'pi pi-sliders-h',
 				command: () => {
 					this.activeItem = 'APIKEYS';
@@ -111,74 +107,73 @@ export class SettingsOverlayComponent implements OnInit {
 			}
 		],
 	}, {
-		label: 'Game Importers',
+		label: this.translate.instant('game-importers'),
 		icon: 'pi pi-file-import',
 		expanded: true,
 		items: [
 			{
-				label: 'CSV Importer',
+				label: this.translate.instant('csv-importer'),
 				icon: 'pi pi-cloud-upload',
 				command: () => {
-					this.activeItem = 'CSV Importer';
+					this.activeItem = this.translate.instant('csv-importer')
 				},
 			},
 			{
-				label: 'Epic Games Importer',
+				label: 'Epic Games ' + this.translate.instant('importer'),
 				icon: 'pi pi-cloud-download',
 				command: () => {
-					this.activeItem = 'Epic Games Importer';
+					this.activeItem = 'Epic Games '+this.translate.instant('importer')
 				},
 			},
 			{
-				label: 'Steam Importer',
+				label: 'Steam '+this.translate.instant('importer'),
 				icon: 'pi pi-refresh',
 				command: () => {
-					this.activeItem = 'Steam Importer';
+					this.activeItem = 'Steam '+this.translate.instant('importer')
 				},
 			},
 			{
-				label: 'GOG Importer',
+				label: 'GOG '+ this.translate.instant('importer'),
 				icon: 'pi pi-refresh',
 				command: () => {
-					this.activeItem = 'GOG Importer';
+					this.activeItem = 'GOG ' + this.translate.instant('importer')
 				},
 			},
 		],
 	}, {
-		label: 'Database Exporters',
+		label: this.translate.instant('database-exporters'),
 		icon: 'pi pi-file-import',
 		expanded: true,
 		items: [
 			{
-				label: 'CSV Exporter',
+				label: this.translate.instant('csv-exporter'),
 				icon: 'pi pi-cloud-upload',
 				command: () => {
-					this.activeItem = 'CSV Exporter';
+					this.activeItem = this.translate.instant('csv-importer')
 				},
 			},
 			{
-				label: 'Archive Exporter',
+				label: this.translate.instant('archive-exporter'),
 				icon: 'pi pi-cloud-upload',
 				command: () => {
-					this.activeItem = 'Archive Exporter';
+					this.activeItem = this.translate.instant('archive-exporter')
 				},
 			},
 		],
 	}, {
-		label: 'About',
+		label: this.translate.instant('about'),
 		icon: 'pi pi-info-circle',
 		command: () => {
-			this.activeItem = 'About';
+			this.activeItem = this.translate.instant('about')
 		},
 	}];
 	selectedTheme: any;
 	selectedLanguage: any;
 	appVersion: string = '1.0.0';
 
-	constructor(private settingsService: SettingsService) {}
+	constructor(private settingsService: SettingsService, private translate: TranslateService) {}
 
 	changeLanguage() {
-		//TODO MAKE LANGUAGE
 		this.settingsService.changeLanguage(this.selectedLanguage.value);
 	}
 
@@ -194,11 +189,18 @@ export class SettingsOverlayComponent implements OnInit {
 		return this.themes.find((theme) => theme.value === value);
 	}
 
+	searchLanguageFromValue(value: string) {
+		return this.languages.find((language) => language.value === value);
+	}
+
 	ngOnInit(): void {
 		this.selectedTheme =
 			(document.getElementById('themeLinker') as HTMLLinkElement).href
 				.split('/').pop();
 		this.selectedTheme = this.searchThemeFromValue(this.selectedTheme);
+		this.selectedLanguage = this.searchLanguageFromValue(
+			this.translate.currentLang || 'en',
+		);
 		this.appVersion = '1.0.0';
 	}
 }

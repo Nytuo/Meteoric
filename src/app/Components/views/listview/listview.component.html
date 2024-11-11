@@ -1,5 +1,5 @@
 <div class="listview">
-	<h1 *ngIf="games.length === 0">No games found</h1>
+	<h1 *ngIf="games.length === 0">{{ 'noGamesFound' | translate }}</h1>
 
 	<div
 		*ngIf="games.length > 0"
@@ -7,8 +7,8 @@
 	>
 		<table>
 			<tr>
-				<th>Icon</th>
-				<th>Name</th>
+				<th>{{'icon' | translate}}</th>
+				<th>{{'name' | translate}}</th>
 			</tr>
 			<tr *ngFor="let game of games" [routerLink]="['/game', game.id]">
 				<td>

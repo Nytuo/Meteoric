@@ -1,11 +1,10 @@
 <div class="card">
-	<h2>Database To CSV Exporter</h2>
+	<h2>{{ 'databaseToCsvExporter' | translate }}</h2>
 	<p>
-		Export your database to a CSV file. This will include all games, the
-		image files will no be exported in this process.
+		{{ 'exportGamesToCSV' | translate }}
 	</p>
 
 	<p-button (onClick)="export_csv()">
-		Exporter
+		{{ 'export' | translate }}
 	</p-button>
 </div>

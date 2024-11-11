@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { DBService } from './db.service';
 import ISettings from '../../interfaces/ISettings';
 import { BehaviorSubject } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
 	providedIn: 'root',
@@ -12,7 +13,7 @@ export class SettingsService {
 	>(
 		{},
 	);
-	constructor(protected db: DBService) {
+	constructor(protected db: DBService, private translate: TranslateService){
 		this.db.getSettings().then((settings) => {
 			console.log(settings);
 			if (settings.gap) {
@@ -45,10 +46,12 @@ export class SettingsService {
 		return this.settings.asObservable();
 	}
 
-	changeLanguage(selectedTheme: string) {
-		//TODO MAKE LANGUAGE
-		this.settings.next( { ...this.settings.getValue(), theme: selectedTheme });
-		this.applySettings(this.settings.getValue());
+	changeLanguage(selectedLanguage: string, justSwitch: boolean = false) {
+		this.translate.use(selectedLanguage);
+		if (!justSwitch) {
+			this.settings.next( { ...this.settings.getValue(), language: selectedLanguage });
+			this.applySettings(this.settings.getValue());
+		}
 	}
 
 	changeTheme(selectedTheme: string, justSwitch: boolean = false) {
@@ -56,7 +59,9 @@ export class SettingsService {
 			'themeLinker',
 		) as HTMLLinkElement;
 		themeLinker.href = selectedTheme;
-		this.settings.next( { ...this.settings.getValue(), theme: selectedTheme });
-		if (!justSwitch) this.applySettings(this.settings.getValue());
+		if (!justSwitch) {
+			this.settings.next( { ...this.settings.getValue(), theme: selectedTheme });
+			this.applySettings(this.settings.getValue());
+		}
 	}
 }
