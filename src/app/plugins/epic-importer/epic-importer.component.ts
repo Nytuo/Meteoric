@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { invoke } from '@tauri-apps/api/tauri';
 import { ConfirmationService } from 'primeng/api';
-import {TranslateService} from "@ngx-translate/core";
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-epic-importer',
@@ -24,7 +24,10 @@ export class EpicImporterComponent {
 	selectedItemChange: EventEmitter<string> = new EventEmitter<string>();
 	authCode: any;
 
-	constructor(private confirmationService: ConfirmationService, private translateService: TranslateService) {
+	constructor(
+		private confirmationService: ConfirmationService,
+		private translateService: TranslateService,
+	) {
 	}
 
 	openLinkInBrowser(link: string) {

@@ -2,7 +2,10 @@
 	<p-sidebar [visible]="true" class="editmode">
 		<ng-template pTemplate="header">
 			<div class="flex align-items-center gap-2">
-				<span class="font-bold"> {{ 'editing-currentgame-name' | translate }} {{ currentGame?.name }} </span>
+				<span class="font-bold">
+					{{ 'editing-currentgame-name' | translate }}
+					{{ currentGame?.name }}
+				</span>
 			</div>
 		</ng-template>
 		<p-panelMenu [model]="items" styleClass="w-full md:w-20rem" />
@@ -46,9 +49,14 @@
 						id="searchGame"
 						pInputText
 					/>
-					<label for="searchGame">{{ 'search-a-game' | translate }}</label>
+					<label for="searchGame">{{
+							'search-a-game' | translate
+						}}</label>
 				</p-floatLabel>
-				<p-button (click)="searchGameInAPI()" label="{{ 'search' | translate }}"></p-button>
+				<p-button
+					(click)="searchGameInAPI()"
+					label="{{ 'search' | translate }}"
+				></p-button>
 				<p-checkbox
 					[(ngModel)]="strict"
 					[binary]="true"
@@ -118,7 +126,9 @@
 									*ngIf="field.key === 'tags'"
 									id="tags-helper"
 								>
-									{{ 'tags-are-separated-by-commas' | translate }}
+									{{
+										'tags-are-separated-by-commas' | translate
+									}}
 								</small>
 							</div>
 						</ng-container>
@@ -158,7 +168,10 @@
 								placeholder="{{ 'select-a-status' | translate }}"
 							/>
 						</ng-container>
-						<p-button label="{{ 'save' | translate }}" type="submit"></p-button>
+						<p-button
+							label="{{ 'save' | translate }}"
+							type="submit"
+						></p-button>
 					</form>
 				</div>
 				<div *ngIf="selectedProvider === 'media'">
@@ -277,8 +290,9 @@
 											id="music-name"
 											pInputText
 										/>
-										<label for="music-name"
-										>{{ 'youtube-video-url' | translate }}</label>
+										<label for="music-name">{{
+												'youtube-video-url' | translate
+											}}</label>
 									</p-floatLabel>
 								</div>
 								<p-button
@@ -374,7 +388,10 @@
 								</p-floatLabel>
 							</div>
 						</ng-container>
-						<p-button label="{{ 'save' | translate }}" type="submit"></p-button>
+						<p-button
+							label="{{ 'save' | translate }}"
+							type="submit"
+						></p-button>
 					</form>
 				</div>
 			</div>

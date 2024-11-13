@@ -13,14 +13,18 @@
 						<p>
 							{{ 'epic-importer.howto' | translate }}
 						</p>
-						<p>{{ 'epic-importer.alreadyConnected' | translate }}
+						<p>
+							{{ 'epic-importer.alreadyConnected' | translate }}
 						</p>
 						<p-confirmDialog>
 							<ng-template let-message pTemplate="message">
 								<p>{{ message.message }}</p>
 							</ng-template>
 						</p-confirmDialog>
-						<p-button (onClick)="confirm()" label="{{ 'signIn' | translate }}" />
+						<p-button
+							(onClick)="confirm()"
+							label="{{ 'signIn' | translate }}"
+						/>
 					</div>
 				</div>
 				<div style="display: flex; justify-content: flex-end">
@@ -48,7 +52,9 @@
 								id="AuthCode"
 								pInputText
 							/>
-							<label for="AuthCode">{{ 'authcode' | translate }}</label>
+							<label for="AuthCode">{{
+									'authcode' | translate
+								}}</label>
 						</p-floatLabel>
 					</div>
 				</div>

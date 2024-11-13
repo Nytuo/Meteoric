@@ -45,7 +45,9 @@
 							name="displayInfo"
 							value="name"
 						></p-radioButton>
-						<label class="ml-2" for="name">{{ 'name' | translate }}</label>
+						<label class="ml-2" for="name">{{
+								'name' | translate
+							}}</label>
 					</div>
 					<div class="flex align-items-center">
 						<p-radioButton
@@ -56,7 +58,9 @@
 							name="displayInfo"
 							value="platforms"
 						></p-radioButton>
-						<label class="ml-2" for="platforms">{{ 'platforms' | translate }}</label>
+						<label class="ml-2" for="platforms">{{
+								'platforms' | translate
+							}}</label>
 					</div>
 
 					<div class="flex align-items-center">
@@ -68,7 +72,9 @@
 							name="displayInfo"
 							value="tags"
 						></p-radioButton>
-						<label class="ml-2" for="tags">{{ 'tags' | translate }}</label>
+						<label class="ml-2" for="tags">{{
+								'tags' | translate
+							}}</label>
 					</div>
 
 					<div class="flex align-items-center">
@@ -80,10 +86,15 @@
 							name="displayInfo"
 							value="rating"
 						></p-radioButton>
-						<label class="ml-2" for="rating">{{ 'rating' | translate }}</label>
+						<label class="ml-2" for="rating">{{
+								'rating' | translate
+							}}</label>
 					</div>
 				</div>
-				<p-button (click)="clearDisplayInfo()" label="{{ 'reset' | translate }}"></p-button>
+				<p-button
+					(click)="clearDisplayInfo()"
+					label="{{ 'reset' | translate }}"
+				></p-button>
 			</div>
 		</div>
 	</div>

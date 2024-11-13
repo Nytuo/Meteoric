@@ -36,7 +36,7 @@ export class FilterOverlayComponent {
 	constructor(
 		protected genericService: GenericService,
 		protected settingsService: SettingsService,
-		private translate: TranslateService
+		private translate: TranslateService,
 	) {
 		this.settingsService.getSettings().subscribe((settings) => {
 			this.settings.next(settings);

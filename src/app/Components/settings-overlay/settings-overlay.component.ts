@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import {SettingsService} from "../../services/settings.service";
-import {BehaviorSubject} from "rxjs";
-import ISettings from "../../../interfaces/ISettings";
+import { SettingsService } from '../../services/settings.service';
+import { BehaviorSubject } from 'rxjs';
+import ISettings from '../../../interfaces/ISettings';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -104,7 +104,7 @@ export class SettingsOverlayComponent implements OnInit {
 				command: () => {
 					this.activeItem = 'APIKEYS';
 				},
-			}
+			},
 		],
 	}, {
 		label: this.translate.instant('game-importers'),
@@ -115,28 +115,31 @@ export class SettingsOverlayComponent implements OnInit {
 				label: this.translate.instant('csv-importer'),
 				icon: 'pi pi-cloud-upload',
 				command: () => {
-					this.activeItem = this.translate.instant('csv-importer')
+					this.activeItem = this.translate.instant('csv-importer');
 				},
 			},
 			{
 				label: 'Epic Games ' + this.translate.instant('importer'),
 				icon: 'pi pi-cloud-download',
 				command: () => {
-					this.activeItem = 'Epic Games '+this.translate.instant('importer')
+					this.activeItem = 'Epic Games ' +
+						this.translate.instant('importer');
 				},
 			},
 			{
-				label: 'Steam '+this.translate.instant('importer'),
+				label: 'Steam ' + this.translate.instant('importer'),
 				icon: 'pi pi-refresh',
 				command: () => {
-					this.activeItem = 'Steam '+this.translate.instant('importer')
+					this.activeItem = 'Steam ' +
+						this.translate.instant('importer');
 				},
 			},
 			{
-				label: 'GOG '+ this.translate.instant('importer'),
+				label: 'GOG ' + this.translate.instant('importer'),
 				icon: 'pi pi-refresh',
 				command: () => {
-					this.activeItem = 'GOG ' + this.translate.instant('importer')
+					this.activeItem = 'GOG ' +
+						this.translate.instant('importer');
 				},
 			},
 		],
@@ -149,14 +152,16 @@ export class SettingsOverlayComponent implements OnInit {
 				label: this.translate.instant('csv-exporter'),
 				icon: 'pi pi-cloud-upload',
 				command: () => {
-					this.activeItem = this.translate.instant('csv-importer')
+					this.activeItem = this.translate.instant('csv-importer');
 				},
 			},
 			{
 				label: this.translate.instant('archive-exporter'),
 				icon: 'pi pi-cloud-upload',
 				command: () => {
-					this.activeItem = this.translate.instant('archive-exporter')
+					this.activeItem = this.translate.instant(
+						'archive-exporter',
+					);
 				},
 			},
 		],
@@ -164,14 +169,17 @@ export class SettingsOverlayComponent implements OnInit {
 		label: this.translate.instant('about'),
 		icon: 'pi pi-info-circle',
 		command: () => {
-			this.activeItem = this.translate.instant('about')
+			this.activeItem = this.translate.instant('about');
 		},
 	}];
 	selectedTheme: any;
 	selectedLanguage: any;
 	appVersion: string = '1.0.0';
 
-	constructor(private settingsService: SettingsService, private translate: TranslateService) {}
+	constructor(
+		private settingsService: SettingsService,
+		private translate: TranslateService,
+	) {}
 
 	changeLanguage() {
 		this.settingsService.changeLanguage(this.selectedLanguage.value);

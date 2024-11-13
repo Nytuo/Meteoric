@@ -1,20 +1,23 @@
-import {Injectable} from '@angular/core';
-import {convertFileSrc, invoke} from '@tauri-apps/api/tauri';
+import { Injectable } from '@angular/core';
+import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
 import IGame from '../../interfaces/IGame';
-import {BaseDirectory, configDir} from '@tauri-apps/api/path';
+import { BaseDirectory, configDir } from '@tauri-apps/api/path';
 import ICategory from '../../interfaces/ICategory';
-import {platform} from '@tauri-apps/api/os';
+import { platform } from '@tauri-apps/api/os';
 import ISettings from '../../interfaces/ISettings';
-import {save} from '@tauri-apps/api/dialog';
-import {GenericService} from './generic.service';
-import {exists} from '@tauri-apps/api/fs';
-import {TranslateService} from "@ngx-translate/core";
+import { save } from '@tauri-apps/api/dialog';
+import { GenericService } from './generic.service';
+import { exists } from '@tauri-apps/api/fs';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class DBService {
-	constructor(private genericService: GenericService, private translateService: TranslateService) {
+	constructor(
+		private genericService: GenericService,
+		private translateService: TranslateService,
+	) {
 	}
 
 	async deleteGame(currentGameID: string) {
@@ -305,7 +308,9 @@ export class DBService {
 					setTimeout(() => {
 						this.genericService.sendNotification(
 							this.translateService.instant('metadataSaved'),
-							this.translateService.instant('metadataSavedMessage'),
+							this.translateService.instant(
+								'metadataSavedMessage',
+							),
 							'success',
 						);
 						resolve();

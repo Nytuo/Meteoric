@@ -13,7 +13,7 @@ export class SettingsService {
 	>(
 		{},
 	);
-	constructor(protected db: DBService, private translate: TranslateService){
+	constructor(protected db: DBService, private translate: TranslateService) {
 		this.db.getSettings().then((settings) => {
 			console.log(settings);
 			if (settings.gap) {
@@ -49,7 +49,10 @@ export class SettingsService {
 	changeLanguage(selectedLanguage: string, justSwitch: boolean = false) {
 		this.translate.use(selectedLanguage);
 		if (!justSwitch) {
-			this.settings.next( { ...this.settings.getValue(), language: selectedLanguage });
+			this.settings.next({
+				...this.settings.getValue(),
+				language: selectedLanguage,
+			});
 			this.applySettings(this.settings.getValue());
 		}
 	}
@@ -60,7 +63,10 @@ export class SettingsService {
 		) as HTMLLinkElement;
 		themeLinker.href = selectedTheme;
 		if (!justSwitch) {
-			this.settings.next( { ...this.settings.getValue(), theme: selectedTheme });
+			this.settings.next({
+				...this.settings.getValue(),
+				theme: selectedTheme,
+			});
 			this.applySettings(this.settings.getValue());
 		}
 	}

@@ -88,7 +88,9 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			expanded: true,
 			items: [
 				{
-					label: this.translate.instant('youtube-background-music-provider'),
+					label: this.translate.instant(
+						'youtube-background-music-provider',
+					),
 					icon: 'pi pi-youtube',
 					command: () => {
 						this.selectedProvider = 'ytdl';
@@ -159,7 +161,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		protected genericService: GenericService,
 		protected router: Router,
 		private messageService: MessageService,
-		private translate: TranslateService
+		private translate: TranslateService,
 	) {
 	}
 
@@ -381,7 +383,9 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				this.messageService.add({
 					severity: 'info',
 					summary: this.translate.instant('video-deleted'),
-					detail: this.translate.instant('the-video-has-been-deleted'),
+					detail: this.translate.instant(
+						'the-video-has-been-deleted',
+					),
 					life: 3000,
 				});
 			});
@@ -403,7 +407,9 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				this.messageService.add({
 					severity: 'info',
 					summary: this.translate.instant('screenshot-deleted'),
-					detail: this.translate.instant('the-screenshot-has-been-deleted'),
+					detail: this.translate.instant(
+						'the-screenshot-has-been-deleted',
+					),
 					life: 3000,
 				});
 			},
@@ -449,7 +455,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					if (this.currentGameID === undefined) {
 						this.genericService.sendNotification(
 							this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+							this.translate.instant('no-file-selected'),
 							'error',
 						);
 						return;
@@ -471,7 +477,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (this.selectedItem === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -535,7 +541,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -553,7 +559,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (this.currentGameID === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -562,7 +568,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (game === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -609,7 +615,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (this.currentGameID === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -618,7 +624,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (game === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -647,7 +653,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -675,7 +681,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (game === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -759,7 +765,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				if (typeof result === 'string') {
 					this.messageService.add({
 						severity: 'error',
-						summary: 				this.translate.instant('error'),
+						summary: this.translate.instant('error'),
 						detail: result,
 						life: 3000,
 					});
@@ -773,7 +779,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (this.currentGameID === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -789,7 +795,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (this.currentGame === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-						this.translate.instant('no-file-selected'),
+				this.translate.instant('no-file-selected'),
 				'error',
 			);
 			return;
@@ -825,7 +831,9 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					this.messageService.add({
 						severity: 'info',
 						summary: this.translate.instant('metadata-saved'),
-						detail: this.translate.instant('the-metadata-has-been-saved-for') +
+						detail: this.translate.instant(
+							'the-metadata-has-been-saved-for',
+						) +
 							this.currentGame.name,
 						life: 3000,
 					});
@@ -839,7 +847,9 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (this.currentGame === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-				this.translate.instant('impossible-to-hide-a-game-that-does-not-exist'),
+				this.translate.instant(
+					'impossible-to-hide-a-game-that-does-not-exist',
+				),
 				'error',
 			);
 			return;
@@ -854,7 +864,9 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			) {
 				this.genericService.sendNotification(
 					this.translate.instant('error'),
-					this.translate.instant('impossible-to-hide-a-game-that-does-not-exist'),
+					this.translate.instant(
+						'impossible-to-hide-a-game-that-does-not-exist',
+					),
 					'error',
 				);
 				return;
@@ -863,7 +875,9 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.messageService.add({
 				severity: 'info',
 				summary: this.translate.instant('hidden-status-changed'),
-				detail: this.translate.instant('the-hidden-status-has-been-changed'),
+				detail: this.translate.instant(
+					'the-hidden-status-has-been-changed',
+				),
 				life: 3000,
 			});
 		});

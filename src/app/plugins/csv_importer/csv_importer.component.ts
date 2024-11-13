@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { invoke } from '@tauri-apps/api/tauri';
 import * as Papa from 'papaparse';
 import { GenericService } from '../../services/generic.service';
-import {TranslateService} from "@ngx-translate/core";
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-csv-importer',
@@ -15,7 +15,10 @@ export class CSVImporter implements OnInit {
 	dbColumns: string[] = [];
 	columnMapping: { [key: string]: string } = {};
 
-	constructor(private genericService: GenericService, private  tr: TranslateService) {
+	constructor(
+		private genericService: GenericService,
+		private tr: TranslateService,
+	) {
 	}
 
 	ngOnInit(): void {

@@ -4,7 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { DBService } from './db.service';
 import { GenericService } from './generic.service';
 import { invoke } from '@tauri-apps/api/tauri';
-import {TranslateService} from "@ngx-translate/core";
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
 	providedIn: 'root',
@@ -115,7 +115,9 @@ export class GameService {
 			name: this.translateService.instant('platforms'),
 			values: this.games
 				.map((game) => {
-					return game.platforms ? game.platforms : this.translateService.instant('unknown')
+					return game.platforms
+						? game.platforms
+						: this.translateService.instant('unknown');
 				})
 				.flat()
 				.filter((value, index, self) => self.indexOf(value) === index)
@@ -127,7 +129,9 @@ export class GameService {
 			name: this.translateService.instant('tags'),
 			values: this.games
 				.map((game) => {
-					return game.tags ? game.tags : this.translateService.instant('no_tags');
+					return game.tags
+						? game.tags
+						: this.translateService.instant('no_tags');
 				})
 				.flat()
 				.filter((value, index, self) => self.indexOf(value) === index)
@@ -139,7 +143,9 @@ export class GameService {
 			name: this.translateService.instant('developers'),
 			values: this.games
 				.map((game) => {
-					return game.developers ? game.developers : this.translateService.instant('unknown');
+					return game.developers
+						? game.developers
+						: this.translateService.instant('unknown');
 				})
 				.flat()
 				.filter((value, index, self) => self.indexOf(value) === index)
@@ -148,10 +154,12 @@ export class GameService {
 				}),
 		});
 		filters.push({
-			name:  this.translateService.instant('editors'),
+			name: this.translateService.instant('editors'),
 			values: this.games
 				.map((game) => {
-					return game.editors ? game.editors :  this.translateService.instant('unknown');
+					return game.editors
+						? game.editors
+						: this.translateService.instant('unknown');
 				})
 				.flat()
 				.filter((value, index, self) => self.indexOf(value) === index)
@@ -160,10 +168,12 @@ export class GameService {
 				}),
 		});
 		filters.push({
-			name:  this.translateService.instant('status'),
+			name: this.translateService.instant('status'),
 			values: this.games
 				.map((game) => {
-					return game.status ? game.status :  this.translateService.instant('not_yet');
+					return game.status
+						? game.status
+						: this.translateService.instant('not_yet');
 				})
 				.flat()
 				.filter((value, index, self) => self.indexOf(value) === index)
@@ -172,7 +182,7 @@ export class GameService {
 				}),
 		});
 		filters.push({
-			name:  this.translateService.instant('rating'),
+			name: this.translateService.instant('rating'),
 			values: this.games
 				.map((game) => {
 					return game.rating ? game.rating : 'Not Rated';
@@ -186,8 +196,16 @@ export class GameService {
 		filters.push({
 			name: this.translateService.instant('hidden'),
 			values: [
-				{ cname:  this.translateService.instant('yes'), value: 'true', code: 'hidden' },
-				{ cname:  this.translateService.instant('no'), value: 'false', code: 'hidden' },
+				{
+					cname: this.translateService.instant('yes'),
+					value: 'true',
+					code: 'hidden',
+				},
+				{
+					cname: this.translateService.instant('no'),
+					value: 'false',
+					code: 'hidden',
+				},
 			],
 		});
 
@@ -342,8 +360,9 @@ export class GameService {
 						this.translateService.instant('no_credentials_found'),
 						'error',
 					);
-					reject(this.translateService.instant('no_credentials_found'));
-
+					reject(
+						this.translateService.instant('no_credentials_found'),
+					);
 				}
 
 				let searchedGames: string[];
@@ -397,7 +416,9 @@ export class GameService {
 						this.translateService.instant('no_credentials_found'),
 						'error',
 					);
-					reject(this.translateService.instant('no_credentials_found'));
+					reject(
+						this.translateService.instant('no_credentials_found'),
+					);
 					return;
 				}
 
@@ -520,7 +541,7 @@ export class GameService {
 			if (audios === undefined) {
 				this.genericService.sendNotification(
 					this.translateService.instant('error'),
-					this.translateService.instant("noAudioFound"),
+					this.translateService.instant('noAudioFound'),
 					'error',
 				);
 				return;

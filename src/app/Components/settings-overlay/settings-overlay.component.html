@@ -35,10 +35,10 @@
 						placeholder="{{ 'change-language' | translate }}"
 					/>
 				</div>
-                <div *ngIf="activeItem === 'APIKEYS'" id="APIKEYS">
-                    <h3>{{ 'api-keys' | translate }}</h3>
-                    <p>{{ 'settings.api-keys' | translate }}</p>
-                </div>
+				<div *ngIf="activeItem === 'APIKEYS'" id="APIKEYS">
+					<h3>{{ 'api-keys' | translate }}</h3>
+					<p>{{ 'settings.api-keys' | translate }}</p>
+				</div>
 
 				<app-csv-importer
 					*ngIf="activeItem === 'CSV Importer'"
@@ -71,8 +71,8 @@
 					<p>{{ 'version-appversion' | translate }}</p>
 					<br />
 					<p>
-						{{ 'this-is-a-project-by' | translate }} <a href="https://github.com/Nytuo"
-						>Nytuo</a>
+						{{ 'this-is-a-project-by' | translate }}
+						<a href="https://github.com/Nytuo">Nytuo</a>
 					</p>
 					<p>
 						{{ 'dev-warning' | translate }}

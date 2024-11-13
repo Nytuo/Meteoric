@@ -9,7 +9,7 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-						<h2>{{'selectTheGameYouWantToAdd' | translate}}</h2>
+						<h2>{{ 'selectTheGameYouWantToAdd' | translate }}</h2>
 						<p *ngIf="message">{{ message }}</p>
 						<div *ngIf="!message">
 							<p-listbox
@@ -40,7 +40,7 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-						<h2>{{'selectTheGrid' | translate}}</h2>
+						<h2>{{ 'selectTheGrid' | translate }}</h2>
 						<div class="container">
 							<div
 								*ngFor="let grid of availableGrids; let i = index"
@@ -82,7 +82,7 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-                        <h2>{{'selectTheHero' | translate}}</h2>
+						<h2>{{ 'selectTheHero' | translate }}</h2>
 						<div class="container">
 							<div
 								*ngFor="let hero of availableHeroes; let i = index"
@@ -124,7 +124,7 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-						<h2>{{'selectTheLogo' | translate}}</h2>
+						<h2>{{ 'selectTheLogo' | translate }}</h2>
 						<div class="container">
 							<div
 								*ngFor="let logo of availableLogos; let i = index"
@@ -164,7 +164,7 @@
 				pTemplate="content"
 			>
 				<div style="width: 100%">
-					<p>{{'selectTheIcon' | translate}}</p>
+					<p>{{ 'selectTheIcon' | translate }}</p>
 					<div class="container">
 						<div *ngFor="let icon of availableIcons; let i = index">
 							<img

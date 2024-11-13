@@ -1,5 +1,5 @@
 <div style="padding: 20px">
-	<h1>Good Old Games {{'importer' | translate}}</h1>
+	<h1>Good Old Games {{ 'importer' | translate }}</h1>
 
 	<p-stepper>
 		<p-stepperPanel header="{{'signIn' | translate}}">
@@ -10,16 +10,19 @@
 			>
 				<div style="width: 100%">
 					<div [style]="{ margin: '20px' }">
-						<p>{{'gog-importer.redirectwarning' | translate}}</p>
+						<p>{{ 'gog-importer.redirectwarning' | translate }}</p>
 						<p>
-							{{'gog-importer.alreadyConnected' | translate}}
+							{{ 'gog-importer.alreadyConnected' | translate }}
 						</p>
 						<p-confirmDialog>
 							<ng-template let-message pTemplate="message">
 								<p>{{ message.message }}</p>
 							</ng-template>
 						</p-confirmDialog>
-						<p-button (onClick)="confirm()" label="{{'signIn' | translate}}" />
+						<p-button
+							(onClick)="confirm()"
+							label="{{'signIn' | translate}}"
+						/>
 					</div>
 				</div>
 				<div style="display: flex; justify-content: flex-end">
@@ -47,7 +50,9 @@
 								id="AuthCode"
 								pInputText
 							/>
-							<label for="AuthCode">{{'authcode' | translate}}</label>
+							<label for="AuthCode">{{
+									'authcode' | translate
+								}}</label>
 						</p-floatLabel>
 					</div>
 				</div>
@@ -97,7 +102,8 @@
 					<p-button
 						(onClick)="prevCallback.emit()"
 						icon="pi pi-arrow-left"
-						label="{{'back' | translate}}"}
+						label="{{'back' | translate}}"
+						}
 					/>
 				</div>
 			</ng-template>

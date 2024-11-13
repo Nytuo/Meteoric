@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/tauri';
 import ISettings from '../../interfaces/ISettings';
 import { DBService } from './db.service';
 import { MessageService } from 'primeng/api';
-import {TranslateService} from "@ngx-translate/core";
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
 	providedIn: 'root',
@@ -146,8 +146,11 @@ export class GenericService {
 
 	async killGame(gamePID: number) {
 		invoke('kill_game', { pid: gamePID }).then((response) => {
-			this.sendNotification( this.translateService.instant('game_ended_title'),
-				this.translateService.instant('game_ended_message'), 'info');
+			this.sendNotification(
+				this.translateService.instant('game_ended_title'),
+				this.translateService.instant('game_ended_message'),
+				'info',
+			);
 		});
 	}
 

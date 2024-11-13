@@ -68,7 +68,7 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { CascadeSelectModule } from 'primeng/cascadeselect';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
-import {TranslateModule} from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
 	declarations: [
@@ -146,6 +146,5 @@ import {TranslateModule} from '@ngx-translate/core';
 	],
 	bootstrap: [AppComponent],
 })
-
 export class AppModule {
 }

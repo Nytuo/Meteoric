@@ -7,8 +7,8 @@
 	>
 		<table>
 			<tr>
-				<th>{{'icon' | translate}}</th>
-				<th>{{'name' | translate}}</th>
+				<th>{{ 'icon' | translate }}</th>
+				<th>{{ 'name' | translate }}</th>
 			</tr>
 			<tr *ngFor="let game of games" [routerLink]="['/game', game.id]">
 				<td>

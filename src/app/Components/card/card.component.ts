@@ -9,7 +9,7 @@ import {
 import { GenericService } from '../../services/generic.service';
 import ISettings from '../../../interfaces/ISettings';
 import { SettingsService } from '../../services/settings.service';
-import {TranslateService} from "@ngx-translate/core";
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-card',
@@ -57,7 +57,8 @@ export class CardComponent implements OnInit, OnChanges {
 			this.width = (settings.zoom) + 'rem';
 		});
 
-		this.parsedTags = this.gameTags.split(',') || [this.translate.instant('no_tags')];
+		this.parsedTags = this.gameTags.split(',') ||
+			[this.translate.instant('no_tags')];
 		if (this.gameTags === '') {
 			this.parsedTags = [this.translate.instant('no_tags')];
 		}
