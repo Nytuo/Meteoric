@@ -3,6 +3,8 @@ import { DBService } from './db.service';
 import ISettings from '../../interfaces/ISettings';
 import { BehaviorSubject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
+import { invoke } from '@tauri-apps/api/tauri';
+import { GenericService } from './generic.service';
 
 @Injectable({
 	providedIn: 'root',
@@ -13,7 +15,13 @@ export class SettingsService {
 	>(
 		{},
 	);
-	constructor(protected db: DBService, private translate: TranslateService) {
+
+	private apikeys: BehaviorSubject<any> = new BehaviorSubject<any>({});
+	constructor(
+		protected db: DBService,
+		private translate: TranslateService,
+		private genericService: GenericService,
+	) {
 		this.db.getSettings().then((settings) => {
 			console.log(settings);
 			if (settings.gap) {
@@ -31,6 +39,17 @@ export class SettingsService {
 			console.log(settings);
 			this.settings.next(settings);
 		});
+		this.get_env_settings().then((res) => {
+			this.apikeys.next(res);
+		});
+	}
+
+	getApiKeys() {
+		return this.apikeys.asObservable();
+	}
+
+	setApiKeys(apiKeys: any) {
+		this.apikeys.next(apiKeys);
 	}
 
 	changeSettings(settings: ISettings) {
@@ -69,5 +88,30 @@ export class SettingsService {
 			});
 			this.applySettings(this.settings.getValue());
 		}
+	}
+
+	async get_env_settings() {
+		return new Promise((resolve, reject) => {
+			invoke('get_env_map').then((res) => {
+				resolve(res);
+			}).catch((err) => {
+				reject(err);
+			});
+		});
+	}
+
+	async set_env_settings() {
+		await invoke('set_env_map', { envMap: this.apikeys.getValue() }).then(
+			() => {
+				this.genericService.sendNotification(
+					this.translate.instant('settingsSaved'),
+					this.translate.instant('settingsSavedMessage'),
+					'success',
+				);
+			},
+		).catch((err) => {
+			this.genericService.sendNotification('Error', err, 'error');
+			console.error(err);
+		});
 	}
 }

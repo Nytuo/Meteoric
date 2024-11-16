@@ -38,6 +38,24 @@
 				<div *ngIf="activeItem === 'APIKEYS'" id="APIKEYS">
 					<h3>{{ 'api-keys' | translate }}</h3>
 					<p>{{ 'settings.api-keys' | translate }}</p>
+					<div class="spaceX">
+						<div
+							*ngFor="let key of apiKeys | keyvalue"
+							class="mb-3"
+						>
+							<p-floatLabel>
+								<input
+									[(ngModel)]="key.value"
+									pInputText
+									(blur)="setEnv(key.key, key.value)"
+									[id]="'id-' + key.key"
+								/>
+								<label [for]="'id-' + key.key">{{
+										key.key
+									}}</label>
+							</p-floatLabel>
+						</div>
+					</div>
 				</div>
 
 				<app-csv-importer

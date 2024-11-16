@@ -399,3 +399,31 @@ pub fn archiveDBAndExtraContent(path: String) -> Result<(), Box<dyn std::error::
     fs::remove_dir_all(&archive_dir)?;
     Ok(())
 }
+
+pub fn read_env_file() -> Result<HashMap<String, String>, Box<dyn std::error::Error>> {
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
+    let env_file = proj_dirs.config_dir().join("Meteoric.env");
+    let mut env_vars = HashMap::new();
+    let file = File::open(env_file)?;
+    let reader = std::io::BufReader::new(file);
+    for line in reader.lines() {
+        let line = line?;
+        let line = line.trim();
+        if line.starts_with("#") || line.is_empty() {
+            continue;
+        }
+        let parts: Vec<&str> = line.split('=').collect();
+        env_vars.insert(parts[0].to_string(), parts[1].to_string());
+    }
+    Ok(env_vars)
+}
+
+pub fn write_env_file(env_vars: HashMap<String, String>) -> Result<(), Box<dyn std::error::Error>> {
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
+    let env_file = proj_dirs.config_dir().join("Meteoric.env");
+    let mut file = File::create(env_file)?;
+    for (key, value) in env_vars.iter() {
+        writeln!(file, "{}={}", key, value)?;
+    }
+    Ok(())
+}

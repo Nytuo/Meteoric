@@ -175,6 +175,7 @@ export class SettingsOverlayComponent implements OnInit {
 	selectedTheme: any;
 	selectedLanguage: any;
 	appVersion: string = '1.0.0';
+	apiKeys: any = {};
 
 	constructor(
 		private settingsService: SettingsService,
@@ -210,5 +211,16 @@ export class SettingsOverlayComponent implements OnInit {
 			this.translate.currentLang || 'en',
 		);
 		this.appVersion = '1.0.0';
+		this.settingsService.getApiKeys().subscribe((apiKeys) => {
+			this.apiKeys = apiKeys;
+		});
+	}
+
+	setEnv(key: unknown, value: any) {
+		this.settingsService.setApiKeys({
+			...this.apiKeys,
+			[key as string]: value,
+		});
+		this.settingsService.set_env_settings();
 	}
 }

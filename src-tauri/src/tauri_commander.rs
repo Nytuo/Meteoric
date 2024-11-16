@@ -15,7 +15,7 @@ use crate::database::{
 };
 use crate::file_operations::{
     create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
-    remove_file, archiveDBAndExtraContent,
+    remove_file, archiveDBAndExtraContent, read_env_file, write_env_file
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
 use crate::{routine, send_message_to_frontend, IGame};
@@ -784,5 +784,16 @@ pub fn export_game_database_to_csv(path: String) -> Result<(), String> {
 #[tauri::command]
 pub fn export_game_database_to_archive(path: String) -> Result<(), String> {
     archiveDBAndExtraContent(path).expect("Failed to archive database and extra content");
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_env_map() -> Result<HashMap<String, String>, String> {
+    Ok(read_env_file().expect("Failed to read env file"))
+}
+
+#[tauri::command]
+pub fn set_env_map(env_map: HashMap<String, String>) -> Result<(), String> {
+    write_env_file(env_map).expect("Failed to write env file");
     Ok(())
 }
