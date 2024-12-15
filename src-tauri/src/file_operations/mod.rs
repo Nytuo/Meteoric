@@ -1,14 +1,14 @@
-use std::collections::HashMap;
-use std::fs;
 use anyhow::Context;
 use clap::{Parser, ValueEnum};
+use std::collections::HashMap;
+use std::fs;
 use std::io::prelude::*;
 use zip::{result::ZipError, write::SimpleFileOptions};
 
+use directories::ProjectDirs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
-use directories::ProjectDirs;
 
 use crate::database::establish_connection;
 use crate::database::query_all_data;
@@ -146,7 +146,10 @@ pub fn is_folder_empty_recursive(dir: &Path) -> bool {
     true
 }
 
-pub async fn download_media_files(id: &str, game: HashMap<String, serde_json::Value>) -> Result<(), String> {
+pub async fn download_media_files(
+    id: &str,
+    game: HashMap<String, serde_json::Value>,
+) -> Result<(), String> {
     let game_dir = get_extra_dirs(id).unwrap();
     let cl = reqwest::Client::new();
 
@@ -317,7 +320,6 @@ pub fn have_no_metadata(games: Vec<IGame>) -> Vec<IGame> {
     missing
 }
 
-
 fn zip_dir<T, P>(
     it: &mut dyn Iterator<Item = walkdir::DirEntry>,
     prefix: P,
@@ -361,8 +363,6 @@ where
     Ok(())
 }
 
-
-
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<()> {
     fs::create_dir_all(&dst)?;
     for entry in fs::read_dir(src)? {
@@ -395,7 +395,12 @@ pub fn archiveDBAndExtraContent(path: String) -> Result<(), Box<dyn std::error::
 
     let walkdir = WalkDir::new(&archive_dir);
     let it = walkdir.into_iter();
-    zip_dir(&mut it.filter_map(|e| e.ok()), &archive_dir, file, zip::CompressionMethod::Stored)?;
+    zip_dir(
+        &mut it.filter_map(|e| e.ok()),
+        &archive_dir,
+        file,
+        zip::CompressionMethod::Stored,
+    )?;
     fs::remove_dir_all(&archive_dir)?;
     Ok(())
 }
@@ -403,6 +408,9 @@ pub fn archiveDBAndExtraContent(path: String) -> Result<(), Box<dyn std::error::
 pub fn read_env_file() -> Result<HashMap<String, String>, Box<dyn std::error::Error>> {
     let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
     let env_file = proj_dirs.config_dir().join("Meteoric.env");
+    if !env_file.exists() {
+        return Ok(HashMap::new());
+    }
     let mut env_vars = HashMap::new();
     let file = File::open(env_file)?;
     let reader = std::io::BufReader::new(file);
