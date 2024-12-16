@@ -1,7 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CategoryService } from '../../services/category.service';
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { GenericService } from '../../services/generic.service';
+const appWindow = getCurrentWebviewWindow()
 
 @Component({
 	selector: 'app-sidebar',

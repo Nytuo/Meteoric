@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use directories::ProjectDirs;
-use rusqlite::{Connection, params};
+use rusqlite::{params, Connection};
 
 use crate::{send_message_to_frontend, IGame};
 
@@ -84,7 +84,7 @@ pub(crate) fn add_game_to_category_db(
         )
         .unwrap_or_default()
         .unwrap_or_default()
-        .contains(&format!(",{}," , game_id));
+        .contains(&format!(",{},", game_id));
     if is_already_present {
         return Ok(());
     }
@@ -295,7 +295,16 @@ fn create_favorites_category(conn: &Connection) -> Result<(), rusqlite::Error> {
         .collect::<Vec<String>>();
     let categories: String = categories.join(",");
     if !categories.contains(&"Favorites".to_string()) {
-        add_category(conn, "Favorites".to_string(), "star".to_string(), vec![], vec![], vec![], "".to_string()).map_err(|e| e.to_string());
+        add_category(
+            conn,
+            "Favorites".to_string(),
+            "star".to_string(),
+            vec![],
+            vec![],
+            vec![],
+            "".to_string(),
+        )
+        .map_err(|e| e.to_string());
     }
     Ok(())
 }
@@ -368,7 +377,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             game.time_played,
             game.trophies_unlocked,
             game.last_time_played,
-            game.hidden
+            game.hidden,
         ];
         let all_fields = all_fields
             .iter()
@@ -376,12 +385,15 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             .collect::<Vec<String>>()
             .join("', '");
         let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, time_played, trophies_unlocked, last_time_played, hidden) VALUES ('{}')", all_fields);
-        match conn.execute(&sql_insert, []).map_err(|e| e.to_string()){
+        match conn.execute(&sql_insert, []).map_err(|e| e.to_string()) {
             Ok(_) => {
                 println!("Game inserted");
-            },
+            }
             Err(e) => {
-                send_message_to_frontend(&format!("[Database Error-ERROR-3000]{} cannot be updated",game_name.clone()));
+                send_message_to_frontend(&format!(
+                    "[Database Error-ERROR-3000]{} cannot be updated",
+                    game_name.clone()
+                ));
                 return Err(e.to_string());
             }
         }
@@ -415,7 +427,10 @@ pub fn get_game_id_by_name(conn: &Connection, name: &str) -> Result<String, Stri
 }
 
 pub fn set_settings_db(conn: &Connection, name: &str, value: &str) -> Result<(), String> {
-    let sql = format!("INSERT OR REPLACE INTO settings (name, value) VALUES ('{}', '{}')", name, value);
+    let sql = format!(
+        "INSERT OR REPLACE INTO settings (name, value) VALUES ('{}', '{}')",
+        name, value
+    );
     conn.execute(&sql, []).map_err(|e| e.to_string())?;
     Ok(())
 }

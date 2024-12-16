@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { platform } from '@tauri-apps/api/os';
+import { platform } from '@tauri-apps/plugin-os';
 import { configDir } from '@tauri-apps/api/path';
-import { convertFileSrc } from '@tauri-apps/api/tauri';
-import { appWindow } from '@tauri-apps/api/window';
+import { convertFileSrc } from '@tauri-apps/api/core';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { GenericService } from '../../services/generic.service';
+const appWindow = getCurrentWebviewWindow()
 
 @Component({
 	selector: 'app-splash',
@@ -26,11 +27,11 @@ export class SplashComponent implements OnInit {
 	async loadVideo() {
 		let configDirPath = await configDir();
 		let dplatform = await platform();
-		if (dplatform === 'win32') {
+		if (dplatform === 'windows') {
 			configDirPath = configDirPath +
-				'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+				'\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else {
-			configDirPath = configDirPath + 'meteoric/meteoric_extra_content/';
+			configDirPath = configDirPath + '/meteoric/meteoric_extra_content/';
 		}
 		let videoTag = document.getElementById('myVideo') as HTMLVideoElement;
 		if (videoTag) {

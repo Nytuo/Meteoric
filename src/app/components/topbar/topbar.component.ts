@@ -1,17 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { GenericService } from '../../services/generic.service';
 import { Location } from '@angular/common';
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { NavigationEnd, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { GameService } from '../../services/game.service';
-import { open } from '@tauri-apps/api/dialog';
+import { open } from '@tauri-apps/plugin-dialog';
 import { dirname } from '@tauri-apps/api/path';
 import { DBService } from '../../services/db.service';
 import { TauriService } from '../../services/tauri.service';
 import IGameLaunchedMessage from '../../../interfaces/IGameLaunchMessage';
 import { CategoryService } from '../../services/category.service';
 import { TranslateService } from '@ngx-translate/core';
+const appWindow = getCurrentWebviewWindow()
 
 @Component({
 	selector: 'app-topbar',

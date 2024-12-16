@@ -3,8 +3,8 @@ use std::io::Read;
 use std::io::Write;
 
 use directories::ProjectDirs;
-use gog::Gog;
 use gog::token::Token;
+use gog::Gog;
 use tokio::{sync::Mutex, task};
 
 use crate::database::establish_connection;

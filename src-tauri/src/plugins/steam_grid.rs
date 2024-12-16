@@ -1,9 +1,9 @@
-use steamgriddb_api::Client;
 use steamgriddb_api::images::Image;
 use steamgriddb_api::query_parameters::QueryType::Grid;
 use steamgriddb_api::query_parameters::QueryType::Hero;
 use steamgriddb_api::query_parameters::QueryType::Icon;
 use steamgriddb_api::query_parameters::QueryType::Logo;
+use steamgriddb_api::Client;
 use tokio::sync::Mutex;
 use tokio::task;
 
@@ -41,24 +41,23 @@ pub async fn get_grid(game_id: usize) -> Vec<Image> {
     result.unwrap()
 }
 
-pub async fn get_hero(game_id: usize) ->  Vec<Image> {
+pub async fn get_hero(game_id: usize) -> Vec<Image> {
     let client = CLIENT.lock().await;
     let result = client.get_images_for_id(game_id, &Hero(None)).await;
     result.unwrap()
 }
 
-pub async fn get_logo(game_id: usize) ->  Vec<Image>{
+pub async fn get_logo(game_id: usize) -> Vec<Image> {
     let client = CLIENT.lock().await;
     let result = client.get_images_for_id(game_id, &Logo(None)).await;
     result.unwrap()
 }
 
-pub async fn get_icon(game_id: usize) ->  Vec<Image> {
+pub async fn get_icon(game_id: usize) -> Vec<Image> {
     let client = CLIENT.lock().await;
     let result = client.get_images_for_id(game_id, &Icon(None)).await;
     result.unwrap()
 }
-
 
 #[tauri::command]
 pub async fn steamgrid_get_grid(game_id: usize) -> Vec<Image> {
@@ -79,4 +78,3 @@ pub async fn steamgrid_get_logo(game_id: usize) -> Vec<Image> {
 pub async fn steamgrid_get_icon(game_id: usize) -> Vec<Image> {
     get_icon(game_id).await
 }
-

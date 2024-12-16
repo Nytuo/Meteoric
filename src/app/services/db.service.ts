@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import IGame from '../../interfaces/IGame';
 import { BaseDirectory, configDir } from '@tauri-apps/api/path';
 import ICategory from '../../interfaces/ICategory';
-import { platform } from '@tauri-apps/api/os';
+import { platform } from '@tauri-apps/plugin-os';
 import ISettings from '../../interfaces/ISettings';
-import { save } from '@tauri-apps/api/dialog';
+import { save } from '@tauri-apps/plugin-dialog';
 import { GenericService } from './generic.service';
-import { exists } from '@tauri-apps/api/fs';
+import { exists } from '@tauri-apps/plugin-fs';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
@@ -46,12 +46,12 @@ export class DBService {
 			let id = game.id;
 			let configDirPath = await configDir();
 			let dplatform = await platform();
-			if (dplatform === 'win32') {
+			if (dplatform === 'windows') {
 				configDirPath = configDirPath +
-					'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+					'\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 			} else {
 				configDirPath = configDirPath +
-					'meteoric/meteoric_extra_content/';
+					'/meteoric/meteoric_extra_content/';
 			}
 			game.jaquette = convertFileSrc(
 				configDirPath + id + '/jaquette.jpg',
@@ -70,11 +70,11 @@ export class DBService {
 		let id = game.id;
 		let configDirPath = await configDir();
 		let dplatform = await platform();
-		if (dplatform === 'win32') {
+		if (dplatform === 'windows') {
 			configDirPath = configDirPath +
-				'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+				'\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else if (dplatform === 'linux') {
-			configDirPath = configDirPath + 'meteoric/meteoric_extra_content/';
+			configDirPath = configDirPath + '/meteoric/meteoric_extra_content/';
 		}
 		game.jaquette = convertFileSrc(configDirPath + id + '/jaquette.jpg') +
 			'?' +
@@ -418,7 +418,7 @@ export class DBService {
 
 		let configDirPathMusic;
 		let dplatform = await platform();
-		if (dplatform === 'win32') {
+		if (dplatform === 'windows') {
 			configDirPathMusic =
 				'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else if (dplatform === 'linux') {
@@ -427,7 +427,7 @@ export class DBService {
 
 		let musicFilePath = configDirPathMusic + id + '/musics/theme.mp3';
 		game.backgroundMusic =
-			await exists(musicFilePath, { dir: BaseDirectory.Config })
+			await exists(musicFilePath, { baseDir: BaseDirectory.Config })
 				? convertFileSrc(configDirPath + id + '/musics/theme.mp3')
 				: '';
 		return game;

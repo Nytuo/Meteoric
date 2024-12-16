@@ -6,12 +6,12 @@ extern crate rusqlite;
 
 use std::collections::{HashMap, HashSet};
 use std::env;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use directories::ProjectDirs;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, State, Window};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use database::{establish_connection, query_all_data};
 use file_operations::have_no_metadata;
@@ -21,10 +21,12 @@ use crate::plugins::steam_grid::{
     steamgrid_get_grid, steamgrid_get_hero, steamgrid_get_icon, steamgrid_get_logo,
 };
 use crate::tauri_commander::{
-    add_game_to_category, create_category, delete_element, download_yt_audio, get_all_categories,
+    add_game_to_category, create_category, delete_element, delete_game, download_yt_audio,
+    export_game_database_to_archive, export_game_database_to_csv, get_all_categories,
     get_all_fields_from_db, get_all_games, get_all_images_location, get_all_videos_location,
-    get_games_by_category, import_library, kill_game, launch_game, post_game,delete_game,export_game_database_to_csv,
-    remove_game_from_category, save_media_to_external_storage, search_metadata, startup_routine, upload_csv_to_db, upload_file,get_settings,set_settings,export_game_database_to_archive,get_env_map,set_env_map
+    get_env_map, get_games_by_category, get_settings, import_library, kill_game, launch_game,
+    post_game, remove_game_from_category, save_media_to_external_storage, search_metadata,
+    set_env_map, set_settings, startup_routine, upload_csv_to_db, upload_file,
 };
 
 mod database;
@@ -206,31 +208,31 @@ impl IGame {
     }
 
     pub fn get(&self, field: &str) -> Option<String> {
-     match field {
-        "id" => Some(self.id.clone()),
-        "name" => Some(self.name.clone()),
-        "sort_name" => Some(self.sort_name.clone()),
-        "rating" => Some(self.rating.clone()),
-        "platforms" => Some(self.platforms.clone()),
-        "description" => Some(self.description.clone()),
-        "critic_score" => Some(self.critic_score.clone()),
-        "genres" => Some(self.genres.clone()),
-        "styles" => Some(self.styles.clone()),
-        "release_date" => Some(self.release_date.clone()),
-        "developers" => Some(self.developers.clone()),
-        "editors" => Some(self.editors.clone()),
-        "game_dir" => Some(self.game_dir.clone()),
-        "exec_file" => Some(self.exec_file.clone()),
-        "exec_args" => Some(self.exec_args.clone()),
-        "tags" => Some(self.tags.clone()),
-        "status" => Some(self.status.clone()),
-        "time_played" => Some(self.time_played.clone()),
-        "trophies" => Some(self.trophies.clone()),
-        "trophies_unlocked" => Some(self.trophies_unlocked.clone()),
-        "last_time_played" => Some(self.last_time_played.clone()),
-        "hidden" => Some(self.hidden.clone()),
-        _ => None,
-    }
+        match field {
+            "id" => Some(self.id.clone()),
+            "name" => Some(self.name.clone()),
+            "sort_name" => Some(self.sort_name.clone()),
+            "rating" => Some(self.rating.clone()),
+            "platforms" => Some(self.platforms.clone()),
+            "description" => Some(self.description.clone()),
+            "critic_score" => Some(self.critic_score.clone()),
+            "genres" => Some(self.genres.clone()),
+            "styles" => Some(self.styles.clone()),
+            "release_date" => Some(self.release_date.clone()),
+            "developers" => Some(self.developers.clone()),
+            "editors" => Some(self.editors.clone()),
+            "game_dir" => Some(self.game_dir.clone()),
+            "exec_file" => Some(self.exec_file.clone()),
+            "exec_args" => Some(self.exec_args.clone()),
+            "tags" => Some(self.tags.clone()),
+            "status" => Some(self.status.clone()),
+            "time_played" => Some(self.time_played.clone()),
+            "trophies" => Some(self.trophies.clone()),
+            "trophies_unlocked" => Some(self.trophies_unlocked.clone()),
+            "last_time_played" => Some(self.last_time_played.clone()),
+            "hidden" => Some(self.hidden.clone()),
+            _ => None,
+        }
     }
 
     fn check_if_game_has_minimum_requirements(&self) -> bool {
@@ -248,15 +250,6 @@ impl IGame {
     }
 }
 
-pub fn send_message_to_frontend(message: &str) {
-    println!("Message to frontend: {}", message);
-    let handle = APP_HANDLE.lock().unwrap();
-    if let Some(app_handle) = handle.as_ref() {
-        let state: State<AppState> = app_handle.state();
-        let window = &state.main_window;
-        window.emit("frontend-message", message).unwrap();
-    }
-}
 
 fn initialize() {
     if let Some(proj_dirs) = ProjectDirs::from("fr", "Nytuo", "Meteoric") {
@@ -325,25 +318,46 @@ fn populate_info() {
     let conn = establish_connection().unwrap();
     let all_games = hash2_games(query_all_data(&conn, "games").unwrap());
     let games = have_no_metadata(all_games);
-    if games.len() == 0 { return; }
-    send_message_to_frontend(&format!("[Routine-INFO-3000]{} games need a metadata update", games.len()));
+    if games.len() == 0 {
+        return;
+    }
+    send_message_to_frontend(&format!(
+        "[Routine-INFO-3000]{} games need a metadata update",
+        games.len()
+    ));
     let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
     let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
     igdb::set_credentials(Vec::from([client_id, client_secret]));
     for (index, game) in games.iter().enumerate() {
-        send_message_to_frontend(&format!("[Routine-INFO-NL]Processing {}, {}/{}", game.name, index + 1, games.len()));
+        send_message_to_frontend(&format!(
+            "[Routine-INFO-NL]Processing {}, {}/{}",
+            game.name,
+            index + 1,
+            games.len()
+        ));
         let _ = igdb::routine(game.clone().name, game.clone().id);
     }
 }
 
-// TODO Process watcher to send a message to front end in case a game process has stopped
-
-struct AppState {
-    main_window: Window,
+pub fn send_message_to_frontend(message: &str) {
+    println!("Message to frontend: {}", message);
+    if let Some(app_handle) = get_app_handle() {
+        app_handle
+            .emit("frontend-message", Some(message.to_string()))
+            .expect("failed to send message to frontend");
+    }
 }
 
-lazy_static! {
-    static ref APP_HANDLE: Mutex<Option<AppHandle>> = Mutex::new(None);
+static APP_HANDLE: once_cell::sync::Lazy<Arc<Mutex<Option<tauri::AppHandle>>>> = once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(None)));
+
+fn store_app_handle(app_handle: tauri::AppHandle) {
+    let mut handle = APP_HANDLE.lock().unwrap();
+    *handle = Some(app_handle);
+}
+
+fn get_app_handle() -> Option<tauri::AppHandle> {
+    let handle = APP_HANDLE.lock().unwrap();
+    handle.clone()
 }
 
 #[tokio::main]
@@ -355,15 +369,12 @@ async fn main() {
         .join("Meteoric.env");
     dotenv::from_filename(dotenv_file).ok();
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_fs::init())
         .setup(|app| {
-            let main_window = app.get_window("main").unwrap();
-            app.manage(AppState {
-                main_window: main_window.clone(),
-            });
-
-            let mut handle = APP_HANDLE.lock().unwrap();
-            *handle = Some(app.handle());
-
+            store_app_handle(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -388,8 +399,16 @@ async fn main() {
             create_category,
             startup_routine,
             launch_game,
-            kill_game,add_game_to_category,remove_game_from_category,
-            get_settings,set_settings,delete_game,export_game_database_to_csv,export_game_database_to_archive,get_env_map,set_env_map
+            kill_game,
+            add_game_to_category,
+            remove_game_from_category,
+            get_settings,
+            set_settings,
+            delete_game,
+            export_game_database_to_csv,
+            export_game_database_to_archive,
+            get_env_map,
+            set_env_map
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

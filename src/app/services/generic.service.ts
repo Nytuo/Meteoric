@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { NavigationEnd, Router } from '@angular/router';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import ISettings from '../../interfaces/ISettings';
 import { DBService } from './db.service';
 import { MessageService } from 'primeng/api';

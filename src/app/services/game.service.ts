@@ -3,7 +3,7 @@ import IGame from '../../interfaces/IGame';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { DBService } from './db.service';
 import { GenericService } from './generic.service';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({

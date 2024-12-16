@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::{env, io};
 use std::path::PathBuf;
 use std::time::Duration;
+use std::{env, io};
 
 use directories::ProjectDirs;
 use rusty_ytdl::{Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions};
@@ -14,8 +14,8 @@ use crate::database::{
     query_all_data, query_data, remove_game_from_category_db, set_settings_db, update_game,
 };
 use crate::file_operations::{
-    create_extra_dirs, get_all_files_in_dir_for, get_all_files_in_dir_for_parsed, get_extra_dirs,
-    remove_file, archiveDBAndExtraContent, read_env_file, write_env_file
+    archiveDBAndExtraContent, create_extra_dirs, get_all_files_in_dir_for,
+    get_all_files_in_dir_for_parsed, get_extra_dirs, read_env_file, remove_file, write_env_file,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
 use crate::{routine, send_message_to_frontend, IGame};
@@ -183,7 +183,9 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
         id = &new_game_id;
     }
     if id.is_empty() {
-        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] Game name is empty".to_string());
+        send_message_to_frontend(
+            &"[File Uploader Error-ERROR-3000] Game name is empty".to_string(),
+        );
         return Err("Game name is empty".to_string());
     }
     if type_of.is_empty() {
@@ -191,11 +193,15 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
         return Err("Type of is empty".to_string());
     }
     if file_content.is_empty() {
-        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] File content is empty".to_string());
+        send_message_to_frontend(
+            &"[File Uploader Error-ERROR-3000] File content is empty".to_string(),
+        );
         return Err("File content is empty".to_string());
     }
     if file_content.len() > 100000000 {
-        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] File content is too big".to_string());
+        send_message_to_frontend(
+            &"[File Uploader Error-ERROR-3000] File content is too big".to_string(),
+        );
         return Err("File content is too big".to_string());
     }
     if type_of != "screenshot"
@@ -206,11 +212,15 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
         && type_of != "logo"
         && type_of != "icon"
     {
-        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] Type of is not valid".to_string());
+        send_message_to_frontend(
+            &"[File Uploader Error-ERROR-3000] Type of is not valid".to_string(),
+        );
         return Err("Type of is not valid".to_string());
     }
     if id.contains("/") || id.contains("\\") {
-        send_message_to_frontend(&"[File Uploader Error-ERROR-3000] Game name is not valid".to_string());
+        send_message_to_frontend(
+            &"[File Uploader Error-ERROR-3000] Game name is not valid".to_string(),
+        );
         return Err("Game name is not valid".to_string());
     }
 
@@ -238,7 +248,10 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
     };
 
     if let Err(e) = std::fs::write(&file_path, &file_content) {
-        send_message_to_frontend(&format!("[File Uploader Error-ERROR-3000] Error writing file: {:?}", e));
+        send_message_to_frontend(&format!(
+            "[File Uploader Error-ERROR-3000] Error writing file: {:?}",
+            e
+        ));
         return Err(format!("Error writing file: {:?}", e));
     }
     Ok(())
@@ -262,11 +275,15 @@ pub fn delete_element(
 ) -> Result<(), String> {
     let id = &id;
     if id.is_empty() {
-        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] Game id is empty".to_string());
+        send_message_to_frontend(
+            &*"[Element Deleter Error-ERROR-3000] Game id is empty".to_string(),
+        );
         return Err("Game id is empty".to_string());
     }
     if type_of.is_empty() {
-        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] Type of is empty".to_string());
+        send_message_to_frontend(
+            &*"[Element Deleter Error-ERROR-3000] Type of is empty".to_string(),
+        );
         return Err("Type of is empty".to_string());
     }
     if type_of != "screenshot"
@@ -277,11 +294,15 @@ pub fn delete_element(
         && type_of != "logo"
         && type_of != "icon"
     {
-        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] Type of is not valid".to_string());
+        send_message_to_frontend(
+            &*"[Element Deleter Error-ERROR-3000] Type of is not valid".to_string(),
+        );
         return Err("Type of is not valid".to_string());
     }
     if id.contains("/") || id.contains("\\") {
-        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] Game id is not valid".to_string());
+        send_message_to_frontend(
+            &*"[Element Deleter Error-ERROR-3000] Game id is not valid".to_string(),
+        );
         return Err("Game id is not valid".to_string());
     }
 
@@ -301,12 +322,17 @@ pub fn delete_element(
     };
 
     if !file_path.exists() {
-        send_message_to_frontend(&*"[Element Deleter Error-ERROR-3000] File does not exist".to_string());
+        send_message_to_frontend(
+            &*"[Element Deleter Error-ERROR-3000] File does not exist".to_string(),
+        );
         return Err("File does not exist".to_string());
     }
 
     if let Err(e) = remove_file(&file_path.to_str().unwrap()) {
-        send_message_to_frontend(&format!("[Element Deleter Error-ERROR-3000] Error removing file: {:?}", e));
+        send_message_to_frontend(&format!(
+            "[Element Deleter Error-ERROR-3000] Error removing file: {:?}",
+            e
+        ));
         return Err(format!("Error removing file: {:?}", e));
     }
 
@@ -323,7 +349,7 @@ pub fn get_games_by_category(category: String) -> String {
         vec![("name", &*("'".to_string() + &category + "'"))],
         false,
     )
-        .unwrap();
+    .unwrap();
     let games = query_data(
         &conn,
         vec!["games"],
@@ -331,14 +357,13 @@ pub fn get_games_by_category(category: String) -> String {
         vec![("id", &game_ids_from_cat[0]["games"])],
         true,
     )
-        .unwrap()
-        .iter()
-        .map(|row| format!("{:?}", row))
-        .collect::<Vec<String>>()
-        .join(",");
+    .unwrap()
+    .iter()
+    .map(|row| format!("{:?}", row))
+    .collect::<Vec<String>>()
+    .join(",");
     format!("[{}]", games)
 }
-
 
 // TODO send error messages to frontend
 #[tauri::command]
@@ -461,7 +486,7 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
         vec![("id", &game_id)],
         false,
     )
-        .unwrap();
+    .unwrap();
     let game = game.get(0);
     let mut game_object: IGame = IGame::from_hashmap(game.unwrap().clone());
     if let Some(row) = game {
@@ -505,7 +530,9 @@ pub async fn kill_game(pid: u32) -> Result<(), String> {
     } else if os == "linux" {
         kill_game_linux(pid)?;
     } else {
-        send_message_to_frontend(&"[Game Killer Error-ERROR-3000] Unsupported operating system".to_string());
+        send_message_to_frontend(
+            &"[Game Killer Error-ERROR-3000] Unsupported operating system".to_string(),
+        );
         return Err("Unsupported operating system".to_string());
     }
     Ok(())
@@ -578,7 +605,9 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
         id = &new_game_id;
     }
     if id.is_empty() {
-        send_message_to_frontend(&"[Media Downloader Error-ERROR-3000] Game name is empty".to_string());
+        send_message_to_frontend(
+            &"[Media Downloader Error-ERROR-3000] Game name is empty".to_string(),
+        );
         return Err("Game name is empty".to_string());
     }
     if game.is_empty() {
@@ -586,7 +615,9 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
         return Err("Urls are empty".to_string());
     }
     if id.contains("/") || id.contains("\\") {
-        send_message_to_frontend(&"[Media Downloader Error-ERROR-3000] Game name is not valid".to_string());
+        send_message_to_frontend(
+            &"[Media Downloader Error-ERROR-3000] Game name is not valid".to_string(),
+        );
         return Err("Game name is not valid".to_string());
     }
 
@@ -619,7 +650,10 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                         );
                         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
                         if let Err(e) = std::fs::write(&file_path, &file_content) {
-                            send_message_to_frontend(&format!("[Media Downloader Error-ERROR-3000] Error writing file: {:?}", e));
+                            send_message_to_frontend(&format!(
+                                "[Media Downloader Error-ERROR-3000] Error writing file: {:?}",
+                                e
+                            ));
                             return Err(format!("Error writing file: {:?}", e));
                         }
                     }
@@ -652,7 +686,10 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                             let file_content =
                                 cl.get(url).send().await.unwrap().bytes().await.unwrap();
                             if let Err(e) = std::fs::write(&file_path, &file_content) {
-                                send_message_to_frontend(&format!("[Media Downloader Error-ERROR-3000] Error writing file: {:?}", e));
+                                send_message_to_frontend(&format!(
+                                    "[Media Downloader Error-ERROR-3000] Error writing file: {:?}",
+                                    e
+                                ));
                                 return Err(format!("Error writing file: {:?}", e));
                             }
                         }
@@ -683,7 +720,10 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                     _ => game_dir_clone,
                 };
                 if let Err(e) = std::fs::write(&file_path, &file_content) {
-                    send_message_to_frontend(&format!("[Media Downloader Error-ERROR-3000] Error writing file: {:?}", e));
+                    send_message_to_frontend(&format!(
+                        "[Media Downloader Error-ERROR-3000] Error writing file: {:?}",
+                        e
+                    ));
                     return Err(format!("Error writing file: {:?}", e));
                 }
             }
@@ -740,7 +780,9 @@ pub async fn download_youtube_video(
             Ok(())
         }
         Err(err) => {
-            send_message_to_frontend("[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Video");
+            send_message_to_frontend(
+                "[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Video",
+            );
             Err(VideoError::DownloadError(err.to_string()))
         }
     }
@@ -760,7 +802,9 @@ pub async fn download_youtube_audio(url: &str, location: PathBuf) -> Result<(), 
             Ok(())
         }
         Err(err) => {
-            send_message_to_frontend("[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Audio");
+            send_message_to_frontend(
+                "[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Audio",
+            );
             Err(VideoError::DownloadError(err.to_string()))
         }
     }

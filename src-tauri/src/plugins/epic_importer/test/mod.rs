@@ -1,13 +1,12 @@
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{env, fs};
-    use std::path::Path;
-    use tokio::runtime::Runtime;
-    use std::sync::Once;
-    use directories::ProjectDirs;
     use crate::plugins::epic_importer::*;
+    use directories::ProjectDirs;
+    use std::path::Path;
+    use std::sync::Once;
+    use std::{env, fs};
+    use tokio::runtime::Runtime;
 
     static INIT: Once = Once::new();
 
@@ -28,23 +27,23 @@ mod tests {
     #[tokio::test]
     async fn get_games_with_valid_authcode() {
         if let Some(auth_code) = get_real_autocode() {
-        setup();
-        let creds = vec![auth_code];
-        set_credentials(creds).await;
-        let result = get_games().await;
-        assert!(result.is_ok());
-    } else {
-        println!("Skipping test due to missing AUTH_CODE environment variable");
-    }
+            setup();
+            let creds = vec![auth_code];
+            set_credentials(creds).await;
+            let result = get_games().await;
+            assert!(result.is_ok());
+        } else {
+            println!("Skipping test due to missing AUTH_CODE environment variable");
+        }
     }
 
     #[tokio::test]
     async fn get_games_with_invalid_authcode() {
         if let Some(auth_code) = get_real_autocode() {
-        setup();
-        let creds = vec!["invalid_auth_code".to_string()];
-        set_credentials(creds).await;
-        let result = get_games().await;
+            setup();
+            let creds = vec!["invalid_auth_code".to_string()];
+            set_credentials(creds).await;
+            let result = get_games().await;
             assert!(result.is_err());
         } else {
             println!("Skipping test due to missing AUTH_CODE environment variable");
@@ -54,14 +53,14 @@ mod tests {
     #[tokio::test]
     async fn get_games_with_empty_authcode_and_a_file() {
         if let Some(auth_code) = get_real_autocode() {
-        setup();
-        let creds = vec!["".to_string()];
-        set_credentials(creds).await;
-        let result = get_games().await;
-        assert!(result.is_err());
-    } else {
-        println!("Skipping test due to missing AUTH_CODE environment variable");
-    }
+            setup();
+            let creds = vec!["".to_string()];
+            set_credentials(creds).await;
+            let result = get_games().await;
+            assert!(result.is_err());
+        } else {
+            println!("Skipping test due to missing AUTH_CODE environment variable");
+        }
     }
 
     #[tokio::test]

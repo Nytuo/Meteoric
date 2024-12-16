@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import * as Papa from 'papaparse';
 import { GenericService } from '../../services/generic.service';
 import { TranslateService } from '@ngx-translate/core';

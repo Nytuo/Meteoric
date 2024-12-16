@@ -3,7 +3,7 @@ import { DBService } from './db.service';
 import ISettings from '../../interfaces/ISettings';
 import { BehaviorSubject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import { GenericService } from './generic.service';
 
 @Injectable({

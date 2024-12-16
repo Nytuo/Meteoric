@@ -7,7 +7,7 @@ import { GameService } from '../../services/game.service';
 import { GenericService } from '../../services/generic.service';
 import simpleSvgPlaceholder from '@cloudfour/simple-svg-placeholder';
 import { Router } from '@angular/router';
-import { open } from '@tauri-apps/api/dialog';
+import { open } from '@tauri-apps/plugin-dialog';
 import { dirname } from '@tauri-apps/api/path';
 import { TranslateService } from '@ngx-translate/core';
 
