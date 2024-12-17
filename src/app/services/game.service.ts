@@ -18,8 +18,7 @@ export class GameService {
 		private db: DBService,
 		private genericService: GenericService,
 		private translateService: TranslateService,
-	) {
-	}
+	) {}
 
 	getGamesObservable(): Observable<IGame[]> {
 		return this.gamesObservable.asObservable();
@@ -73,15 +72,13 @@ export class GameService {
 			value === 'Unknown'
 		) {
 			this.gamesObservable.next(
-				this.games.filter((game) =>
-					game[on] === undefined || game[on] === ''
-				),
+				this.games.filter((game) => game[on] === undefined || game[on] === ''),
 			);
 			return;
 		}
 		this.gamesObservable.next(
 			this.games.filter((game) =>
-				game[on].toLowerCase().includes(value.toLowerCase())
+				game[on].toLowerCase().includes(value.toLowerCase()),
 			),
 		);
 	}
@@ -96,9 +93,7 @@ export class GameService {
 			name: this.translateService.instant('genres'),
 			values: this.games
 				.map((game) => {
-					return game.genres.concat(
-						game.styles ? ',' + game.styles : '',
-					);
+					return game.genres.concat(game.styles ? ',' + game.styles : '');
 				})
 				.flat()
 				.filter((value, index, self) => self.indexOf(value) === index)
@@ -251,24 +246,20 @@ export class GameService {
 			return 0;
 		}
 		if (category === 'Steam') {
-			return await this.getGamesByPlatform('Steam', true).then(
-				(count) => {
-					if (count === undefined) {
-						return 0;
-					}
-					return count;
-				},
-			);
+			return await this.getGamesByPlatform('Steam', true).then((count) => {
+				if (count === undefined) {
+					return 0;
+				}
+				return count;
+			});
 		}
 		if (category === 'Epic Games') {
-			return await this.getGamesByPlatform('Epic Games', true).then(
-				(count) => {
-					if (count === undefined) {
-						return 0;
-					}
-					return count;
-				},
-			);
+			return await this.getGamesByPlatform('Epic Games', true).then((count) => {
+				if (count === undefined) {
+					return 0;
+				}
+				return count;
+			});
 		}
 		if (category === 'GOG') {
 			return await this.getGamesByPlatform('GOG', true).then((count) => {
@@ -307,17 +298,13 @@ export class GameService {
 				}
 				if (count) {
 					resolve(
-						games.filter((game) =>
-							game.platforms.includes(platform)
-						).length,
+						games.filter((game) => game.platforms.includes(platform)).length,
 					);
 					return;
 				}
 				this.games = games;
 				this.gamesObservable.next(
-					this.games.filter((game) =>
-						game.platforms.includes(platform)
-					),
+					this.games.filter((game) => game.platforms.includes(platform)),
 				);
 				resolve();
 			});
@@ -360,9 +347,7 @@ export class GameService {
 						this.translateService.instant('no_credentials_found'),
 						'error',
 					);
-					reject(
-						this.translateService.instant('no_credentials_found'),
-					);
+					reject(this.translateService.instant('no_credentials_found'));
 				}
 
 				let searchedGames: string[];
@@ -399,9 +384,7 @@ export class GameService {
 				strict: strict,
 			}).then((games) => {
 				let searchedGames: any[] = [];
-				if (
-					games === undefined || games.length === 0 || games === '[]'
-				) {
+				if (games === undefined || games.length === 0 || games === '[]') {
 					this.genericService.sendNotification(
 						this.translateService.instant('error'),
 						this.translateService.instant('no_game_found'),
@@ -416,9 +399,7 @@ export class GameService {
 						this.translateService.instant('no_credentials_found'),
 						'error',
 					);
-					reject(
-						this.translateService.instant('no_credentials_found'),
-					);
+					reject(this.translateService.instant('no_credentials_found'));
 					return;
 				}
 
@@ -427,8 +408,7 @@ export class GameService {
 					return;
 				}
 
-				let type = JSON.parse(games) &&
-					JSON.parse(JSON.parse(games)[0]);
+				let type = JSON.parse(games) && JSON.parse(JSON.parse(games)[0]);
 				type = type.url ? 'audio' : 'game';
 				if (type === 'audio') {
 					searchedGames = JSON.parse(games);
@@ -486,7 +466,7 @@ export class GameService {
 	public searchGame(gameName: string): void {
 		this.gamesObservable.next(
 			this.games.filter((game) =>
-				game.name.toLowerCase().includes(gameName.toLowerCase())
+				game.name.toLowerCase().includes(gameName.toLowerCase()),
 			),
 		);
 	}
@@ -521,9 +501,7 @@ export class GameService {
 			background: api_game.background ? api_game.background : '',
 			logo: api_game.logo ? api_game.logo : '',
 			icon: api_game.icon ? api_game.icon : '',
-			backgroundMusic: api_game.backgroundMusic
-				? api_game.backgroundMusic
-				: '',
+			backgroundMusic: api_game.backgroundMusic ? api_game.backgroundMusic : '',
 			exec_file: api_game.exec_file ? api_game.exec_file : '',
 			exec_args: api_game.exec_args ? api_game.exec_args : '',
 			game_dir: api_game.game_dir ? api_game.game_dir : '',
@@ -554,18 +532,17 @@ export class GameService {
 				);
 				return;
 			}
-			let audio: { jaquette: string; name: string; url: string } =
-				(audios as { jaquette: string; name: string; url: string }[])[
-					0
-				];
-			this.genericService.downloadYTAudio(audio.url, game.id).then(
-				(response) => {
+			let audio: { jaquette: string; name: string; url: string } = (
+				audios as { jaquette: string; name: string; url: string }[]
+			)[0];
+			this.genericService
+				.downloadYTAudio(audio.url, game.id)
+				.then((response) => {
 					this.db.refreshGameLinks(game).then((game) => {
 						this.setGame(game.id, game);
 						this.setGameObservable(game);
 					});
-				},
-			);
+				});
 		});
 	}
 }

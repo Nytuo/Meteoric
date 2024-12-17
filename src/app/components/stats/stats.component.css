@@ -1,0 +1,32 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+tr:hover {
+    backdrop-filter: contrast(0.8);
+}
+
+h2 {
+    margin-top: 20px;
+}
+
+.scrollable-container {
+        max-height: 80vh;
+    width: 60vw;
+    overflow-y: auto;
+}
+
+.stats{
+    margin-top: 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}

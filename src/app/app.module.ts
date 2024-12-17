@@ -46,7 +46,7 @@ import { GogImporterComponent } from './plugins/gog-importer/gog-importer.compon
 import { DialogModule } from 'primeng/dialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { NgOptimizedImage } from '@angular/common';
+import { NgForOf, NgOptimizedImage } from '@angular/common';
 import { RatingModule } from 'primeng/rating';
 import { TagModule } from 'primeng/tag';
 import { FileUploadModule } from 'primeng/fileupload';
@@ -69,6 +69,7 @@ import { CascadeSelectModule } from 'primeng/cascadeselect';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { TranslateModule } from '@ngx-translate/core';
+import {StatsComponent} from "./components/stats/stats.component";
 
 @NgModule({
 	declarations: [
@@ -95,6 +96,7 @@ import { TranslateModule } from '@ngx-translate/core';
 		ListViewComponent,
 		IGDBComponent,
 		GogImporterComponent,
+		StatsComponent
 	],
 	imports: [
 		BrowserModule,
@@ -146,5 +148,4 @@ import { TranslateModule } from '@ngx-translate/core';
 	],
 	bootstrap: [AppComponent],
 })
-export class AppModule {
-}
+export class AppModule {}

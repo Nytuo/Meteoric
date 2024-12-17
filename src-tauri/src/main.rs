@@ -9,9 +9,8 @@ use std::env;
 use std::sync::{Arc, Mutex};
 
 use directories::ProjectDirs;
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, Manager, State};
+use tauri::Emitter;
 
 use database::{establish_connection, query_all_data};
 use file_operations::have_no_metadata;

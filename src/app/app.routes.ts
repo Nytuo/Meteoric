@@ -3,6 +3,7 @@ import { DetailsComponent } from './components/details/details.component';
 import { SplashComponent } from './components/splash/splash.component';
 import { EditGameComponent } from './components/edit-game/edit-game.component';
 import { DisplaymanagerComponent } from './components/displaymanager/displaymanager.component';
+import { StatsComponent } from './components/stats/stats.component';
 
 export const routes: Routes = [
 	{
@@ -20,5 +21,9 @@ export const routes: Routes = [
 	{
 		path: 'edit/:id',
 		component: EditGameComponent,
+	},
+	{
+		path: 'stats',
+		component: StatsComponent,
 	},
 ];

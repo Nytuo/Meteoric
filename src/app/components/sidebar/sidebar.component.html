@@ -12,49 +12,24 @@
 				<h1>Meteoric</h1>
 			</div>
 			<div class="accountAndSettings">
-				<div
-					(click)="openSettings()"
-					class="settings"
-					style="cursor: pointer"
-				>
-					<i
-						[routerLink]="['/account']"
-						class="pi pi-cog"
-						style="font-size: 1.5rem"
-					></i>
-				</div>
-				<div class="account">
-					<i
-						[routerLink]="['/account']"
-						class="pi pi-user"
-						style="font-size: 1.5rem"
-					></i>
+				<div (click)="openSettings()" class="settings" style="cursor: pointer">
+					<i class="pi pi-cog" style="font-size: 1.5rem"></i>
 				</div>
 				<div
 					(click)="toggleFullscreen()"
 					class="account"
 					style="cursor: pointer"
 				>
-					<i
-						[routerLink]="['/account']"
-						class="pi pi-window-maximize"
-						style="font-size: 1.5rem"
-					></i>
+					<i class="pi pi-window-maximize" style="font-size: 1.5rem"></i>
 				</div>
 			</div>
 		</ng-template>
 		<ng-template pTemplate="content">
 			<div class="other">
 				<div class="stat">
-					<i
-						[routerLink]="['/account']"
-						class="pi pi-chart-pie"
-						style="font-size: 1.5rem"
-					></i>
+					<i class="pi pi-chart-pie" style="font-size: 1.5rem"></i>
 
-					<span [routerLink]="['/stats']">{{
-							'stats' | translate
-						}}</span>
+					<span [routerLink]="['/stats']">{{ 'stats' | translate }}</span>
 				</div>
 			</div>
 
@@ -73,8 +48,8 @@
 					<div class="categoryItem">
 						<span class="categoryItemEl">
 							<span class="material-symbols-outlined">{{
-									category.icon || 'bookmark'
-								}}</span>
+								category.icon || 'bookmark'
+							}}</span>
 							<p>{{ category.name }}</p>
 						</span>
 

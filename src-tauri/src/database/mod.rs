@@ -243,7 +243,7 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
     let required_columns_games = vec![
         ("id", "INTEGER PRIMARY KEY"),
         ("name", "TEXT NOT NULL"),
-        ("sortName", "TEXT"),
+        ("sort_name", "TEXT"),
         ("rating", "TEXT NOT NULL DEFAULT '0'"),
         ("platforms", "TEXT"),
         ("description", "TEXT"),
@@ -261,7 +261,7 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("time_played", "INTEGER NOT NULL DEFAULT 0"),
         ("trophies", "TEXT"),
         ("trophies_unlocked", "INTEGER NOT NULL DEFAULT 0"),
-        ("last_played", "TEXT"),
+        ("last_time_played", "TEXT"),
         ("hidden", "TEXT NOT NULL DEFAULT 'false'"),
     ];
     let required_columns_category = vec![

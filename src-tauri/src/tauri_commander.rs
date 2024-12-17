@@ -1,9 +1,8 @@
 use std::collections::HashMap;
+use std::env;
 use std::path::PathBuf;
 use std::time::Duration;
-use std::{env, io};
 
-use directories::ProjectDirs;
 use rusty_ytdl::{Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions};
 use tokio::process::Command;
 use tokio::task;
@@ -14,7 +13,7 @@ use crate::database::{
     query_all_data, query_data, remove_game_from_category_db, set_settings_db, update_game,
 };
 use crate::file_operations::{
-    archiveDBAndExtraContent, create_extra_dirs, get_all_files_in_dir_for,
+    archive_db_and_extra_content, create_extra_dirs, get_all_files_in_dir_for,
     get_all_files_in_dir_for_parsed, get_extra_dirs, read_env_file, remove_file, write_env_file,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
@@ -827,7 +826,7 @@ pub fn export_game_database_to_csv(path: String) -> Result<(), String> {
 
 #[tauri::command]
 pub fn export_game_database_to_archive(path: String) -> Result<(), String> {
-    archiveDBAndExtraContent(path).expect("Failed to archive database and extra content");
+    archive_db_and_extra_content(path).expect("Failed to archive database and extra content");
     Ok(())
 }
 

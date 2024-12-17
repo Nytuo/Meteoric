@@ -1,14 +1,13 @@
 use anyhow::Context;
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use std::collections::HashMap;
 use std::fs;
 use std::io::prelude::*;
-use zip::{result::ZipError, write::SimpleFileOptions};
 
 use directories::ProjectDirs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
-use walkdir::{DirEntry, WalkDir};
+use walkdir::WalkDir;
 
 use crate::database::establish_connection;
 use crate::database::query_all_data;
@@ -377,7 +376,7 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<
     Ok(())
 }
 
-pub fn archiveDBAndExtraContent(path: String) -> Result<(), Box<dyn std::error::Error>> {
+pub fn archive_db_and_extra_content(path: String) -> Result<(), Box<dyn std::error::Error>> {
     let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
     let extra_content_dir = proj_dirs.config_dir().join("meteoric_extra_content");
     let archive_dir = proj_dirs.config_dir().join("meteoric_archive");
