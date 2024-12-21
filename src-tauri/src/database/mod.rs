@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use directories::ProjectDirs;
 use rusqlite::{params, Connection};
 
-use crate::{send_message_to_frontend, IGame};
+use crate::{send_message_to_frontend, IGame, IStats};
 
 mod test;
 
@@ -258,10 +258,8 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("exec_args", "TEXT"),
         ("tags", "TEXT"),
         ("status", "TEXT NOT NULL DEFAULT 'NOT PLAYED'"),
-        ("time_played", "INTEGER NOT NULL DEFAULT 0"),
         ("trophies", "TEXT"),
         ("trophies_unlocked", "INTEGER NOT NULL DEFAULT 0"),
-        ("last_time_played", "TEXT"),
         ("hidden", "TEXT NOT NULL DEFAULT 'false'"),
     ];
     let required_columns_category = vec![
@@ -277,12 +275,20 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("name", "TEXT NOT NULL PRIMARY KEY"),
         ("value", "TEXT NOT NULL"),
     ];
+    let required_columns_stats = vec![
+        ("id", "INTEGER PRIMARY KEY"),
+        ("game_id", "INTEGER NOT NULL"),
+        ("time_played", "TEXT NOT NULL"),
+        ("date_of_play", "TEXT NOT NULL"),
+    ];
     create_table(&conn, "games", required_columns_games.clone())?;
     modify_table_add_missing_columns(&conn, "games", required_columns_games.clone())?;
     create_table(&conn, "category", required_columns_category.clone())?;
     modify_table_add_missing_columns(&conn, "category", required_columns_category.clone())?;
     create_table(&conn, "settings", required_columns_settings.clone())?;
     modify_table_add_missing_columns(&conn, "settings", required_columns_settings.clone())?;
+    create_table(&conn, "stats", required_columns_stats.clone())?;
+    modify_table_add_missing_columns(&conn, "stats", required_columns_stats.clone())?;
     create_favorites_category(&conn)?;
     Ok(conn)
 }
@@ -338,10 +344,8 @@ fn parse_fields(game: &IGame) -> IGame {
         exec_args: game.exec_args.replace("'", "''"),
         tags: game.tags.replace("'", "''"),
         status: game.status.replace("'", "''"),
-        time_played: game.time_played.replace("'", "''"),
         trophies: game.trophies.replace("'", "''"),
         trophies_unlocked: game.trophies_unlocked.replace("'", "''"),
-        last_time_played: game.last_time_played.replace("'", "''"),
         hidden: game.hidden.replace("'", "''"),
     };
     game_copy
@@ -353,7 +357,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
     let game = parse_fields(&game);
     let game_name = game.name.clone();
     if id_exist {
-        let sql_update = format!("UPDATE games SET name = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', time_played = '{}', trophies_unlocked = '{}', last_time_played = '{}', hidden = '{}' WHERE id = '{}';", game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.time_played, game.trophies_unlocked, game.last_time_played, game.hidden, game.id);
+        let sql_update = format!("UPDATE games SET name = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', trophies_unlocked = '{}', hidden = '{}' WHERE id = '{}';", game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.trophies_unlocked, game.hidden, game.id);
         conn.execute(&sql_update, []).map_err(|e| e.to_string())?;
         println!("Game updated");
     } else {
@@ -374,9 +378,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             game.exec_args,
             game.tags,
             game.status,
-            game.time_played,
             game.trophies_unlocked,
-            game.last_time_played,
             game.hidden,
         ];
         let all_fields = all_fields
@@ -384,7 +386,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             .map(|field| field.to_string())
             .collect::<Vec<String>>()
             .join("', '");
-        let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, time_played, trophies_unlocked, last_time_played, hidden) VALUES ('{}')", all_fields);
+        let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden) VALUES ('{}')", all_fields);
         match conn.execute(&sql_insert, []).map_err(|e| e.to_string()) {
             Ok(_) => {
                 println!("Game inserted");
@@ -402,6 +404,70 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
         .map_err(|e| e.to_string())
         .unwrap();
     Ok(id)
+}
+
+pub fn bulk_update_stats(conn: &Connection, stats: Vec<IStats>) -> Result<(), String> {
+    for stat in stats {
+        update_stat_db(&conn, stat).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+pub fn update_stat_db(conn: &Connection, stats: IStats) -> Result<(), String> {
+    let does_exist_in_db: bool = conn
+        .query_row(
+            &format!(
+                "SELECT COUNT(*) FROM stats WHERE game_id = '{}' AND id = '{}'",
+                stats.game_id, stats.id
+            ),
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+    if does_exist_in_db {
+        insert_stat_db(
+            &conn,
+            stats.game_id.clone(),
+            stats.time_played.clone(),
+            stats.date_of_play.clone(),
+        )
+        .map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+    let sql = format!(
+        "UPDATE stats SET time_played = '{}', date_of_play = '{}' WHERE game_id = '{}' AND id = '{}'",
+        stats.time_played, stats.date_of_play, stats.game_id, stats.id
+    );
+    conn.execute(&sql, []).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn insert_stat_db(
+    conn: &Connection,
+    game_id: String,
+    time_played: String,
+    date_of_play: String,
+) -> Result<(), String> {
+    let sql = format!(
+        "INSERT INTO stats (game_id, time_played, date_of_play) VALUES ('{}', '{}', '{}')",
+        game_id, time_played, date_of_play
+    );
+    conn.execute(&sql, []).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn get_stats_for_game(
+    conn: &Connection,
+    game_id: String,
+) -> Result<Vec<HashMap<String, String>>, String> {
+    let mut stmt = conn
+        .prepare(&format!(
+            "SELECT * FROM stats WHERE game_id = '{}'",
+            game_id
+        ))
+        .map_err(|e| e.to_string())?;
+    let json = make_a_json_from_db(&mut stmt).map_err(|e| e.to_string())?;
+    Ok(json)
 }
 
 /*pub fn get_game_name_by_id(conn: &Connection, id: &str) -> Result<String, String> {

@@ -88,9 +88,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			expanded: true,
 			items: [
 				{
-					label: this.translate.instant(
-						'youtube-background-music-provider',
-					),
+					label: this.translate.instant('youtube-background-music-provider'),
 					icon: 'pi pi-youtube',
 					command: () => {
 						this.selectedProvider = 'ytdl';
@@ -144,9 +142,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	});
 	stat: FormGroup = new FormGroup({
 		status: new FormControl(''),
-		time_played: new FormControl(''),
 		trophies_unlocked: new FormControl(''),
-		last_time_played: new FormControl(''),
 	});
 	exec: FormGroup = new FormGroup({
 		exec_file: new FormControl(''),
@@ -162,8 +158,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		protected router: Router,
 		private messageService: MessageService,
 		private translate: TranslateService,
-	) {
-	}
+	) {}
 
 	get generalKeys() {
 		return Object.keys(this.info.controls);
@@ -194,9 +189,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			developers: '',
 			editors: '',
 			status: '',
-			time_played: '',
 			trophies_unlocked: '',
-			last_time_played: '',
 			hidden: 'false',
 			jaquette: simpleSvgPlaceholder({
 				text: this.translate.instant('placeholder'),
@@ -232,6 +225,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			exec_args: '',
 			screenshots: [],
 			videos: [],
+			stats: [],
 		};
 
 		let gameID = this.router.url.split('/')[2];
@@ -239,6 +233,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		this.currentGameID = gameID;
 		console.log(this.currentGameID);
 		let game = this.gameService.getGame(gameID);
+		console.log(game);
 		this.gameService.setGameObservable(game);
 		if (game !== undefined) {
 			this.currentGame = game;
@@ -266,9 +261,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			});
 			this.stat = new FormGroup({
 				status: new FormControl(game.status),
-				time_played: new FormControl(game.time_played),
 				trophies_unlocked: new FormControl(game.trophies_unlocked),
-				last_time_played: new FormControl(game.last_time_played),
 			});
 			this.exec = new FormGroup({
 				exec_file: new FormControl(game.exec_file),
@@ -306,10 +299,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			| 'jaquette',
 	) {
 		const file = event.target.files[0];
-		if (
-			file === undefined || file === null ||
-			this.currentGame === undefined
-		) {
+		if (file === undefined || file === null || this.currentGame === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
 				this.translate.instant('no-file-selected'),
@@ -332,9 +322,17 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				);
 				return;
 			}
-			this.db.uploadFile(fileContent, type, this.currentGame.id).then(
-				() => {
-					if (this.currentGame === undefined) {
+			this.db.uploadFile(fileContent, type, this.currentGame.id).then(() => {
+				if (this.currentGame === undefined) {
+					this.genericService.sendNotification(
+						this.translate.instant('error'),
+						this.translate.instant('no-file-selected'),
+						'error',
+					);
+					return;
+				}
+				this.db.refreshGameLinks(this.currentGame).then((game) => {
+					if (this.currentGameID === undefined) {
 						this.genericService.sendNotification(
 							this.translate.instant('error'),
 							this.translate.instant('no-file-selected'),
@@ -342,23 +340,10 @@ export class EditGameComponent implements OnInit, OnDestroy {
 						);
 						return;
 					}
-					this.db.refreshGameLinks(this.currentGame).then((game) => {
-						if (this.currentGameID === undefined) {
-							this.genericService.sendNotification(
-								this.translate.instant('error'),
-								this.translate.instant('no-file-selected'),
-								'error',
-							);
-							return;
-						}
-						this.currentGame = game;
-						this.gameService.setGame(
-							this.currentGameID,
-							this.currentGame,
-						);
-					});
-				},
-			);
+					this.currentGame = game;
+					this.gameService.setGame(this.currentGameID, this.currentGame);
+				});
+			});
 		};
 		reader.readAsArrayBuffer(file);
 	}
@@ -369,13 +354,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	}
 
 	deleteVideo(path: any) {
-		if (
-			this.currentGame === undefined || this.currentGameID === undefined
-		) {
+		if (this.currentGame === undefined || this.currentGameID === undefined) {
 			return;
 		}
-		let id = this.currentGame
-			.screenshots[this.currentGame.screenshots.indexOf(path)];
+		let id =
+			this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
 		id = id.toString().split('video-')[1].split('.')[0];
 		this.db
 			.deleteElement('video', this.currentGame.id, id.toString())
@@ -383,9 +366,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 				this.messageService.add({
 					severity: 'info',
 					summary: this.translate.instant('video-deleted'),
-					detail: this.translate.instant(
-						'the-video-has-been-deleted',
-					),
+					detail: this.translate.instant('the-video-has-been-deleted'),
 					life: 3000,
 				});
 			});
@@ -394,26 +375,20 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	}
 
 	deleteScreenshot(path: any) {
-		if (
-			this.currentGame === undefined || this.currentGameID === undefined
-		) {
+		if (this.currentGame === undefined || this.currentGameID === undefined) {
 			return;
 		}
-		let id = this.currentGame
-			.screenshots[this.currentGame.screenshots.indexOf(path)];
+		let id =
+			this.currentGame.screenshots[this.currentGame.screenshots.indexOf(path)];
 		id = id.toString().split('screenshot-')[1].split('.')[0];
-		this.db.deleteElement('screenshot', this.currentGame.id, id).then(
-			() => {
-				this.messageService.add({
-					severity: 'info',
-					summary: this.translate.instant('screenshot-deleted'),
-					detail: this.translate.instant(
-						'the-screenshot-has-been-deleted',
-					),
-					life: 3000,
-				});
-			},
-		);
+		this.db.deleteElement('screenshot', this.currentGame.id, id).then(() => {
+			this.messageService.add({
+				severity: 'info',
+				summary: this.translate.instant('screenshot-deleted'),
+				detail: this.translate.instant('the-screenshot-has-been-deleted'),
+				life: 3000,
+			});
+		});
 		delete this.currentGame.screenshots[
 			this.currentGame.screenshots.indexOf(path)
 		];
@@ -440,10 +415,18 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (url === '' || this.currentGame === undefined) {
 			return;
 		}
-		this.genericService.downloadYTAudio(url, this.currentGame?.id).then(
-			() => {
-				console.log('Downloaded');
-				if (this.currentGame === undefined) {
+		this.genericService.downloadYTAudio(url, this.currentGame?.id).then(() => {
+			console.log('Downloaded');
+			if (this.currentGame === undefined) {
+				this.genericService.sendNotification(
+					this.translate.instant('error'),
+					this.translate.instant('no-file-selected'),
+					'error',
+				);
+				return;
+			}
+			this.db.refreshGameLinks(this.currentGame).then((game) => {
+				if (this.currentGameID === undefined) {
 					this.genericService.sendNotification(
 						this.translate.instant('error'),
 						this.translate.instant('no-file-selected'),
@@ -451,24 +434,11 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					);
 					return;
 				}
-				this.db.refreshGameLinks(this.currentGame).then((game) => {
-					if (this.currentGameID === undefined) {
-						this.genericService.sendNotification(
-							this.translate.instant('error'),
-							this.translate.instant('no-file-selected'),
-							'error',
-						);
-						return;
-					}
-					this.currentGame = game;
-					this.gameService.setGame(
-						this.currentGameID,
-						this.currentGame,
-					);
-					this.gameService.setGameObservable(this.currentGame);
-				});
-			},
-		);
+				this.currentGame = game;
+				this.gameService.setGame(this.currentGameID, this.currentGame);
+				this.gameService.setGameObservable(this.currentGame);
+			});
+		});
 	}
 
 	selectItem() {
@@ -515,13 +485,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		});
 		this.stat = new FormGroup({
 			status: new FormControl(this.currentGame?.status),
-			time_played: new FormControl(this.currentGame?.time_played),
-			trophies_unlocked: new FormControl(
-				this.currentGame?.trophies_unlocked,
-			),
-			last_time_played: new FormControl(
-				this.currentGame?.last_time_played,
-			),
+			trophies_unlocked: new FormControl(this.currentGame?.trophies_unlocked),
 		});
 		this.exec = new FormGroup({
 			exec_file: new FormControl(this.currentGame?.exec_file),
@@ -536,9 +500,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	}
 
 	saveGameExec() {
-		if (
-			this.currentGameID === undefined && this.currentGame === undefined
-		) {
+		if (this.currentGameID === undefined && this.currentGame === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
 				this.translate.instant('no-file-selected'),
@@ -546,9 +508,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			);
 			return;
 		}
-		if (
-			this.currentGameID === undefined && this.currentGame !== undefined
-		) {
+		if (this.currentGameID === undefined && this.currentGame !== undefined) {
 			let game = this.currentGame;
 			for (let key of this.execKeys) {
 				game[key] = this.exec.get(key)?.value;
@@ -585,16 +545,14 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					detail: this.translate.instant('the-change-has-been-saved'),
 					life: 3000,
 				});
-			})
+			}),
 		);
 		this.gameService.setGame(this.currentGameID, game);
 	}
 
 	saveGameInfo() {
 		this.genericService.changeBlockUI(true);
-		if (
-			this.currentGameID === undefined && this.currentGame === undefined
-		) {
+		if (this.currentGameID === undefined && this.currentGame === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
 				this.translate.instant('no-file-selected'),
@@ -602,9 +560,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			);
 			return;
 		}
-		if (
-			this.currentGameID === undefined && this.currentGame !== undefined
-		) {
+		if (this.currentGameID === undefined && this.currentGame !== undefined) {
 			let game = this.currentGame;
 			for (let key of this.generalKeys) {
 				game[key] = this.info.get(key)?.value;
@@ -643,14 +599,13 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					life: 3000,
 				});
 				this.saveMediaToExternalStorage();
-			})
+			}),
 		);
 	}
 
 	saveGameStat() {
-		if (
-			this.currentGameID === undefined && this.currentGame === undefined
-		) {
+		console.log(this.currentGame);
+		if (this.currentGameID === undefined && this.currentGame === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
 				this.translate.instant('no-file-selected'),
@@ -658,9 +613,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			);
 			return;
 		}
-		if (
-			this.currentGameID === undefined && this.currentGame !== undefined
-		) {
+		if (this.currentGameID === undefined && this.currentGame !== undefined) {
 			let game = this.currentGame;
 			for (let key of this.statKeys) {
 				game[key] = this.stat.get(key)?.value;
@@ -676,7 +629,6 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			);
 			return;
 		}
-
 		let game = this.gameService.getGame(this.currentGameID);
 		if (game === undefined) {
 			this.genericService.sendNotification(
@@ -689,7 +641,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		for (let key of this.statKeys) {
 			game[key] = this.stat.get(key)?.value;
 		}
-
+		game.stats = this.currentGame ? this.currentGame.stats : [];
 		this.db.postGame(game).then(() =>
 			this.gameService.getGames().then(() => {
 				this.messageService.add({
@@ -698,9 +650,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					detail: this.translate.instant('the-change-has-been-saved'),
 					life: 3000,
 				});
-			})
+			}),
 		);
-		this.gameService.setGame(this.currentGameID, game);
 	}
 
 	async linkGame() {
@@ -831,9 +782,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					this.messageService.add({
 						severity: 'info',
 						summary: this.translate.instant('metadata-saved'),
-						detail: this.translate.instant(
-							'the-metadata-has-been-saved-for',
-						) +
+						detail:
+							this.translate.instant('the-metadata-has-been-saved-for') +
 							this.currentGame.name,
 						life: 3000,
 					});
@@ -847,21 +797,15 @@ export class EditGameComponent implements OnInit, OnDestroy {
 		if (this.currentGame === undefined) {
 			this.genericService.sendNotification(
 				this.translate.instant('error'),
-				this.translate.instant(
-					'impossible-to-hide-a-game-that-does-not-exist',
-				),
+				this.translate.instant('impossible-to-hide-a-game-that-does-not-exist'),
 				'error',
 			);
 			return;
 		}
-		this.currentGame.hidden = this.currentGame.hidden === 'true'
-			? 'false'
-			: 'true';
+		this.currentGame.hidden =
+			this.currentGame.hidden === 'true' ? 'false' : 'true';
 		this.db.postGame(this.currentGame).then(() => {
-			if (
-				this.currentGameID === undefined ||
-				this.currentGame === undefined
-			) {
+			if (this.currentGameID === undefined || this.currentGame === undefined) {
 				this.genericService.sendNotification(
 					this.translate.instant('error'),
 					this.translate.instant(
@@ -875,11 +819,44 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			this.messageService.add({
 				severity: 'info',
 				summary: this.translate.instant('hidden-status-changed'),
-				detail: this.translate.instant(
-					'the-hidden-status-has-been-changed',
-				),
+				detail: this.translate.instant('the-hidden-status-has-been-changed'),
 				life: 3000,
 			});
+		});
+	}
+
+	deleteSession(id: string) {
+		if (this.currentGame === undefined) {
+			this.genericService.sendNotification(
+				this.translate.instant('error'),
+				this.translate.instant(
+					'impossible-to-delete-a-session-for-a-game-that-does-not-exist',
+				),
+				'error',
+			);
+			return;
+		}
+		this.currentGame.stats = this.currentGame.stats.filter(
+			(stat) => stat.id !== id,
+		);
+	}
+
+	addSession() {
+		if (this.currentGame === undefined) {
+			this.genericService.sendNotification(
+				this.translate.instant('error'),
+				this.translate.instant(
+					'impossible-to-add-a-session-for-a-game-that-does-not-exist',
+				),
+				'error',
+			);
+			return;
+		}
+		this.currentGame.stats.push({
+			date_of_play: new Date(),
+			time_played: '0',
+			id: (this.currentGame.stats.length + 1).toString(),
+			game_id: this.currentGame.id,
 		});
 	}
 }

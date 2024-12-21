@@ -34,8 +34,7 @@ export class AddGameOverlayComponent implements OnInit {
 		private elementRef: ElementRef,
 		protected genericService: GenericService,
 		private translate: TranslateService,
-	) {
-	}
+	) {}
 
 	hide() {
 		this.visibleChange.emit(false);
@@ -58,9 +57,7 @@ export class AddGameOverlayComponent implements OnInit {
 			developers: '',
 			editors: '',
 			status: '',
-			time_played: '',
 			trophies_unlocked: '',
-			last_time_played: '',
 			hidden: 'false',
 			jaquette: simpleSvgPlaceholder({
 				text: this.translate.instant('placeholder'),
@@ -96,6 +93,7 @@ export class AddGameOverlayComponent implements OnInit {
 			exec_args: '',
 			screenshots: [],
 			videos: [],
+			stats: [],
 		};
 	}
 
@@ -115,39 +113,34 @@ export class AddGameOverlayComponent implements OnInit {
 			if (this.currentGame === undefined) {
 				return;
 			}
-			this.statusOfImport = this.translate.instant(
-				'fetchingTheInfoFromIgdb',
-			);
+			this.statusOfImport = this.translate.instant('fetchingTheInfoFromIgdb');
 			let gameIGDB = await this.gameService.autoIGDBImport(
 				this.currentGame.name,
 			);
 			if (typeof gameIGDB === 'string') {
-				this.statusOfImport = this.translate.instant('error') + ' : ' +
-					gameIGDB;
+				this.statusOfImport =
+					this.translate.instant('error') + ' : ' + gameIGDB;
 				console.log(gameIGDB);
 			} else {
 				this.currentGame = gameIGDB;
 				this.currentGame.id = id;
-				this.statusOfImport = this.translate.instant('found') + ' : ' +
+				this.statusOfImport =
+					this.translate.instant('found') +
+					' : ' +
 					this.currentGame.name +
-					' ' + this.translate.instant('ModifyingTheDatabase');
+					' ' +
+					this.translate.instant('ModifyingTheDatabase');
 				this.db.postGame(this.currentGame).then(() => {
 					if (this.currentGame === undefined) {
 						return;
 					}
-					this.statusOfImport = this.translate.instant(
-						'gameMetadataUpdated',
-					);
-					this.db.saveMediaToExternalStorage(this.currentGame).then(
-						() => {
-							this.statusOfImport = this.translate.instant(
-								'doneWaitForFinish',
-							);
-							this.gameService.getGames();
-							this.visibleChange.emit(false);
-							this.loading = false;
-						},
-					);
+					this.statusOfImport = this.translate.instant('gameMetadataUpdated');
+					this.db.saveMediaToExternalStorage(this.currentGame).then(() => {
+						this.statusOfImport = this.translate.instant('doneWaitForFinish');
+						this.gameService.getGames();
+						this.visibleChange.emit(false);
+						this.loading = false;
+					});
 				});
 			}
 		});

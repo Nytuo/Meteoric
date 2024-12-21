@@ -82,14 +82,15 @@ export class DetailsComponent implements OnInit, OnDestroy {
 	];
 	protected game: IGame | undefined;
 	private id: number = 0;
+	totalTimePlayed = '0';
+	lastTimePlayed = '0000-00-00';
 
 	constructor(
 		private route: ActivatedRoute,
 		private gameService: GameService,
 		private genericService: GenericService,
 		private translate: TranslateService,
-	) {
-	}
+	) {}
 
 	ngOnInit(): void {
 		this.route.params.subscribe((params) => {
@@ -109,12 +110,30 @@ export class DetailsComponent implements OnInit, OnDestroy {
 				this.game.backgroundMusic &&
 				!this.genericService.isBackgroundMusicPlaying()
 			) {
-				this.genericService.playBackgroundMusic(
-					this.game.backgroundMusic,
-				);
+				this.genericService.playBackgroundMusic(this.game.backgroundMusic);
 			} else {
 				this.gameService.autoDownloadBackgroundMusic(this.game);
 			}
+			console.log(this.game.stats);
+			this.totalTimePlayed = this.toParsedTime(
+				(
+					this.game.stats.reduce(
+						(acc, stat) => acc + parseInt(stat.time_played),
+						0,
+					) || 0
+				).toString(),
+			);
+
+			this.lastTimePlayed =
+				this.game.stats
+					.reduce((acc, stat) => {
+						if (new Date(acc.date_of_play) > new Date(stat.date_of_play)) {
+							return acc;
+						} else {
+							return stat;
+						}
+					})
+					.date_of_play.toString() || '0000-00-00';
 		});
 
 		this.genericService
@@ -126,6 +145,23 @@ export class DetailsComponent implements OnInit, OnDestroy {
 					this.resetAnimation();
 				}
 			});
+	}
+
+	toParsedTime(time: string) {
+		let days = Math.floor(parseInt(time) / 1440);
+		let hours = Math.floor((parseInt(time) % 1440) / 60);
+		let minutes = (parseInt(time) % 1440) % 60;
+		let timePlayed = '';
+		if (days > 0) {
+			timePlayed += days + 'd ';
+		}
+		if (hours > 0) {
+			timePlayed += hours + 'h ';
+		}
+		if (minutes > 0) {
+			timePlayed += minutes + 'm';
+		}
+		return timePlayed;
 	}
 
 	toTitleCase(str: string) {
@@ -203,8 +239,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		let icon =
-			simpleIcons[platform as keyof typeof simpleIcons] as SimpleIcon;
+		let icon = simpleIcons[platform as keyof typeof simpleIcons] as SimpleIcon;
 		if (icon && platform.includes('si')) {
 			let svg = icon.svg.replace(/#/g, '%23');
 			this.launcherIcon = `data:image/svg+xml,${svg}`;
@@ -226,9 +261,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		}
 		image.style.opacity = (0.6 - event.target.scrollTop / 1000).toString();
 
-		let logo = document.getElementById(
-			'game-logo-details',
-		) as HTMLImageElement;
+		let logo = document.getElementById('game-logo-details') as HTMLImageElement;
 		if (logo === null) {
 			return;
 		}
@@ -256,9 +289,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 			document
 				.querySelector('.navAndBookmarks')
 				?.classList.remove('backgroundTopbar');
-			document.querySelector('.main')?.classList.remove(
-				'backgroundTopbar',
-			);
+			document.querySelector('.main')?.classList.remove('backgroundTopbar');
 		}
 	}
 
@@ -266,9 +297,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		document.getElementsByClassName('gameInfo')[0].scrollTo(0, 0);
 		document.querySelector('#gameContent')?.classList.add('hidden');
 		document.querySelector('#gameHeaderOptional')?.classList.add('hidden');
-		document.querySelector('#game-logo-details')?.classList.add(
-			'logoLaunch',
-		);
+		document.querySelector('#game-logo-details')?.classList.add('logoLaunch');
 		document.querySelector('#title')?.classList.add('logoLaunch');
 		document.querySelector('#bg')?.classList.add('bgLaunch');
 	}

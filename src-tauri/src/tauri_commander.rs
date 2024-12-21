@@ -9,23 +9,39 @@ use tokio::task;
 use tokio::time::Instant;
 
 use crate::database::{
-    add_category, add_game_to_category_db, delete_game_db, establish_connection, get_all_fields,
-    query_all_data, query_data, remove_game_from_category_db, set_settings_db, update_game,
+    add_category, add_game_to_category_db, bulk_update_stats, delete_game_db, establish_connection,
+    get_all_fields, get_stats_for_game, insert_stat_db, query_all_data, query_data,
+    remove_game_from_category_db, set_settings_db, update_game, update_stat_db,
 };
 use crate::file_operations::{
     archive_db_and_extra_content, create_extra_dirs, get_all_files_in_dir_for,
     get_all_files_in_dir_for_parsed, get_extra_dirs, read_env_file, remove_file, write_env_file,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
-use crate::{routine, send_message_to_frontend, IGame};
+use crate::{routine, send_message_to_frontend, IGame, IStats};
 
 #[tauri::command]
 pub fn get_all_games() -> String {
     let conn = establish_connection().unwrap();
-    let games = query_all_data(&conn, "games")
+    let games = query_all_data(&conn, "games");
+    let stats = query_all_data(&conn, "stats");
+    let games = games
         .unwrap()
         .iter()
-        .map(|row| format!("{:?}", row))
+        .map(|row| {
+            let mut row = row.clone();
+            let id = row.get("id").unwrap().to_string();
+            let stats = stats
+                .as_ref()
+                .unwrap()
+                .iter()
+                .filter(|s| s.get("game_id").unwrap().to_string() == id)
+                .map(|s| format!("{:?}", s))
+                .collect::<Vec<String>>()
+                .join(",");
+            row.insert("stats".to_string(), format!("[{}]", stats));
+            format!("{:?}", row)
+        })
         .collect::<Vec<String>>()
         .join(",");
     format!("[{}]", games)
@@ -355,12 +371,27 @@ pub fn get_games_by_category(category: String) -> String {
         vec!["*"],
         vec![("id", &game_ids_from_cat[0]["games"])],
         true,
-    )
-    .unwrap()
-    .iter()
-    .map(|row| format!("{:?}", row))
-    .collect::<Vec<String>>()
-    .join(",");
+    );
+    let stats = query_all_data(&conn, "stats");
+    let games = games
+        .unwrap()
+        .iter()
+        .map(|row| {
+            let mut row = row.clone();
+            let id = row.get("id").unwrap().to_string();
+            let stats = stats
+                .as_ref()
+                .unwrap()
+                .iter()
+                .filter(|s| s.get("game_id").unwrap().to_string() == id)
+                .map(|s| format!("{:?}", s))
+                .collect::<Vec<String>>()
+                .join(",");
+            row.insert("stats".to_string(), format!("[{}]", stats));
+            format!("{:?}", row)
+        })
+        .collect::<Vec<String>>()
+        .join(",");
     format!("[{}]", games)
 }
 
@@ -434,15 +465,31 @@ pub fn get_games_by_id(id: String) -> String {
         .map(|row| format!("{:?}", row))
         .collect::<Vec<String>>()
         .join(",");
+    let stats = get_stats_for_game(&conn, id);
+    let stats = stats
+        .iter()
+        .map(|row| format!("{:?}", row))
+        .collect::<Vec<String>>()
+        .join(",");
+    let game = format!("{},\"stats\":[{}]", game, stats);
     format!("[{}]", game)
 }
 
 #[tauri::command]
 pub fn post_game(game: String) -> Result<String, String> {
     let conn = establish_connection().unwrap();
-    let game: IGame = serde_json::from_str(&game).map_err(|e| e.to_string())?;
-
-    let id = update_game(&conn, game).expect("Error updating game");
+    let mut _game: HashMap<String, serde_json::Value> =
+        serde_json::from_str(&game).map_err(|e| e.to_string())?;
+    let mut parsed_stats: String = _game.get("stats").unwrap().to_string();
+    parsed_stats = parsed_stats.replace("\\\"", "\"");
+    let stats: Vec<IStats> = serde_json::from_str(&parsed_stats).map_err(|e| e.to_string())?;
+    _game.remove("stats");
+    let game_without_stats: IGame =
+        serde_json::from_str(format!("{:?}", _game).as_str()).map_err(|e| e.to_string())?;
+    println!("{:?}", game_without_stats);
+    bulk_update_stats(&conn, stats).expect("Error updating stats");
+    let id = update_game(&conn, game_without_stats).expect("Error updating game");
+    println!("Game id: {} posted successfully", id);
     Ok(id)
 }
 
@@ -501,18 +548,18 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
         let pid = cmd.id().ok_or("Failed to get process ID".to_string())?;
         send_message_to_frontend(&format!("GL-{:?}", pid));
         let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-        game_object.last_time_played = date;
-        let _ = update_game(&conn, game_object.clone());
-        // add a timer to count the time played
+
         let mut game_timer = GameTimer::new();
         game_timer.start();
         let _ = cmd.wait().await;
         game_timer.stop();
         let played_time_u128: u128 = game_timer.get_total_time_played().as_millis();
-        let time_played_db: u128 = game_object.time_played.parse().unwrap_or(0);
-        let time_played = time_played_db + played_time_u128;
-        game_object.time_played = time_played.to_string();
-        let _ = update_game(&conn, game_object.clone());
+        insert_stat_db(
+            &conn,
+            game_id.clone(),
+            played_time_u128.to_string().clone(),
+            date.clone(),
+        );
         send_message_to_frontend(&format!("GL-END-{}", pid));
         Ok(pid)
     } else {
@@ -816,9 +863,16 @@ pub fn export_game_database_to_csv(path: String) -> Result<(), String> {
     let mut wtr = csv::Writer::from_path(path.clone()).unwrap();
     for row in results {
         let mut game: IGame = IGame::from_hashmap(row.clone());
-        game.id = "-1".to_string();
         game.description = game.description.replace("\n", " ");
-        wtr.serialize(game).unwrap();
+
+        let stat = get_stats_for_game(&conn, game.id.clone());
+
+        let mut stats = String::new();
+        for s in stat {
+            stats.push_str(&format!("{:?},", s));
+        }
+        let game_with_stats = format!("{:?},\"stats\":[{}]", game, stats);
+        wtr.serialize(game_with_stats).unwrap();
     }
     wtr.flush().unwrap();
     Ok(())

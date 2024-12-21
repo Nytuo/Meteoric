@@ -3,6 +3,7 @@ use steam_rs::Steam;
 use tokio::sync::Mutex;
 
 use crate::database::establish_connection;
+use crate::database::insert_stat_db;
 use crate::database::update_game;
 use crate::IGame;
 
@@ -16,6 +17,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     let steamid = STEAMID.lock().await;
     let client = Steam::new(&apikey);
     let steam_id = SteamId::new(steamid.parse()?);
+    let conn = establish_connection().unwrap();
     let games = client
         .get_owned_games(steam_id, true, false, 0, false, Some(true), "EN", true)
         .await;
@@ -24,10 +26,18 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         let mut igame: IGame = IGame::new();
         igame.id = "-1".to_string();
         igame.name = game.name;
-        igame.time_played = (game.playtime_forever / 60).to_string();
         igame.platforms = "Steam".to_string();
         let conn = establish_connection().unwrap();
-        update_game(&conn, igame)?;
+        let new_id = update_game(&conn, igame)?;
+        insert_stat_db(
+            &conn,
+            new_id,
+            (game.playtime_forever / 60).to_string().clone(),
+            chrono::Local::now()
+                .format("%Y-%m-%d %H:%M:%S")
+                .to_string()
+                .clone(),
+        )?;
     }
     Ok(())
 }

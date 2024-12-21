@@ -9,7 +9,14 @@ interface ITrophy {
 	platform: string;
 }
 
-export default interface IGame {
+interface IStat {
+	id: string;
+	game_id: string;
+	time_played: string;
+	date_of_play: Date;
+}
+
+interface IGame {
 	id: string;
 	name: string;
 	sort_name: string;
@@ -34,11 +41,13 @@ export default interface IGame {
 	tags: string;
 	backgroundMusic: string;
 	status: string;
-	time_played: string;
 	trophies: string;
 	trophies_unlocked: string;
-	last_time_played: string;
 	hidden: string;
+	stats: IStat[];
 
 	[key: string]: any;
 }
+
+export { IGame, IStat, ITrophy };
+export default IGame;

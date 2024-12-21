@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import IGame from '../../interfaces/IGame';
+import IGame, { IStat } from '../../interfaces/IGame';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { DBService } from './db.service';
 import { GenericService } from './generic.service';
@@ -490,12 +490,8 @@ export class GameService {
 			developers: api_game.developers ? api_game.developers : '',
 			editors: api_game.editors ? api_game.editors : '',
 			status: api_game.status ? api_game.status : '',
-			time_played: api_game.time_played ? api_game.time_played : '',
 			trophies_unlocked: api_game.trophies_unlocked
 				? api_game.trophies_unlocked
-				: '',
-			last_time_played: api_game.last_time_played
-				? api_game.last_time_played
 				: '',
 			jaquette: api_game.cover ? api_game.cover : '',
 			background: api_game.background ? api_game.background : '',
@@ -508,6 +504,7 @@ export class GameService {
 			screenshots: api_game.screenshots ? api_game.screenshots : [],
 			videos: api_game.videos ? api_game.videos : [],
 			hidden: api_game.hidden ? api_game.hidden : 'false',
+			stats: api_game.stats ? api_game.stats : [],
 		};
 	}
 

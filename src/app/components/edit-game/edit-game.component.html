@@ -25,11 +25,18 @@
 			></p-button>
 		</div>
 		<div
-			style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem"
+			style="
+				display: flex;
+				gap: 1rem;
+				justify-content: center;
+				margin-top: 1rem;
+			"
 		>
 			<p-button
 				[routerLink]="['/game/' + currentGame?.id]"
-				[icon]="currentGame?.hidden === 'true' ? 'pi pi-eye' : 'pi pi-eye-slash'"
+				[icon]="
+					currentGame?.hidden === 'true' ? 'pi pi-eye' : 'pi pi-eye-slash'
+				"
 				[severity]="currentGame?.hidden === 'true' ? 'success' : 'danger'"
 				(click)="toggleHiddenStatusForGame()"
 				[label]="currentGame?.hidden === 'true' ? 'Show' : 'Hide'"
@@ -40,7 +47,15 @@
 		<div class="content">
 			<div
 				*ngIf="hideSearch"
-				style="width: 100%; display: flex; gap: 1rem; justify-content: space-between; align-items: center; margin-top: 15vh; padding: 1rem"
+				style="
+					width: 100%;
+					display: flex;
+					gap: 1rem;
+					justify-content: space-between;
+					align-items: center;
+					margin-top: 15vh;
+					padding: 1rem;
+				"
 			>
 				<p-floatLabel style="width: 400px">
 					<input
@@ -49,9 +64,7 @@
 						id="searchGame"
 						pInputText
 					/>
-					<label for="searchGame">{{
-							'search-a-game' | translate
-						}}</label>
+					<label for="searchGame">{{ 'search-a-game' | translate }}</label>
 				</p-floatLabel>
 				<p-button
 					(click)="searchGameInAPI()"
@@ -108,27 +121,20 @@
 						<ng-container *ngIf="currentGame">
 							<div
 								*ngFor="let field of currentGame | keyvalue"
-								[style.display]="generalKeys.includes(field.key) ? 'block' : 'none'"
+								[style.display]="
+									generalKeys.includes(field.key) ? 'block' : 'none'
+								"
 							>
-								<p-floatLabel
-									*ngIf="generalKeys.includes(field.key)"
-								>
+								<p-floatLabel *ngIf="generalKeys.includes(field.key)">
 									<input
 										[formControlName]="field.key"
 										[id]="field.key"
 										pInputText
 									/>
-									<label [for]="field.key">{{
-											field.key
-										}}</label>
+									<label [for]="field.key">{{ field.key }}</label>
 								</p-floatLabel>
-								<small
-									*ngIf="field.key === 'tags'"
-									id="tags-helper"
-								>
-									{{
-										'tags-are-separated-by-commas' | translate
-									}}
+								<small *ngIf="field.key === 'tags'" id="tags-helper">
+									{{ 'tags-are-separated-by-commas' | translate }}
 								</small>
 							</div>
 						</ng-container>
@@ -144,21 +150,19 @@
 						<ng-container *ngIf="currentGame">
 							<div
 								*ngFor="let field of currentGame | keyvalue"
-								[style.display]="statKeys.includes(field.key) && field.key !== 'status'
-		? 'block'
-		: 'none'"
+								[style.display]="
+									statKeys.includes(field.key) && field.key !== 'status'
+										? 'block'
+										: 'none'
+								"
 							>
-								<p-floatLabel
-									*ngIf="statKeys.includes(field.key)"
-								>
+								<p-floatLabel *ngIf="statKeys.includes(field.key)">
 									<input
 										[formControlName]="field.key"
 										[id]="field.key"
 										pInputText
 									/>
-									<label [for]="field.key">{{
-											field.key
-										}}</label>
+									<label [for]="field.key">{{ field.key }}</label>
 								</p-floatLabel>
 							</div>
 							<p-dropdown
@@ -167,11 +171,49 @@
 								[showClear]="true"
 								placeholder="{{ 'select-a-status' | translate }}"
 							/>
+							<div>
+								<p>Sessions</p>
+								<div *ngFor="let session of currentGame.stats">
+									<div style="display: flex; margin: 2rem; gap: 1rem">
+										<p-floatLabel>
+											<input
+												[(ngModel)]="session.time_played"
+												id="{{ session.id }} - time"
+												pInputText
+												[ngModelOptions]="{ standalone: true }"
+											/>
+											<label for="{{ session.id }} - time">{{
+												'time-played' | translate
+											}}</label>
+										</p-floatLabel>
+										<p-floatLabel>
+											<p-calendar
+												[(ngModel)]="session.date_of_play"
+												id="{{ session.id }} - date"
+												[showTime]="true"
+												dateFormat="yy-mm-dd"
+												[ngModelOptions]="{ standalone: true }"
+											></p-calendar>
+											<label for="{{ session.id }} - date">{{
+												'date-of-play' | translate
+											}}</label>
+										</p-floatLabel>
+										<p-button
+											(click)="deleteSession(session.id)"
+											[rounded]="true"
+											icon="pi pi-times"
+											severity="danger"
+										></p-button>
+									</div>
+								</div>
+								<p-button
+									(click)="addSession()"
+									[rounded]="true"
+									icon="pi pi-plus"
+								></p-button>
+							</div>
 						</ng-container>
-						<p-button
-							label="{{ 'save' | translate }}"
-							type="submit"
-						></p-button>
+						<p-button label="{{ 'save' | translate }}" type="submit"></p-button>
 					</form>
 				</div>
 				<div *ngIf="selectedProvider === 'media'">
@@ -253,13 +295,16 @@
 							/>
 							<div
 								*ngFor="let screenshot of currentGame.screenshots | keyvalue"
-								style="display: flex; gap: 1rem; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center"
+								style="
+									display: flex;
+									gap: 1rem;
+									flex-direction: row;
+									flex-wrap: nowrap;
+									justify-content: center;
+									align-items: center;
+								"
 							>
-								<img
-									[src]="screenshot.value"
-									alt="screenshot"
-									width="250px"
-								/>
+								<img [src]="screenshot.value" alt="screenshot" width="250px" />
 								<p-button
 									(click)="deleteScreenshot(screenshot.value)"
 									[rounded]="true"
@@ -285,14 +330,10 @@
 								/>
 								<div style="margin-top: 1rem">
 									<p-floatLabel>
-										<input
-											[(ngModel)]="ytUrl"
-											id="music-name"
-											pInputText
-										/>
+										<input [(ngModel)]="ytUrl" id="music-name" pInputText />
 										<label for="music-name">{{
-												'youtube-video-url' | translate
-											}}</label>
+											'youtube-video-url' | translate
+										}}</label>
 									</p-floatLabel>
 								</div>
 								<p-button
@@ -309,11 +350,7 @@
 									severity="danger"
 								/>
 								<br />
-								<audio
-									controls
-									src="{{ currentGame.backgroundMusic }}"
-								>
-								</audio>
+								<audio controls src="{{ currentGame.backgroundMusic }}"></audio>
 
 								<input
 									(change)="onFileSelected($event, 'audio')"
@@ -329,15 +366,8 @@
 								(onClick)="openFileChooser('vide-input')"
 								icon="pi pi-plus"
 							/>
-							<div
-								*ngFor="let video of currentGame.videos | keyvalue"
-							>
-								<video
-									controls
-									src="{{ video.value }}"
-									width="380px"
-								>
-								</video>
+							<div *ngFor="let video of currentGame.videos | keyvalue">
+								<video controls src="{{ video.value }}" width="380px"></video>
 								<br />
 								<p-button
 									(click)="deleteVideo(video.value)"
@@ -372,26 +402,21 @@
 						<ng-container *ngIf="currentGame">
 							<div
 								*ngFor="let field of currentGame | keyvalue"
-								[style.display]="execKeys.includes(field.key) ? 'block' : 'none'"
+								[style.display]="
+									execKeys.includes(field.key) ? 'block' : 'none'
+								"
 							>
-								<p-floatLabel
-									*ngIf="execKeys.includes(field.key)"
-								>
+								<p-floatLabel *ngIf="execKeys.includes(field.key)">
 									<input
 										[formControlName]="field.key"
 										[id]="field.key"
 										pInputText
 									/>
-									<label [for]="field.key">{{
-											field.key
-										}}</label>
+									<label [for]="field.key">{{ field.key }}</label>
 								</p-floatLabel>
 							</div>
 						</ng-container>
-						<p-button
-							label="{{ 'save' | translate }}"
-							type="submit"
-						></p-button>
+						<p-button label="{{ 'save' | translate }}" type="submit"></p-button>
 					</form>
 				</div>
 			</div>

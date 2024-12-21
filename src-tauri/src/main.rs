@@ -71,6 +71,34 @@ impl Metadata {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+struct IStats {
+    id: String,
+    game_id: String,
+    time_played: String,
+    date_of_play: String,
+}
+
+impl IStats {
+    fn new() -> IStats {
+        IStats {
+            id: String::new(),
+            game_id: String::new(),
+            time_played: String::new(),
+            date_of_play: String::new(),
+        }
+    }
+
+    fn from_hashmap(hashmap: HashMap<String, String>) -> IStats {
+        IStats {
+            id: hashmap["id"].clone(),
+            game_id: hashmap["game_id"].clone(),
+            time_played: hashmap["time_played"].clone(),
+            date_of_play: hashmap["date_of_play"].clone(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct IGame {
     id: String,
     name: String,
@@ -89,10 +117,8 @@ struct IGame {
     exec_args: String,
     tags: String,
     status: String,
-    time_played: String,
     trophies: String,
     trophies_unlocked: String,
-    last_time_played: String,
     hidden: String,
 }
 
@@ -116,10 +142,8 @@ impl IGame {
             "exec_args",
             "tags",
             "status",
-            "time_played",
             "trophies",
             "trophies_unlocked",
-            "last_time_played",
             "hidden",
         ]
     }
@@ -143,10 +167,8 @@ impl IGame {
             exec_args: String::new(),
             tags: String::new(),
             status: String::new(),
-            time_played: String::new(),
             trophies: String::new(),
             trophies_unlocked: String::new(),
-            last_time_played: String::new(),
             hidden: String::new(),
         }
     }
@@ -170,10 +192,8 @@ impl IGame {
             "exec_args" => self.exec_args == "",
             "tags" => self.tags == "",
             "status" => self.status == "",
-            "time_played" => self.time_played == "",
             "trophies" => self.trophies == "",
             "trophies_unlocked" => self.trophies_unlocked == "",
-            "last_time_played" => self.last_time_played == "",
             "hidden" => self.hidden == "",
             _ => false,
         }
@@ -198,10 +218,8 @@ impl IGame {
             exec_args: hashmap["exec_args"].clone(),
             tags: hashmap["tags"].clone(),
             status: hashmap["status"].clone(),
-            time_played: hashmap["time_played"].clone(),
             trophies: hashmap["trophies"].clone(),
             trophies_unlocked: hashmap["trophies_unlocked"].clone(),
-            last_time_played: hashmap["last_time_played"].clone(),
             hidden: hashmap["hidden"].clone(),
         }
     }
@@ -225,10 +243,8 @@ impl IGame {
             "exec_args" => Some(self.exec_args.clone()),
             "tags" => Some(self.tags.clone()),
             "status" => Some(self.status.clone()),
-            "time_played" => Some(self.time_played.clone()),
             "trophies" => Some(self.trophies.clone()),
             "trophies_unlocked" => Some(self.trophies_unlocked.clone()),
-            "last_time_played" => Some(self.last_time_played.clone()),
             "hidden" => Some(self.hidden.clone()),
             _ => None,
         }
@@ -248,7 +264,6 @@ impl IGame {
         true
     }
 }
-
 
 fn initialize() {
     if let Some(proj_dirs) = ProjectDirs::from("fr", "Nytuo", "Meteoric") {
@@ -347,7 +362,8 @@ pub fn send_message_to_frontend(message: &str) {
     }
 }
 
-static APP_HANDLE: once_cell::sync::Lazy<Arc<Mutex<Option<tauri::AppHandle>>>> = once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(None)));
+static APP_HANDLE: once_cell::sync::Lazy<Arc<Mutex<Option<tauri::AppHandle>>>> =
+    once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(None)));
 
 fn store_app_handle(app_handle: tauri::AppHandle) {
     let mut handle = APP_HANDLE.lock().unwrap();

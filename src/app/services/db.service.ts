@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { convertFileSrc, invoke } from '@tauri-apps/api/core';
-import IGame from '../../interfaces/IGame';
+import IGame, { IStat } from '../../interfaces/IGame';
 import { BaseDirectory, configDir } from '@tauri-apps/api/path';
 import ICategory from '../../interfaces/ICategory';
 import { platform } from '@tauri-apps/plugin-os';
@@ -17,19 +17,20 @@ export class DBService {
 	constructor(
 		private genericService: GenericService,
 		private translateService: TranslateService,
-	) {
-	}
+	) {}
 
 	async deleteGame(currentGameID: string) {
-		await invoke('delete_game', { id: currentGameID }).then(() => {
-			this.genericService.sendNotification(
-				this.translateService.instant('gameDeleted'),
-				this.translateService.instant('gameDeletedMessage'),
-				'success',
-			);
-		}).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+		await invoke('delete_game', { id: currentGameID })
+			.then(() => {
+				this.genericService.sendNotification(
+					this.translateService.instant('gameDeleted'),
+					this.translateService.instant('gameDeletedMessage'),
+					'success',
+				);
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	JSONParserForGames(games: string): IGame[] {
@@ -38,6 +39,12 @@ export class DBService {
 		let gamesArray: IGame[] = [];
 		try {
 			gamesArray = JSON.parse(games) as IGame[];
+			gamesArray.forEach((game) => {
+				game.stats = JSON.parse(game.stats.toString());
+				game.stats.forEach((stat: IStat) => {
+					stat.date_of_play = new Date(stat.date_of_play);
+				});
+			});
 		} catch (error) {
 			console.error('Failed to parse games JSON:', error);
 			return [];
@@ -47,18 +54,13 @@ export class DBService {
 			let configDirPath = await configDir();
 			let dplatform = await platform();
 			if (dplatform === 'windows') {
-				configDirPath = configDirPath +
-					'\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+				configDirPath =
+					configDirPath + '\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 			} else {
-				configDirPath = configDirPath +
-					'/meteoric/meteoric_extra_content/';
+				configDirPath = configDirPath + '/meteoric/meteoric_extra_content/';
 			}
-			game.jaquette = convertFileSrc(
-				configDirPath + id + '/jaquette.jpg',
-			);
-			game.background = convertFileSrc(
-				configDirPath + id + '/background.jpg',
-			);
+			game.jaquette = convertFileSrc(configDirPath + id + '/jaquette.jpg');
+			game.background = convertFileSrc(configDirPath + id + '/background.jpg');
 			game.logo = convertFileSrc(configDirPath + id + '/logo.png');
 			game.icon = convertFileSrc(configDirPath + id + '/icon.png');
 			return await this.get_all_img_and_video(id, game, configDirPath);
@@ -71,22 +73,25 @@ export class DBService {
 		let configDirPath = await configDir();
 		let dplatform = await platform();
 		if (dplatform === 'windows') {
-			configDirPath = configDirPath +
-				'\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+			configDirPath =
+				configDirPath + '\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else if (dplatform === 'linux') {
 			configDirPath = configDirPath + '/meteoric/meteoric_extra_content/';
 		}
-		game.jaquette = convertFileSrc(configDirPath + id + '/jaquette.jpg') +
+		game.jaquette =
+			convertFileSrc(configDirPath + id + '/jaquette.jpg') +
 			'?' +
 			new Date().getTime();
 		game.background =
 			convertFileSrc(configDirPath + id + '/background.jpg') +
 			'?' +
 			new Date().getTime();
-		game.logo = convertFileSrc(configDirPath + id + '/logo.png') +
+		game.logo =
+			convertFileSrc(configDirPath + id + '/logo.png') +
 			'?' +
 			new Date().getTime();
-		game.icon = convertFileSrc(configDirPath + id + '/icon.png') +
+		game.icon =
+			convertFileSrc(configDirPath + id + '/icon.png') +
 			'?' +
 			new Date().getTime();
 		return await this.get_all_img_and_video(id, game, configDirPath);
@@ -112,15 +117,17 @@ export class DBService {
 			filters: filters,
 			views: views,
 			background: background,
-		}).then(() => {
-			this.genericService.sendNotification(
-				this.translateService.instant('categoryCreated'),
-				this.translateService.instant('categoryCreatedMessage'),
-				'success',
-			);
-		}).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+		})
+			.then(() => {
+				this.genericService.sendNotification(
+					this.translateService.instant('categoryCreated'),
+					this.translateService.instant('categoryCreatedMessage'),
+					'success',
+				);
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	async getSettings(): Promise<ISettings> {
@@ -129,9 +136,7 @@ export class DBService {
 		let settings: ISettings = {};
 		parsedSettings.forEach((setting: { name: string; value: string }) => {
 			if (setting.name === 'gap' || setting.name === 'zoom') {
-				settings[setting.name as keyof ISettings] = parseInt(
-					setting.value,
-				);
+				settings[setting.name as keyof ISettings] = parseInt(setting.value);
 				return;
 			}
 			settings[setting.name as keyof ISettings] = setting.value;
@@ -149,30 +154,34 @@ export class DBService {
 		}
 		await invoke('set_settings', {
 			settings: JSON.stringify(settingsArray),
-		}).then(() => {
-			this.genericService.sendNotification(
-				this.translateService.instant('settingsSaved'),
-				this.translateService.instant('settingsSavedMessage'),
-				'success',
-			);
-		}).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+		})
+			.then(() => {
+				this.genericService.sendNotification(
+					this.translateService.instant('settingsSaved'),
+					this.translateService.instant('settingsSavedMessage'),
+					'success',
+				);
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	async addGameToCategory(gameID: string, categoryID: string) {
 		await invoke('add_game_to_category', {
 			gameId: gameID,
 			categoryId: categoryID,
-		}).then(() => {
-			this.genericService.sendNotification(
-				this.translateService.instant('gameAdded'),
-				this.translateService.instant('gameAddedMessage'),
-				'success',
-			);
-		}).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+		})
+			.then(() => {
+				this.genericService.sendNotification(
+					this.translateService.instant('gameAdded'),
+					this.translateService.instant('gameAddedMessage'),
+					'success',
+				);
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	async getGames(): Promise<IGame[]> {
@@ -189,17 +198,23 @@ export class DBService {
 
 	async getGamesByCategory(category: string) {
 		return new Promise<void | IGame[]>((resolve) => {
-			invoke<string>('get_games_by_category', { category }).then(
-				(games) => {
-					resolve(this.JSONParserForGames(games));
-				},
-			);
+			invoke<string>('get_games_by_category', { category }).then((games) => {
+				resolve(this.JSONParserForGames(games));
+			});
 		});
 	}
 
 	async postGame(game: IGame) {
 		return new Promise<string>((resolve, reject) => {
-			invoke('post_game', { game: JSON.stringify(game) })
+			let _game = game as any;
+			if (Array.isArray(game.stats) && game.stats.length > 0) {
+				for (let stat of _game.stats) {
+					stat.date_of_play = new Date(stat.date_of_play).toISOString();
+				}
+			}
+			_game = JSON.stringify(_game);
+			console.log('game:', _game);
+			invoke('post_game', { game: _game })
 				.then((id) => {
 					this.genericService.sendNotification(
 						this.translateService.instant('gameSaved'),
@@ -232,15 +247,17 @@ export class DBService {
 		id: string,
 	) {
 		let fileContent = Array.from(new Uint8Array(file));
-		return invoke('upload_file', { fileContent, typeOf, id }).then(() => {
-			this.genericService.sendNotification(
-				this.translateService.instant('fileUploaded'),
-				this.translateService.instant('fileUploadedMessage'),
-				'success',
-			);
-		}).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+		return invoke('upload_file', { fileContent, typeOf, id })
+			.then(() => {
+				this.genericService.sendNotification(
+					this.translateService.instant('fileUploaded'),
+					this.translateService.instant('fileUploadedMessage'),
+					'success',
+				);
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	async deleteElement(
@@ -253,29 +270,33 @@ export class DBService {
 				typeOf,
 				id: gameID,
 				elementToDelete: '',
-			}).then(() => {
-				this.genericService.sendNotification(
-					this.translateService.instant('elementDeleted'),
-					this.translateService.instant('elementDeletedMessage'),
-					'success',
-				);
-			}).catch((error) => {
-				this.genericService.sendNotification('Error', error, 'error');
-			});
+			})
+				.then(() => {
+					this.genericService.sendNotification(
+						this.translateService.instant('elementDeleted'),
+						this.translateService.instant('elementDeletedMessage'),
+						'success',
+					);
+				})
+				.catch((error) => {
+					this.genericService.sendNotification('Error', error, 'error');
+				});
 		}
 		return invoke('delete_element', {
 			typeOf,
 			id: gameID,
 			elementToDelete,
-		}).then(() => {
-			this.genericService.sendNotification(
-				this.translateService.instant('elementDeleted'),
-				this.translateService.instant('elementDeletedMessage'),
-				'success',
-			);
-		}).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+		})
+			.then(() => {
+				this.genericService.sendNotification(
+					this.translateService.instant('elementDeleted'),
+					this.translateService.instant('elementDeletedMessage'),
+					'success',
+				);
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	async getGame(id: string) {
@@ -308,9 +329,7 @@ export class DBService {
 					setTimeout(() => {
 						this.genericService.sendNotification(
 							this.translateService.instant('metadataSaved'),
-							this.translateService.instant(
-								'metadataSavedMessage',
-							),
+							this.translateService.instant('metadataSavedMessage'),
 							'success',
 						);
 						resolve();
@@ -331,57 +350,63 @@ export class DBService {
 		return invoke('remove_game_from_category', {
 			gameId: gameID,
 			categoryId: id,
-		}).then(() => {
-			this.genericService.sendNotification(
-				this.translateService.instant('gameRemoved'),
-				this.translateService.instant('gameRemovedMessage'),
-				'success',
-			);
-		}).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+		})
+			.then(() => {
+				this.genericService.sendNotification(
+					this.translateService.instant('gameRemoved'),
+					this.translateService.instant('gameRemovedMessage'),
+					'success',
+				);
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	public async export_games_to_csv() {
 		const path = await save({
-			filters: [{
-				name: 'CSV',
-				extensions: ['csv'],
-			}],
+			filters: [
+				{
+					name: 'CSV',
+					extensions: ['csv'],
+				},
+			],
 			title: this.translateService.instant('exportGamesToCSV'),
 		});
-		return await invoke('export_game_database_to_csv', { path }).then(
-			() => {
+		return await invoke('export_game_database_to_csv', { path })
+			.then(() => {
 				this.genericService.sendNotification(
 					this.translateService.instant('gamesExported'),
 					this.translateService.instant('theGamesHaveBeenExported'),
 					'success',
 				);
-			},
-		).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	public async export_games_to_archive() {
 		const path = await save({
-			filters: [{
-				name: 'ZIP',
-				extensions: ['zip'],
-			}],
+			filters: [
+				{
+					name: 'ZIP',
+					extensions: ['zip'],
+				},
+			],
 			title: this.translateService.instant('exportGamesToArchive'),
 		});
-		return await invoke('export_game_database_to_archive', { path }).then(
-			() => {
+		return await invoke('export_game_database_to_archive', { path })
+			.then(() => {
 				this.genericService.sendNotification(
 					this.translateService.instant('gamesExported'),
 					this.translateService.instant('theGamesHaveBeenExported'),
 					'success',
 				);
-			},
-		).catch((error) => {
-			this.genericService.sendNotification('Error', error, 'error');
-		});
+			})
+			.catch((error) => {
+				this.genericService.sendNotification('Error', error, 'error');
+			});
 	}
 
 	private async get_all_img_and_video(
@@ -389,12 +414,9 @@ export class DBService {
 		game: IGame,
 		configDirPath: string,
 	) {
-		let allImagesLocation = await invoke<string>(
-			'get_all_images_location',
-			{
-				id: id,
-			},
-		);
+		let allImagesLocation = await invoke<string>('get_all_images_location', {
+			id: id,
+		});
 		let allImagesLocationParsed = JSON.parse(allImagesLocation);
 		game.screenshots = [];
 		for (let i = 0; i < allImagesLocationParsed.length; i++) {
@@ -403,33 +425,28 @@ export class DBService {
 			);
 		}
 		game.videos = [];
-		let allVideosLocation = await invoke<string>(
-			'get_all_videos_location',
-			{
-				id: id,
-			},
-		);
+		let allVideosLocation = await invoke<string>('get_all_videos_location', {
+			id: id,
+		});
 		allVideosLocation = JSON.parse(allVideosLocation);
 		for (let i = 0; i < allVideosLocation.length; i++) {
-			game.videos[i] = convertFileSrc(
-				configDirPath + allVideosLocation[i],
-			);
+			game.videos[i] = convertFileSrc(configDirPath + allVideosLocation[i]);
 		}
 
 		let configDirPathMusic;
 		let dplatform = await platform();
 		if (dplatform === 'windows') {
-			configDirPathMusic =
-				'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+			configDirPathMusic = 'Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
 		} else if (dplatform === 'linux') {
 			configDirPathMusic = 'meteoric/meteoric_extra_content/';
 		}
 
 		let musicFilePath = configDirPathMusic + id + '/musics/theme.mp3';
-		game.backgroundMusic =
-			await exists(musicFilePath, { baseDir: BaseDirectory.Config })
-				? convertFileSrc(configDirPath + id + '/musics/theme.mp3')
-				: '';
+		game.backgroundMusic = (await exists(musicFilePath, {
+			baseDir: BaseDirectory.Config,
+		}))
+			? convertFileSrc(configDirPath + id + '/musics/theme.mp3')
+			: '';
 		return game;
 	}
 }

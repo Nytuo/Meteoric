@@ -50,7 +50,7 @@
 			></p-tag>
 			<p-tag
 				[style]="{ 'margin-right': '10px' }"
-				[value]="game?.time_played"
+				[value]="totalTimePlayed"
 				icon="pi pi-clock"
 			></p-tag>
 			<p-tag
@@ -60,28 +60,30 @@
 			></p-tag>
 			<p-tag
 				[style]="{ 'margin-right': '10px' }"
-				[value]="game?.last_time_played"
+				[value]="lastTimePlayed"
 				icon="pi pi-calendar"
 			></p-tag>
 		</div>
 	</div>
 
 	<div
-		style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-between; align-content: start; width: 100%; margin-top: 5rem; margin-bottom: 5rem"
+		style="
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			justify-content: space-between;
+			align-content: start;
+			width: 100%;
+			margin-top: 5rem;
+			margin-bottom: 5rem;
+		"
 		style="display: none"
 	>
 		<div class="leftPanel">
 			<div class="activity">
 				<p class="fadedText">Activity</p>
-				<p-divider
-					align="center"
-					layout="horizontal"
-					type="solid"
-				></p-divider>
-				<p-table
-					[tableStyle]="{ 'min-width': '10rem' }"
-					[value]="activities"
-				>
+				<p-divider align="center" layout="horizontal" type="solid"></p-divider>
+				<p-table [tableStyle]="{ 'min-width': '10rem' }" [value]="activities">
 					<ng-template pTemplate="header">
 						<tr>
 							<th>Player</th>
@@ -104,11 +106,7 @@
 		<p-divider align="center" layout="vertical" type="solid"></p-divider>
 		<div class="rightPanel">
 			<p class="fadedText">Friends And You</p>
-			<p-divider
-				align="center"
-				layout="horizontal"
-				type="solid"
-			></p-divider>
+			<p-divider align="center" layout="horizontal" type="solid"></p-divider>
 
 			<p-table [tableStyle]="{ 'min-width': '35rem' }" [value]="friends">
 				<ng-template pTemplate="header">
@@ -177,22 +175,17 @@
 		<p-galleria
 			[circular]="true"
 			[containerStyle]="{
-		'max-width': '640px',
-		'margin-left': 'auto',
-		'margin-right': 'auto',
-	}"
+				'max-width': '640px',
+				'margin-left': 'auto',
+				'margin-right': 'auto',
+			}"
 			[numVisible]="5"
 			[responsiveOptions]="responsiveOptions"
 			[showItemNavigators]="true"
 			[showThumbnails]="false"
 			[value]="media.images"
 		>
-			<ng-template
-				[ngForOf]="media.images"
-				let-item
-				ngFor
-				pTemplate="item"
-			>
+			<ng-template [ngForOf]="media.images" let-item ngFor pTemplate="item">
 				<img
 					[ngSrc]="item"
 					alt="screen"
@@ -209,17 +202,22 @@
 			[responsiveOptions]="responsiveOptions"
 			[showIndicators]="false"
 			[style]="{
-		'max-width': '640px',
-		'margin-left': 'auto',
-		'margin-right': 'auto',
-		'margin-bottom': '5vh',
-	}"
+				'max-width': '640px',
+				'margin-left': 'auto',
+				'margin-right': 'auto',
+				'margin-bottom': '5vh',
+			}"
 			[value]="media.videos"
 		>
 			<ng-template let-item pTemplate="item">
 				<video
 					controls
-					style="width: 500px; display: block; height: 400px; object-fit: contain"
+					style="
+						width: 500px;
+						display: block;
+						height: 400px;
+						object-fit: contain;
+					"
 				>
 					<source [src]="item" type="video/mp4" />
 				</video>

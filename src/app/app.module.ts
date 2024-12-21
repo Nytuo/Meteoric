@@ -69,7 +69,9 @@ import { CascadeSelectModule } from 'primeng/cascadeselect';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { TranslateModule } from '@ngx-translate/core';
-import {StatsComponent} from "./components/stats/stats.component";
+import { StatsComponent } from './components/stats/stats.component';
+import { ChartModule } from 'primeng/chart';
+import { CalendarModule } from 'primeng/calendar';
 
 @NgModule({
 	declarations: [
@@ -96,7 +98,7 @@ import {StatsComponent} from "./components/stats/stats.component";
 		ListViewComponent,
 		IGDBComponent,
 		GogImporterComponent,
-		StatsComponent
+		StatsComponent,
 	],
 	imports: [
 		BrowserModule,
@@ -132,6 +134,8 @@ import {StatsComponent} from "./components/stats/stats.component";
 		CascadeSelectModule,
 		InputTextModule,
 		BrowserModule,
+		ChartModule,
+		CalendarModule,
 		TranslateModule.forRoot({
 			defaultLanguage: 'en',
 		}),

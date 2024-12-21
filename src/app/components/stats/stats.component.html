@@ -1,89 +1,88 @@
-<!--
-// chart with the number of games played per day
-// Monthly activity (number of games played per month)
-// Yearly activity (number of games played per year) -->
 <div class="stats">
-    <h1>Statistics</h1>
+	<h1>Statistics</h1>
 
-    <div class="scrollable-container">
+	<div class="scrollable-container">
+		<div>
+			<h2>Recent Activity</h2>
+			<app-card
+				*ngFor="let activity of activities"
+				[gameId]="activity.id"
+				[gameImage]="activity.jaquette"
+				[gameName]="activity.name"
+				[gamePlatforms]="activity.platforms"
+				[gameRating]="activity.rating"
+				[gameTags]="activity.tags"
+				class="griddy__item"
+			>
+			</app-card>
+		</div>
+		<div>
+			<h2>Overview</h2>
+			<table>
+				<tr>
+					<td>Number of favorite games:</td>
+					<td>{{ favNumber }} ({{ favPercentage }}%)</td>
+				</tr>
+				<tr>
+					<td>Total number of games:</td>
+					<td>{{ totalGames }}</td>
+				</tr>
+				<tr>
+					<td>Total playtime:</td>
+					<td>{{ totalTimePlayed }}</td>
+				</tr>
+				<tr>
+					<td>Total average playtime:</td>
+					<td>{{ averageTimePlayed }}</td>
+				</tr>
+				<tr>
+					<td>Most played game</td>
+					<td>{{ mostPlayed.name }}</td>
+				</tr>
+				<tr>
+					<td>Least played game</td>
+					<td>{{ leastPlayed.name }}</td>
+				</tr>
+			</table>
+		</div>
 
-        <div>
-            <h2>Overview</h2>
-            <table>
-                <tr>
-                    <td>Number of favorite games:</td>
-                    <td>{{ favNumber }} ({{ favPercentage }}%)</td>
-                </tr>
-                <tr>
-                    <td>Total number of games:</td>
-                    <td>{{ totalGames }}</td>
-                </tr>
-                <tr>
-                    <td>Total playtime:</td>
-                    <td>{{ totalTimePlayed }}</td>
-                </tr>
-                <tr>
-                    <td>Total average playtime:</td>
-                    <td>{{ averageTimePlayed }}</td>
-                </tr>
-                <tr>
-                    <td>Most played game</td>
-                    <td>{{ mostPlayed.name }}</td>
-                </tr>
-                <tr>
-                    <td>Least played game</td>
-                    <td>{{ leastPlayed.name }}</td>
-                </tr>
-            </table>
-        </div>
+		<div>
+			<h2>Completion</h2>
+			<table>
+				<tr>
+					<td>Categories</td>
+					<td>Count</td>
+					<td>Percentage</td>
+				</tr>
+				<tr *ngFor="let completion of categories">
+					<td>{{ completion.name }}</td>
+					<td>{{ completion.count }}</td>
+					<td>{{ (completion.count / totalGames) * 100 }}%</td>
+				</tr>
+			</table>
+		</div>
+		<div>
+			<h2>Games Played Per Day</h2>
+			<p-chart type="line" [data]="gamesPlayedPerDayData"></p-chart>
+		</div>
 
-        <div>
-            <h2>Games</h2>
-            <table>
-                <tr *ngFor="let game of games">
-                    <td>{{ game.name }}</td>
-                </tr>
-            </table>
-        </div>
+		<div>
+			<h2>Monthly Activity</h2>
+			<p-chart type="bar" [data]="monthlyActivityData"></p-chart>
+		</div>
 
-        <div>
-            <h2>Recent Activity</h2>
-            <app-card
-                    *ngFor="let activity of activities"
-                    [gameId]="activity.id"
-                    [gameImage]="activity.jaquette"
-                    [gameName]="activity.name"
-                    [gamePlatforms]="activity.platforms"
-                    [gameRating]="activity.rating"
-                    [gameTags]="activity.tags"
-                    class="griddy__item"
-            >
-            </app-card>
-        </div>
-        <div>
-            <h2>Total Playtime</h2>
-            <table>
-                <tr *ngFor="let game of games">
-                    <td>{{ game.name }}</td>
-                    <td>{{ game.time_played }}</td>
-                </tr>
-            </table>
-        </div>
-        <div>
-            <h2>Completion</h2>
-            <table>
-                <tr>
-                    <td>Categories</td>
-                    <td>Count</td>
-                    <td>Percentage</td>
-                </tr>
-                <tr *ngFor="let completion of categories">
-                    <td>{{ completion.name }}</td>
-                    <td>{{completion.count}}</td>
-                    <td>{{ completion.count / totalGames * 100 }}%</td>
-                </tr>
-
-            </table>
-        </div>
-    </div>
+		<div>
+			<h2>Yearly Activity</h2>
+			<p-chart type="bar" [data]="yearlyActivityData"></p-chart>
+		</div>
+		<div>
+			<h2>Games And Total Playtime</h2>
+			<table>
+				<tr *ngFor="let game of games">
+					<td>{{ game.name }}</td>
+					<td>{{ calculateTime(game) }}</td>
+				</tr>
+			</table>
+		</div>
+	</div>
 </div>
