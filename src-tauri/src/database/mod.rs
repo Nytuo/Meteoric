@@ -407,6 +407,27 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
 }
 
 pub fn bulk_update_stats(conn: &Connection, stats: Vec<IStats>) -> Result<(), String> {
+    let game_id = stats.first().map(|s| s.game_id.clone()).ok_or("No stats provided")?;
+    let mut stmt = conn
+        .prepare(&format!("SELECT id FROM stats WHERE game_id = '{}'", game_id))
+        .map_err(|e| e.to_string())?;
+    let ids: Vec<String> = make_a_json_from_db(&mut stmt).map_err(|e| e.to_string())?
+        .iter()
+        .map(|row| row.get("id").unwrap().clone())
+        .collect();
+    let ids_to_delete: Vec<String> = ids
+        .iter()
+        .filter(|id| !stats.iter().any(|stat| stat.id == **id))
+        .map(|id| id.clone())
+        .collect();
+
+    for id in ids_to_delete {
+        conn.execute(
+            &format!("DELETE FROM stats WHERE game_id = '{}' AND id = '{}'", game_id, id),
+            [],
+        ).map_err(|e| e.to_string())?;
+    }
+
     for stat in stats {
         update_stat_db(&conn, stat).map_err(|e| e.to_string())?;
     }
@@ -424,7 +445,7 @@ pub fn update_stat_db(conn: &Connection, stats: IStats) -> Result<(), String> {
             |row| row.get(0),
         )
         .map_err(|e| e.to_string())?;
-    if does_exist_in_db {
+    if !does_exist_in_db {
         insert_stat_db(
             &conn,
             stats.game_id.clone(),

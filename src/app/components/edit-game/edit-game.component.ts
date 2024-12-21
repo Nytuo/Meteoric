@@ -642,7 +642,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 			game[key] = this.stat.get(key)?.value;
 		}
 		game.stats = this.currentGame ? this.currentGame.stats : [];
-		this.db.postGame(game).then(() =>
+		this.db.postGame({ ...game }).then((id) =>
 			this.gameService.getGames().then(() => {
 				this.messageService.add({
 					severity: 'info',
@@ -650,6 +650,7 @@ export class EditGameComponent implements OnInit, OnDestroy {
 					detail: this.translate.instant('the-change-has-been-saved'),
 					life: 3000,
 				});
+				this.router.navigate(['/game/' + id]);
 			}),
 		);
 	}

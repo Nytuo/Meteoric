@@ -222,6 +222,23 @@ export class GameService {
 		});
 	}
 
+	async getHiddenGames() {
+		return new Promise<IGame[]>((resolve, reject) => {
+			this.db.getGames().then((games) => {
+				if (games === undefined) {
+					this.genericService.sendNotification(
+						this.translateService.instant('error'),
+						this.translateService.instant('no_game_found'),
+						'error',
+					);
+					reject();
+					return;
+				}
+				resolve(games);
+			});
+		});
+	}
+
 	loadGamesOfACategory(category: string) {
 		this.db.getGamesByCategory(category).then((games) => {
 			if (games === undefined) {

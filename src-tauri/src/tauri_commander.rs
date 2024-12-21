@@ -477,19 +477,28 @@ pub fn get_games_by_id(id: String) -> String {
 
 #[tauri::command]
 pub fn post_game(game: String) -> Result<String, String> {
-    let conn = establish_connection().unwrap();
+    let conn = establish_connection().map_err(|e| e.to_string())?;
     let mut _game: HashMap<String, serde_json::Value> =
         serde_json::from_str(&game).map_err(|e| e.to_string())?;
-    let mut parsed_stats: String = _game.get("stats").unwrap().to_string();
-    parsed_stats = parsed_stats.replace("\\\"", "\"");
+
+    let parsed_stats = _game.get("stats")
+        .ok_or("Missing stats field")?
+        .to_string()
+        .replace("\\\"", "\"");
+
     let stats: Vec<IStats> = serde_json::from_str(&parsed_stats).map_err(|e| e.to_string())?;
     _game.remove("stats");
-    let game_without_stats: IGame =
-        serde_json::from_str(format!("{:?}", _game).as_str()).map_err(|e| e.to_string())?;
+
+    let __game: HashMap<String, String> = _game
+        .iter()
+        .map(|(k, v)| (k.clone(), v.as_str().unwrap_or("").trim_matches('"').to_string()))
+        .collect();
+
+    let game_without_stats: IGame = IGame::from_hashmap(__game);
     println!("{:?}", game_without_stats);
-    bulk_update_stats(&conn, stats).expect("Error updating stats");
-    let id = update_game(&conn, game_without_stats).expect("Error updating game");
-    println!("Game id: {} posted successfully", id);
+    bulk_update_stats(&conn, stats).map_err(|e| e.to_string())?;
+    let id = update_game(&conn, game_without_stats).map_err(|e| e.to_string())?;
+
     Ok(id)
 }
 

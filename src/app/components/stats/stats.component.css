@@ -30,3 +30,10 @@ h2 {
     align-items: center;
     flex-direction: column;
 }
+.griddy {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 1rem;
+    transition: all 0.3s;
+}

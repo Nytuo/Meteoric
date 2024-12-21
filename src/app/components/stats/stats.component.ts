@@ -11,9 +11,10 @@ import IGame from '../../../interfaces/IGame';
 export class StatsComponent implements OnInit {
 	protected favNumber: number = 0;
 	protected favPercentage: number = 0;
+	protected totalGamesNoHidden: number = 0;
 	protected totalGames: number = 0;
-	protected totalTimePlayed: number = 0;
-	protected averageTimePlayed: number = 0;
+	protected totalTimePlayed: string = '';
+	protected averageTimePlayed: string = '';
 	protected games: IGame[] = [];
 	protected activities: any[] = [];
 	protected mostPlayed: IGame = {} as IGame;
@@ -54,12 +55,12 @@ export class StatsComponent implements OnInit {
 			this.categories = categories;
 			this.favNumber = categories.reduce(
 				(acc, category) =>
-					category.name === 'Favorite' ? category.games.length : acc,
+					category.name === 'Favorites' ? category.games.length : acc,
 				0,
 			);
-			this.favPercentage = (this.favNumber / this.totalGames) * 100;
+			this.favPercentage = Math.round((this.favNumber / this.totalGamesNoHidden) * 100);
 		});
-		this.gameService.getGamesObservable().subscribe((games) => {
+		this.gameService.getGamesObservable().subscribe(async (games) => {
 			this.games = games;
 			this.gamesPlayedPerDayData = {
 				labels: [
@@ -74,19 +75,18 @@ export class StatsComponent implements OnInit {
 				datasets: [
 					{
 						label: 'Games Played',
-						// check for each game if it has been played on a specific day of the week and increment the corresponding index in the array by 1
 						data: this.games.reduce(
 							(acc, game) =>
 								game.stats
 									? acc.map((day, index) =>
-											game.stats.some(
-												(stat) =>
-													this.dateToDay(stat.date_of_play) ===
-													this.dateToDay(index),
-											)
-												? day + 1
-												: day,
+										game.stats.some(
+											(stat) =>
+												this.dateToDay(stat.date_of_play) ===
+												this.dateToDay(index),
 										)
+											? day + 1
+											: day,
+									)
 									: acc,
 							[0, 0, 0, 0, 0, 0, 0],
 						),
@@ -119,13 +119,13 @@ export class StatsComponent implements OnInit {
 							(acc, game) =>
 								game.stats
 									? acc.map((month, index) =>
-											game.stats.some(
-												(stat) =>
-													new Date(stat.date_of_play).getMonth() === index,
-											)
-												? month + 1
-												: month,
+										game.stats.some(
+											(stat) =>
+												new Date(stat.date_of_play).getMonth() === index,
 										)
+											? month + 1
+											: month,
+									)
 									: acc,
 							[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 						),
@@ -154,37 +154,50 @@ export class StatsComponent implements OnInit {
 							(acc, game) =>
 								game.stats
 									? acc.map((year: number, index) =>
-											game.stats.some(
-												(stat) =>
-													new Date(stat.date_of_play).getFullYear() ===
-													possibleYears[index],
-											)
-												? year + 1
-												: year,
+										game.stats.some(
+											(stat) =>
+												new Date(stat.date_of_play).getFullYear() ===
+												possibleYears[index],
 										)
+											? year + 1
+											: year,
+									)
 									: acc,
 							possibleYears.map((year) => 0 as number),
 						),
 					},
 				],
 			};
-			this.totalGames = games.length;
-			this.totalTimePlayed = games.reduce(
+			this.totalGamesNoHidden = games.length;
+			this.totalGames = await this.gameService.getHiddenGames().then((hiddenGames) => {
+				return hiddenGames.length;
+			});
+			this.totalTimePlayed = this.toParsedTime(games.reduce(
 				(acc, game) =>
 					game.stats
 						? acc +
-							game.stats.reduce(
-								(acc, stat) => acc + parseInt(stat.time_played),
-								0,
-							)
+						game.stats.reduce(
+							(acc, stat) => acc + parseInt(stat.time_played),
+							0,
+						)
 						: acc,
 				0,
-			);
-			this.averageTimePlayed = this.totalTimePlayed / this.totalGames;
+			).toString());
+			this.averageTimePlayed = this.toParsedTime((games.reduce(
+				(acc, game) =>
+					game.stats
+						? acc +
+						game.stats.reduce(
+							(acc, stat) => acc + parseInt(stat.time_played),
+							0,
+						)
+						: acc,
+				0,
+			) / this.totalGamesNoHidden).toString());
 			this.activities = games.sort((a, b) => {
 				return (
-					(b.stats ? parseInt(b.stats[0].time_played) : 0) -
-					(a.stats ? parseInt(a.stats[0].time_played) : 0)
+					(b.stats?.reduce((acc, stat) => acc + parseInt(stat.time_played), 0) || 0) -
+					(a.stats?.reduce((acc, stat) => acc + parseInt(stat.time_played), 0) || 0)
 				);
 			});
 			this.activities = this.activities.slice(0, 5);
@@ -202,4 +215,23 @@ export class StatsComponent implements OnInit {
 			);
 		});
 	}
+
+	toParsedTime(time: string) {
+		let days = Math.floor(parseInt(time) / 1440);
+		let hours = Math.floor((parseInt(time) % 1440) / 60);
+		let minutes = (parseInt(time) % 1440) % 60;
+		let timePlayed = '';
+		if (days > 0) {
+			timePlayed += days + 'd ';
+		}
+		if (hours > 0) {
+			timePlayed += hours + 'h ';
+		}
+		if (minutes > 0) {
+			timePlayed += minutes + 'm';
+		}
+		return timePlayed;
+	}
+
+	protected readonly Math = Math;
 }

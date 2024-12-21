@@ -4,17 +4,19 @@
 	<div class="scrollable-container">
 		<div>
 			<h2>Recent Activity</h2>
-			<app-card
-				*ngFor="let activity of activities"
-				[gameId]="activity.id"
-				[gameImage]="activity.jaquette"
-				[gameName]="activity.name"
-				[gamePlatforms]="activity.platforms"
-				[gameRating]="activity.rating"
-				[gameTags]="activity.tags"
-				class="griddy__item"
-			>
-			</app-card>
+            <div class="griddy" style="gap: 1rem;">
+            <app-card
+                    *ngFor="let card of activities"
+                    [gameId]="card.id"
+                    [gameImage]="card.jaquette"
+                    [gameName]="card.name"
+                    [gamePlatforms]="card.platforms"
+                    [gameRating]="card.rating"
+                    [gameTags]="card.tags"
+                    class="griddy__item"
+            >
+            </app-card>
+            </div>
 		</div>
 		<div>
 			<h2>Overview</h2>
@@ -56,8 +58,8 @@
 				</tr>
 				<tr *ngFor="let completion of categories">
 					<td>{{ completion.name }}</td>
-					<td>{{ completion.count }}</td>
-					<td>{{ (completion.count / totalGames) * 100 }}%</td>
+					<td>{{ completion.count}}</td>
+					<td>{{ Math.round((completion.count / totalGames) * 100) }}%</td>
 				</tr>
 			</table>
 		</div>
