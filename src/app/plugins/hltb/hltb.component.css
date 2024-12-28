@@ -1,0 +1,99 @@
+.flex {
+    display: flex;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.justify-content-between {
+    justify-content: space-between;
+}
+
+.gap-5 {
+    gap: 1.25rem;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.gap-1 {
+    gap: 0.25rem;
+}
+
+.text-secondary {
+    color: #6b7280; /* Example color, adjust as needed */
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.font-bold {
+    font-weight: bold;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+}
+
+.w-2rem {
+    width: 2rem;
+}
+
+.h-2rem {
+    height: 2rem;
+}
+
+.border-circle {
+    border-radius: 50%;
+}
+
+.inline-flex {
+    display: inline-flex;
+}
+
+.justify-content-center {
+    justify-content: center;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-3 {
+    margin-top: 0.75rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.relative {
+    position: relative;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.font-medium {
+    font-weight: 500;
+}

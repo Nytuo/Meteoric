@@ -903,3 +903,9 @@ pub fn set_env_map(env_map: HashMap<String, String>) -> Result<(), String> {
     write_env_file(env_map).expect("Failed to write env file");
     Ok(())
 }
+
+#[tauri::command]
+pub async fn search_hltb(game_name: String) -> String {
+    println!("Searching for: {}", game_name);
+    howlongtobeat_scraper::search_by_name(&game_name).await.unwrap()
+}

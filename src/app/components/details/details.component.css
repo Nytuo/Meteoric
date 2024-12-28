@@ -185,3 +185,7 @@ p.fadedText {
 	background-color: var(--background-color-prime);
 	border-radius: 10px;
 }
+
+#hltb {
+	margin-top: 40px;
+}

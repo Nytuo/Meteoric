@@ -72,11 +72,15 @@ import { TranslateModule } from '@ngx-translate/core';
 import { StatsComponent } from './components/stats/stats.component';
 import { ChartModule } from 'primeng/chart';
 import { CalendarModule } from 'primeng/calendar';
+import { MeterGroupModule } from 'primeng/metergroup';
+import {CardModule} from "primeng/card";
+import {HltbComponent} from "./plugins/hltb/hltb.component";
 
 @NgModule({
 	declarations: [
 		AppComponent,
 		SidebarComponent,
+		HltbComponent,
 		TopbarComponent,
 		CardViewComponent,
 		BlockingOverlayComponent,
@@ -136,9 +140,11 @@ import { CalendarModule } from 'primeng/calendar';
 		BrowserModule,
 		ChartModule,
 		CalendarModule,
+		MeterGroupModule,
 		TranslateModule.forRoot({
 			defaultLanguage: 'en',
 		}),
+		CardModule,
 	],
 	providers: [
 		GameService,
