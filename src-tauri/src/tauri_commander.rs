@@ -906,6 +906,7 @@ pub fn set_env_map(env_map: HashMap<String, String>) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn search_hltb(game_name: String) -> String {
-    println!("Searching for: {}", game_name);
-    howlongtobeat_scraper::search_by_name(&game_name).await.unwrap()
+    let hltb_game = howlongtobeat_scraper::search_by_name(&game_name).await.unwrap();
+    let hltb_game = serde_json::to_string(&hltb_game).unwrap();
+    hltb_game
 }

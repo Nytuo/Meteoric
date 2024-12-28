@@ -83,14 +83,14 @@ export class HltbComponent implements OnInit, OnChanges {
         }
         this.fetchHLTBTimeForGame(this.gameName).then((response: any) => {
             let json = JSON.parse(response);
-            let mainStory = json[0].main_story;
-            let mainExtra = json[0].main_extra;
-            let completionist = json[0].completionist;
-            let allStyles = json[0].all_styles;
+            let mainStory = json.main_story;
+            let mainExtra = json.main_extra;
+            let completionist = json.completionist;
+            let allStyles = json.all_styles;
             let total = mainStory + mainExtra + completionist;
-            let mainStoryPercentage = (mainStory / total) * 100;
-            let mainExtraPercentage = (mainExtra / total) * 100;
-            let completionistPercentage = (completionist / total) * 100;
+            let mainStoryPercentage = Math.round((mainStory / total) * 100);
+            let mainExtraPercentage = Math.round((mainExtra / total) * 100);
+            let completionistPercentage = Math.round((completionist / total) * 100);
             this.value = [
                 {
                     label: 'Main Story',
