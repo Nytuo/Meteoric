@@ -15,7 +15,7 @@ use crate::database::{
 };
 use crate::file_operations::{
     archive_db_and_extra_content, create_extra_dirs, get_all_files_in_dir_for,
-    get_all_files_in_dir_for_parsed, get_extra_dirs, read_env_file, remove_file, write_env_file
+    get_all_files_in_dir_for_parsed, get_extra_dirs, read_env_file, remove_file, write_env_file,get_base_extra_dir
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
 use crate::{routine, send_message_to_frontend, IGame, IStats};
@@ -931,5 +931,13 @@ pub fn open_data_folder() -> Result<(), String> {
     let project_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
     let data_path = project_dirs.config_dir();
     tauri_plugin_opener::open_path(data_path, None::<&str>).unwrap();
+    Ok(())
+}
+
+#[tauri::command]
+pub fn save_launch_video(file:String)-> Result<(), String> {
+    let data_dir = get_base_extra_dir().unwrap();
+    let startup_video = data_dir.join("startup.mp4");
+    std::fs::copy(file, startup_video).unwrap();
     Ok(())
 }

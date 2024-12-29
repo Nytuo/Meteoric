@@ -25,7 +25,7 @@ use crate::tauri_commander::{
     get_all_fields_from_db, get_all_games, get_all_images_location, get_all_videos_location,
     get_env_map, get_games_by_category, get_settings, import_library, kill_game, launch_game,
     post_game, remove_game_from_category, save_media_to_external_storage, search_metadata,
-    set_env_map, set_settings, startup_routine, upload_csv_to_db, upload_file,search_hltb,get_app_version,open_program_folder,open_data_folder
+    set_env_map, set_settings, startup_routine, upload_csv_to_db, upload_file,search_hltb,get_app_version,open_program_folder,open_data_folder,save_launch_video
 };
 
 mod database;
@@ -428,7 +428,8 @@ async fn main() {
             search_hltb,
             get_app_version,
             open_program_folder,
-            open_data_folder
+            open_data_folder,
+            save_launch_video
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

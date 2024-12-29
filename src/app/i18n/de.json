@@ -1,4 +1,5 @@
 {
+  "": "",
   "ModifyingTheDatabase": "auf IGDB, Ändern der Datenbank",
   "about": "Um",
   "achievements": "Erfolge",
@@ -47,6 +48,7 @@
   "dev-warning": "Dies ist eine Entwicklungsversion, die noch einige Probleme aufweisen kann. In manchen Fällen müssen Sie manuell aktualisieren  Neustart.",
   "developer": "Entwickler",
   "developers": "Entwickler:",
+  "documentation": "Dokumentation",
   "doneWaitForFinish": "Fertig, warten Sie, bis es fertig ist",
   "dropped": "Gefallen",
   "editing-currentgame-name": "Bearbeitung",
@@ -148,6 +150,8 @@
   "not-started": "Nicht gestartet",
   "not_yet": "Noch nicht",
   "on-hold": "In der Warteschleife",
+  "open-data-folder": "Open-Data-Ordner",
+  "open-program-folder": "öffne-Programm-Ordner",
   "overlayText": "Es geschieht etwas, das nicht unterbrochen werden kann ...",
   "personal": "Persönlich",
   "personal-stats": "Persönliche Statistiken",
@@ -176,7 +180,8 @@
   "selectTheIcon": "Wählen Sie das Symbol aus",
   "selectTheLogo": "Wählen Sie das Logo aus",
   "settings": {
-    "api-keys": "In diesem Abschnitt können Sie Ihre API-Schlüssel für die verschiedenen Dienste hinzufügen, die Meteoric verwendet."
+    "api-keys": "In diesem Abschnitt können Sie Ihre API-Schlüssel für die verschiedenen Dienste hinzufügen, die Meteoric verwendet.",
+    "intro-video": ""
   },
   "settingsSaved": "Einstellungen gespeichert",
   "settingsSavedMessage": "Die Einstellungen wurden gespeichert",
@@ -204,6 +209,7 @@
   "themes": "Themen",
   "this-is-a-project-by": "Dies ist ein Projekt von",
   "unknown": "Unbekannt",
+  "upload-a-video": "",
   "user-rating": "Benutzerbewertung",
   "version-appversion": "Version:",
   "video": "Video",
@@ -216,8 +222,5 @@
   "youtube-background-music-provider": "Anbieter von Youtube-Hintergrundmusik",
   "youtube-video-url": "YouTube-Video-URL",
   "youtubeBackgroundMusicDownloader": "YouTube-Hintergrundmusik-Downloader",
-  "zoom": "Zoom",
-  "documentation": "Dokumentation",
-  "open-data-folder": "Open-Data-Ordner",
-  "open-program-folder": "öffne-Programm-Ordner"
+  "zoom": "Zoom"
 }

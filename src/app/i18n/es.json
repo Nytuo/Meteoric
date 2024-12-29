@@ -1,4 +1,5 @@
 {
+  "": "",
   "ModifyingTheDatabase": "en IGDB, modificando la base de datos",
   "about": "Acerca de",
   "achievements": "Logros",
@@ -47,6 +48,7 @@
   "dev-warning": "Esta es una versión en desarrollo, se esperan algunos problemas. En algunos casos puede que tenga que actualizar manualmente  reiniciar.",
   "developer": "Desarrolladores",
   "developers": "Desarrolladores:",
+  "documentation": "Documentación",
   "doneWaitForFinish": "Listo, espera a que termine.",
   "dropped": "Abandonó",
   "editing-currentgame-name": "Edición",
@@ -148,6 +150,8 @@
   "not-started": "No iniciado",
   "not_yet": "Aún no",
   "on-hold": "En espera",
+  "open-data-folder": "carpeta-de-datos-abierta",
+  "open-program-folder": "abrir-carpeta-de-programa",
   "overlayText": "Algo que no se puede interrumpir está sucediendo...",
   "personal": "Personal",
   "personal-stats": "Estadísticas personales",
@@ -176,7 +180,8 @@
   "selectTheIcon": "Seleccione el icono",
   "selectTheLogo": "Seleccione el logotipo",
   "settings": {
-    "api-keys": "En esta sección podrás agregar tus claves API para los diferentes servicios que utiliza Meteoric."
+    "api-keys": "En esta sección podrás agregar tus claves API para los diferentes servicios que utiliza Meteoric.",
+    "intro-video": ""
   },
   "settingsSaved": "Configuración guardada",
   "settingsSavedMessage": "La configuración ha sido guardada.",
@@ -204,6 +209,7 @@
   "themes": "Temas",
   "this-is-a-project-by": "Este es un proyecto de",
   "unknown": "Desconocido",
+  "upload-a-video": "",
   "user-rating": "Calificación del usuario",
   "version-appversion": "Versión:",
   "video": "Video",
@@ -216,8 +222,5 @@
   "youtube-background-music-provider": "Proveedor de música de fondo de Youtube",
   "youtube-video-url": "URL del vídeo de YouTube",
   "youtubeBackgroundMusicDownloader": "Descargador de música de fondo de YouTube",
-  "zoom": "Zoom",
-  "documentation": "Documentación",
-  "open-data-folder": "carpeta-de-datos-abierta",
-  "open-program-folder": "abrir-carpeta-de-programa"
+  "zoom": "Zoom"
 }

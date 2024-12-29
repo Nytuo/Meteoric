@@ -1,4 +1,5 @@
 {
+  "": "Upload a video",
   "ModifyingTheDatabase": "on IGDB, modifying the database",
   "about": "About",
   "achievements": "Achievements",
@@ -47,6 +48,7 @@
   "dev-warning": "As this is a development version, some problems are to be expected. In some cases, it may be necessary to manually refresh and/or restart the software.",
   "developer": "Developers",
   "developers": "Developers :",
+  "documentation": "Documentation",
   "doneWaitForFinish": "Done, wait for finish",
   "dropped": "Dropped",
   "editing-currentgame-name": "Editing",
@@ -148,6 +150,8 @@
   "not-started": "Not started",
   "not_yet": "Not Yet",
   "on-hold": "On hold",
+  "open-data-folder": "Open Data Folder",
+  "open-program-folder": "Open Program Folder",
   "overlayText": "Something that cannot be interrupted is happening...",
   "personal": "Personal",
   "personal-stats": "Personal Stats",
@@ -176,7 +180,8 @@
   "selectTheIcon": "Select the Icon",
   "selectTheLogo": "Select the Logo",
   "settings": {
-    "api-keys": "In this section you will be able to add your API keys for the different services that Meteoric uses."
+    "api-keys": "In this section you will be able to add your API keys for the different services that Meteoric uses.",
+    "intro-video": "Here you can set a custom video at launch"
   },
   "settingsSaved": "Settings Saved",
   "settingsSavedMessage": "The settings have been saved",
@@ -204,6 +209,7 @@
   "themes": "Themes",
   "this-is-a-project-by": "This is a project by",
   "unknown": "Unknown",
+  "upload-a-video": "Upload A Video",
   "user-rating": "User Rating",
   "version-appversion": "Version:",
   "video": "Video",
@@ -216,8 +222,5 @@
   "youtube-background-music-provider": "Youtube Background Music Provider",
   "youtube-video-url": "Youtube Video URL",
   "youtubeBackgroundMusicDownloader": "YouTube Background Music Downloader",
-  "zoom": "Zoom",
-  "documentation": "Documentation",
-  "open-program-folder": "Open Program Folder",
-  "open-data-folder": "Open Data Folder"
+  "zoom": "Zoom"
 }

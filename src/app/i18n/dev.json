@@ -1,4 +1,5 @@
 {
+  "": "dev",
   "ModifyingTheDatabase": "dev",
   "about": "dev",
   "achievements": "dev",
@@ -47,6 +48,7 @@
   "dev-warning": "dev",
   "developer": "dev",
   "developers": "dev",
+  "documentation": "dev",
   "doneWaitForFinish": "dev",
   "dropped": "dev",
   "editing-currentgame-name": "dev",
@@ -148,6 +150,8 @@
   "not-started": "dev",
   "not_yet": "dev",
   "on-hold": "dev",
+  "open-data-folder": "dev",
+  "open-program-folder": "dev",
   "overlayText": "dev",
   "personal": "dev",
   "personal-stats": "dev",
@@ -176,7 +180,8 @@
   "selectTheIcon": "dev",
   "selectTheLogo": "dev",
   "settings": {
-    "api-keys": "dev"
+    "api-keys": "dev",
+    "intro-video": "dev"
   },
   "settingsSaved": "dev",
   "settingsSavedMessage": "dev",
@@ -204,6 +209,7 @@
   "themes": "dev",
   "this-is-a-project-by": "dev",
   "unknown": "dev",
+  "upload-a-video": "dev",
   "user-rating": "dev",
   "version-appversion": "dev",
   "video": "dev",
@@ -216,8 +222,5 @@
   "youtube-background-music-provider": "dev",
   "youtube-video-url": "dev",
   "youtubeBackgroundMusicDownloader": "dev",
-  "zoom": "dev",
-  "documentation": "dev",
-  "open-data-folder": "dev",
-  "open-program-folder": "dev"
+  "zoom": "dev"
 }

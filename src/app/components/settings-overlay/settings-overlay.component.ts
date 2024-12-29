@@ -8,6 +8,8 @@ import {revealItemInDir} from "@tauri-apps/plugin-opener";
 import {configDir} from "@tauri-apps/api/path";
 import {platform} from "@tauri-apps/plugin-os";
 import {invoke} from "@tauri-apps/api/core";
+import {FileSelectEvent} from "primeng/fileupload";
+import { open } from '@tauri-apps/plugin-dialog';
 
 @Component({
 	selector: 'app-settings-overlay',
@@ -110,6 +112,13 @@ export class SettingsOverlayComponent implements OnInit {
 					this.activeItem = 'APIKEYS';
 				},
 			},
+			{
+				label: this.translate.instant('Launch Video'),
+				icon: 'pi pi-video',
+				command: () => {
+					this.activeItem = 'LAUNCHVID';
+				},
+			}
 		],
 	}, {
 		label: this.translate.instant('game-importers'),
@@ -242,5 +251,15 @@ export class SettingsOverlayComponent implements OnInit {
 
 	async openDataFolder() {
 		await invoke('open_data_folder');
+	}
+
+	async openLaunchVideo() {
+		const file = await open({
+			multiple: false,
+			directory: false,
+		});
+		if (file) {
+			await invoke('save_launch_video', { file: file });
+		}
 	}
 }

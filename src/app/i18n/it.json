@@ -1,4 +1,5 @@
 {
+  "": "",
   "ModifyingTheDatabase": "su IGDB, modificando il database",
   "about": "Di",
   "achievements": "Risultati",
@@ -47,6 +48,7 @@
   "dev-warning": "Si tratta di una versione in fase di sviluppo, che presenta alcuni problemi. In alcuni casi potrebbe essere necessario aggiornare manualmente e riavviare.",
   "developer": "Sviluppatori",
   "developers": "Sviluppatori:",
+  "documentation": "Documentazione",
   "doneWaitForFinish": "Fatto, attendi la fine",
   "dropped": "Caduto",
   "editing-currentgame-name": "Modifica",
@@ -148,6 +150,8 @@
   "not-started": "Non iniziato",
   "not_yet": "Non ancora",
   "on-hold": "In attesa",
+  "open-data-folder": "cartella-data-aperta",
+  "open-program-folder": "cartella-programma-aperta",
   "overlayText": "Sta accadendo qualcosa che non può essere interrotto...",
   "personal": "Personale",
   "personal-stats": "Statistiche personali",
@@ -176,7 +180,8 @@
   "selectTheIcon": "Seleziona l'icona",
   "selectTheLogo": "Seleziona il logo",
   "settings": {
-    "api-keys": "In questa sezione potrai aggiungere le tue chiavi API per i diversi servizi utilizzati da Meteoric."
+    "api-keys": "In questa sezione potrai aggiungere le tue chiavi API per i diversi servizi utilizzati da Meteoric.",
+    "intro-video": ""
   },
   "settingsSaved": "Impostazioni salvate",
   "settingsSavedMessage": "Le impostazioni sono state salvate",
@@ -204,6 +209,7 @@
   "themes": "Temi",
   "this-is-a-project-by": "Questo è un progetto di",
   "unknown": "Sconosciuto",
+  "upload-a-video": "",
   "user-rating": "Valutazione degli utenti",
   "version-appversion": "Versione:",
   "video": "Video",
@@ -216,8 +222,5 @@
   "youtube-background-music-provider": "Fornitore di musica di sottofondo Youtube",
   "youtube-video-url": "URL del video di Youtube",
   "youtubeBackgroundMusicDownloader": "Downloader di musica di sottofondo da YouTube",
-  "zoom": "Zoom",
-  "documentation": "Documentazione",
-  "open-data-folder": "cartella-data-aperta",
-  "open-program-folder": "cartella-programma-aperta"
+  "zoom": "Zoom"
 }

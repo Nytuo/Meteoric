@@ -1,4 +1,5 @@
 {
+  "": "",
   "ModifyingTheDatabase": "sur IGDB, modification de la base de données",
   "about": "À propos",
   "achievements": "Réalisations",
@@ -47,6 +48,7 @@
   "dev-warning": "Il s'agit d'une version de développement, il faut s'attendre à quelques problèmes. Dans certains cas, il peut être nécessaire d'actualiser manuellement le logiciel et de le redémarrer.",
   "developer": "Développeurs",
   "developers": "Développeurs :",
+  "documentation": "Documentation",
   "doneWaitForFinish": "Terminé, attendez la fin",
   "dropped": "Abandonné",
   "editing-currentgame-name": "Édition",
@@ -148,6 +150,8 @@
   "not-started": "Pas commencé",
   "not_yet": "Pas encore",
   "on-hold": "En attente",
+  "open-data-folder": "dossier de données ouvert",
+  "open-program-folder": "dossier-programme-ouvert",
   "overlayText": "Il se passe quelque chose qui ne peut être interrompu...",
   "personal": "Personnel",
   "personal-stats": "Statistiques personnelles",
@@ -176,7 +180,8 @@
   "selectTheIcon": "Sélectionnez l'icône",
   "selectTheLogo": "Sélectionnez le logo",
   "settings": {
-    "api-keys": "Dans cette section, vous pourrez ajouter vos clés API pour les différents services utilisés par Meteoric."
+    "api-keys": "Dans cette section, vous pourrez ajouter vos clés API pour les différents services utilisés par Meteoric.",
+    "intro-video": ""
   },
   "settingsSaved": "Paramètres enregistrés",
   "settingsSavedMessage": "Les paramètres ont été enregistrés",
@@ -204,6 +209,7 @@
   "themes": "Thèmes",
   "this-is-a-project-by": "Il s'agit d'un projet de",
   "unknown": "Inconnu",
+  "upload-a-video": "",
   "user-rating": "Évaluation des utilisateurs",
   "version-appversion": "Version :",
   "video": "Vidéo",
@@ -216,8 +222,5 @@
   "youtube-background-music-provider": "Fournisseur de musique de fond Youtube",
   "youtube-video-url": "URL de la vidéo YouTube",
   "youtubeBackgroundMusicDownloader": "Téléchargeur de musique de fond YouTube",
-  "zoom": "Zoom",
-  "documentation": "Documentation",
-  "open-data-folder": "dossier de données ouvert",
-  "open-program-folder": "dossier-programme-ouvert"
+  "zoom": "Zoom"
 }

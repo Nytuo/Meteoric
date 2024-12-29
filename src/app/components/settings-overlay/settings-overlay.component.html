@@ -34,6 +34,15 @@
 						</div>
 					</div>
 				</div>
+                <div *ngIf="activeItem === 'LAUNCHVID'" id="LAUNCHVID">
+                    <h3>{{ 'intro-video' | translate }}</h3>
+                    <p>{{ 'settings.intro-video' | translate }}</p>
+                    <div class="spaceX">
+                        <div class="mb-3">
+                           <p-button label="{{ 'upload-a-video' | translate }}" (onClick)="openLaunchVideo()"></p-button>
+                        </div>
+                    </div>
+                </div>
 
 				<app-csv-importer *ngIf="activeItem === 'CSV Importer'"></app-csv-importer>
 				<app-csv-exporter *ngIf="activeItem === 'CSV Exporter'"></app-csv-exporter>
