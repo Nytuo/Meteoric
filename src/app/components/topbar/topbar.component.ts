@@ -305,4 +305,21 @@ export class TopbarComponent implements OnInit {
 	searchGame() {
 		this.gameService.searchGame(this.searchQuery);
 	}
+
+	searchToggle() {
+		let container = document.querySelector(".search-wrapper") as HTMLElement;
+		let obj = document.activeElement;
+		if (!container.classList.contains("active")) {
+			container.classList.add("active");
+		} else if (
+			container.classList.contains("active") &&
+			!(obj as HTMLElement).closest(".input-holder")
+		) {
+			container.classList.remove("active");
+			const searchInput = container.querySelector(".search-input") as HTMLInputElement;
+			if (searchInput) {
+				searchInput.value = "";
+			}
+		}
+	}
 }

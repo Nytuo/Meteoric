@@ -22,15 +22,6 @@ export class CategoryService {
 			background: '',
 		},
 		{
-			id: '-1',
-			name: 'Installed',
-			icon: 'download',
-			games: '*',
-			filters: ['All', 'Installed', 'Not Installed'],
-			views: ['Grid', 'List'],
-			background: '',
-		},
-		{
 			id: '-2',
 			name: 'Steam',
 			icon: 'bookmark',

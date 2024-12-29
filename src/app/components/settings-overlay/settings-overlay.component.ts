@@ -3,6 +3,11 @@ import { SettingsService } from '../../services/settings.service';
 import { BehaviorSubject } from 'rxjs';
 import ISettings from '../../../interfaces/ISettings';
 import { TranslateService } from '@ngx-translate/core';
+import {GenericService} from "../../services/generic.service";
+import {revealItemInDir} from "@tauri-apps/plugin-opener";
+import {configDir} from "@tauri-apps/api/path";
+import {platform} from "@tauri-apps/plugin-os";
+import {invoke} from "@tauri-apps/api/core";
 
 @Component({
 	selector: 'app-settings-overlay',
@@ -152,7 +157,7 @@ export class SettingsOverlayComponent implements OnInit {
 				label: this.translate.instant('csv-exporter'),
 				icon: 'pi pi-cloud-upload',
 				command: () => {
-					this.activeItem = this.translate.instant('csv-importer');
+					this.activeItem = this.translate.instant('csv-exporter');
 				},
 			},
 			{
@@ -180,6 +185,7 @@ export class SettingsOverlayComponent implements OnInit {
 	constructor(
 		private settingsService: SettingsService,
 		private translate: TranslateService,
+		protected genericService: GenericService,
 	) {}
 
 	changeLanguage() {
@@ -210,10 +216,16 @@ export class SettingsOverlayComponent implements OnInit {
 		this.selectedLanguage = this.searchLanguageFromValue(
 			this.translate.currentLang || 'en',
 		);
-		this.appVersion = '1.0.0';
+		this.resolveAppVersion().then((version) => {
+			this.appVersion = version;
+		});
 		this.settingsService.getApiKeys().subscribe((apiKeys) => {
 			this.apiKeys = apiKeys;
 		});
+	}
+
+	async resolveAppVersion() {
+		return await this.genericService.getAppVersion();
 	}
 
 	setEnv(key: unknown, value: any) {
@@ -222,5 +234,13 @@ export class SettingsOverlayComponent implements OnInit {
 			[key as string]: value,
 		});
 		this.settingsService.set_env_settings();
+	}
+
+	async openProgramFolder() {
+		await invoke('open_program_folder');
+	}
+
+	async openDataFolder() {
+		await invoke('open_data_folder');
 	}
 }

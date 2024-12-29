@@ -1,12 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { GameService } from '../../services/game.service';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
+import {GameService} from '../../services/game.service';
 import IGame from '../../../interfaces/IGame';
-import { CarouselResponsiveOptions } from 'primeng/carousel';
-import { GenericService } from '../../services/generic.service';
-import type { SimpleIcon } from 'simple-icons';
+import {CarouselResponsiveOptions} from 'primeng/carousel';
+import {GenericService} from '../../services/generic.service';
+import type {SimpleIcon} from 'simple-icons';
 import * as simpleIcons from 'simple-icons';
-import { TranslateService } from '@ngx-translate/core';
+import {TranslateService} from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-details',
@@ -19,11 +19,14 @@ export class DetailsComponent implements OnInit, OnDestroy {
 	allPlayersTrophyAvg: number = 0;
 	allPlayersTimePlayedAvg: number = 0;
 	gameRating: any;
-	gameTags: any = [this.translate.instant('no-tags')];
+	gameTags: any = this.translate.instant('no-tags');
 	media: any = {
 		images: [],
 		videos: [],
 	};
+	logoOffsetTop: number = 0;
+	isSticky: boolean = false;
+	imageHeight: number = 0;
 	responsiveOptions: CarouselResponsiveOptions[] | undefined = undefined;
 	activities: any[] = [
 		{
@@ -121,7 +124,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 						(acc, stat) => acc + parseInt(stat.time_played),
 						0,
 					) || 0
-				).toString(),
+				).toString() || '0',
 			);
 
 			this.lastTimePlayed =
@@ -133,7 +136,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 							return stat;
 						}
 					})
-					.date_of_play.toString() || '0000-00-00';
+					.date_of_play.toLocaleDateString() || '0000-00-00';
 		});
 
 		this.genericService
@@ -254,42 +257,20 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		this.genericService.stopBackgroundMusic();
 	}
 
-	onScroll(event: any) {
-		let image = document.getElementById('bg') as HTMLImageElement;
-		if (image === null) {
-			return;
-		}
-		image.style.opacity = (0.6 - event.target.scrollTop / 1000).toString();
+	onScroll(event: WheelEvent) {
+		const container = document.querySelector('.gameInfo');
+		if (!container) return;
 
-		let logo = document.getElementById('game-logo-details') as HTMLImageElement;
-		if (logo === null) {
-			return;
-		}
-
-		logo.style.opacity = Math.max(
-			0,
-			1 - event.target.scrollTop / 250,
-		).toString();
-		let logoTop = document.getElementById('logo-top') as HTMLImageElement;
-		if (logoTop === null) {
-			return;
-		}
-		if (logo.style.opacity === '0') {
-			logoTop.style.opacity = '1';
-		} else {
-			logoTop.style.opacity = '0';
-		}
-
-		if (event.target.scrollTop > 250) {
-			document
-				.querySelector('.navAndBookmarks')
-				?.classList.add('backgroundTopbar');
-			document.querySelector('.main')?.classList.add('backgroundTopbar');
-		} else {
-			document
-				.querySelector('.navAndBookmarks')
-				?.classList.remove('backgroundTopbar');
-			document.querySelector('.main')?.classList.remove('backgroundTopbar');
+		if (event.deltaY > 0 && !this.isSticky) {
+			console.log(event.deltaY);
+			let image = document.getElementById('bg') as HTMLImageElement;
+			if (image === null) {
+				return;
+			}
+			image.style.opacity = (0.6 - event.deltaY / 1000).toString();
+			this.isSticky = true;
+		} else if (event.deltaY < 0 && container.scrollTop === 0) {
+			this.isSticky = false;
 		}
 	}
 
@@ -323,10 +304,10 @@ export class DetailsComponent implements OnInit, OnDestroy {
 			return;
 		}
 		this.game = game;
-		this.gameTags = this.game?.tags.split(',');
+		this.gameTags = this.game?.tags;
 		this.gameRating = this.game?.rating;
 		if (this.game.tags === '') {
-			this.gameTags = [this.translate.instant('no-tags')];
+			this.gameTags = this.translate.instant('no-tags');
 		}
 		this.media.images = this.game?.screenshots;
 		this.media.videos = this.game?.videos;
@@ -345,4 +326,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		}
 		html.style.backgroundImage = `url(${this.game?.background})`;
 	}
+
+	protected readonly event = event;
 }

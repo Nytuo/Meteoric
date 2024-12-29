@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CategoryService } from '../../services/category.service';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { GenericService } from '../../services/generic.service';
+import {Router} from "@angular/router";
 const appWindow = getCurrentWebviewWindow()
 
 @Component({
@@ -14,12 +15,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 	showSidebar = true;
 	categories: any[] = [];
 	currentCategory = '0';
+	displayIndicator = true;
 	public logoAnimation = true;
 	protected readonly appWindow = appWindow;
 
 	constructor(
 		private categoryService: CategoryService,
 		private genericService: GenericService,
+		protected router: Router,
 	) {
 	}
 
@@ -28,7 +31,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit() {
-		this.logoAnimation = this.genericService.getDevMode() ? false : true;
+		this.logoAnimation = this.genericService.getDevMode() ? false : this.genericService.enableLogoAnimation;
+		this.router.events.subscribe(() => {
+			if (this.router.url !== '/stats') {
+				this.genericService.setDisplayIndicator(true);
+			}
+		});
 		this.categoryService.getCategories();
 		this.categoryService.getCategoriesObservable().subscribe(
 			(categories) => {
@@ -42,6 +50,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
 			if (this.genericService.getAsAlreadyLaunched()) {
 				this.logoAnimation = false;
 			}
+		});
+
+		this.genericService.getDisplayIndicator().subscribe((displayIndicator: boolean) => {
+			this.displayIndicator = displayIndicator;
 		});
 	}
 

@@ -75,6 +75,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { MeterGroupModule } from 'primeng/metergroup';
 import {CardModule} from "primeng/card";
 import {HltbComponent} from "./plugins/hltb/hltb.component";
+import {InfoCardComponent} from "./components/info-card/info-card.component";
 
 @NgModule({
 	declarations: [
@@ -103,6 +104,7 @@ import {HltbComponent} from "./plugins/hltb/hltb.component";
 		IGDBComponent,
 		GogImporterComponent,
 		StatsComponent,
+		InfoCardComponent
 	],
 	imports: [
 		BrowserModule,

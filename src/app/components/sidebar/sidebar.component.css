@@ -62,7 +62,7 @@
 .activeIndicator {
 	width: 5px;
 	height: 53px;
-	background-color: #3546e8;
+	background-color: var(--primary-color);
 	position: absolute;
 	left: 0;
 	transition: 0.5s;

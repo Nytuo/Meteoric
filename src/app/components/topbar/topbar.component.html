@@ -8,80 +8,39 @@
 		></p-button>
 		<p-button
 			(onClick)="op.toggle($event)"
-			[style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
+            *ngIf="isBookmarkAllowed"
 			icon="pi pi-bookmark"
 		></p-button>
+        <div class="filter" *ngIf="!onGamePage">
+            <p-button
+                    (onClick)="filter_overlay.toggle($event)"
+                    icon="pi pi-filter"
+            ></p-button>
+        </div>
 		<p-button
 			(onClick)="toggleFavorites()"
 			[icon]="isFavoritesChecked() ? 'pi pi-star-fill' : 'pi pi-star'"
-			[style.visibility]="isBookmarkAllowed ? 'visible' : 'hidden'"
+            *ngIf="isBookmarkAllowed"
 		></p-button>
-		<p-overlayPanel #op>
-			<input
-				[style]="{ marginRight: '10px' }"
-				id="addcat"
-				pInputText
-				placeholder='{{ "addNewCategory" | translate }}'
-			/>
-			<p-button (click)="addCategory()" icon="pi pi-plus"></p-button>
-			<div *ngFor="let cat of allCategories">
-				<label class="form-control" for="addtocat">
-					<input
-						(change)="toggleCategory($event, cat.id)"
-						[defaultChecked]="isCategoryChecked(cat.id)"
-						id="addtocat"
-						name="addtocat"
-						type="checkbox"
-					/>
-					{{ cat.name }}
-				</label>
-			</div>
-		</p-overlayPanel>
 	</div>
 	<div *ngIf="!onGamePage" class="main">
-		<div class="searchBar">
-			<input
-				(input)="searchGame()"
-				[(ngModel)]="searchQuery"
-				placeholder="{{ 'search' | translate }}"
-				type="text"
-			/>
-			<span class="material-symbols-outlined"> search </span>
-		</div>
+        <div class="search-wrapper">
+            <div class="input-holder">
+                <input type="text" class="search-input" placeholder="{{ 'search' | translate }}"
+                       [(ngModel)]="searchQuery" (input)="searchGame()"/>
+                <button class="search-icon" (click)="searchToggle()">
+                    <span></span>
+                </button>
+            </div>
+            <span class="close" (click)="searchToggle()"></span>
+        </div>
 		<div class="addGame">
 			<p-button
 				(click)="toggleOverlay('game')"
 				icon="pi pi-plus-circle"
 			></p-button>
 		</div>
-		<p-overlayPanel #filter_overlay>
-			<p-cascadeSelect
-				(onChange)="filterGames()"
-				[(ngModel)]="selectedFilter"
-				[optionGroupChildren]="['values']"
-				[options]="filters"
-				[style]="{ minWidth: '14rem' }"
-				optionGroupLabel="name"
-				optionLabel="cname"
-				placeholder="{{ 'filterBy' | translate }}"
-			>
-			</p-cascadeSelect>
-		</p-overlayPanel>
-		<p-overlayPanel #sort_overlay>
-			<p-dropdown
-				(onChange)="sortGames()"
-				[(ngModel)]="selectedSort"
-				[options]="sorts"
-				optionLabel="name"
-				placeholder="{{ 'sortBy' | translate }}"
-			/>
-		</p-overlayPanel>
-		<div class="filter">
-			<p-button
-				(onClick)="filter_overlay.toggle($event)"
-				icon="pi pi-filter"
-			></p-button>
-		</div>
+
 		<div class="sort">
 			<p-button
 				(onClick)="sort_overlay.toggle($event)"
@@ -107,21 +66,52 @@
 			<p-button [routerLink]="editPage" icon="pi pi-pencil"></p-button>
 		</div>
 	</div>
-	<div [style.visibility]="'hidden'" class="windowManagement">
-		<p-button
-			(click)="toggleMinimize()"
-			icon="pi pi-window-minimize"
-		></p-button>
-		<p-button
-			(click)="toggleMaximize()"
-			icon="pi pi-window-maximize"
-		></p-button>
-		<p-button
-			(click)="appWindow.close()"
-			icon="pi pi-times-circle"
-		></p-button>
-	</div>
 </div>
+
+<p-overlayPanel #op>
+    <input
+            [style]="{ marginRight: '10px' }"
+            id="addcat"
+            pInputText
+            placeholder='{{ "addNewCategory" | translate }}'
+    />
+    <p-button (click)="addCategory()" icon="pi pi-plus"></p-button>
+    <div *ngFor="let cat of allCategories">
+        <label class="form-control" for="addtocat">
+            <input
+                    (change)="toggleCategory($event, cat.id)"
+                    [defaultChecked]="isCategoryChecked(cat.id)"
+                    id="addtocat"
+                    name="addtocat"
+                    type="checkbox"
+            />
+            {{ cat.name }}
+        </label>
+    </div>
+</p-overlayPanel>
+
+<p-overlayPanel #filter_overlay>
+    <p-cascadeSelect
+            (onChange)="filterGames()"
+            [(ngModel)]="selectedFilter"
+            [optionGroupChildren]="['values']"
+            [options]="filters"
+            [style]="{ minWidth: '14rem' }"
+            optionGroupLabel="name"
+            optionLabel="cname"
+            placeholder="{{ 'filterBy' | translate }}"
+    >
+    </p-cascadeSelect>
+</p-overlayPanel>
+<p-overlayPanel #sort_overlay>
+    <p-dropdown
+            (onChange)="sortGames()"
+            [(ngModel)]="selectedSort"
+            [options]="sorts"
+            optionLabel="name"
+            placeholder="{{ 'sortBy' | translate }}"
+    />
+</p-overlayPanel>
 
 <app-filter-overlay
 	*ngIf="!onGamePage && overlayVisible"

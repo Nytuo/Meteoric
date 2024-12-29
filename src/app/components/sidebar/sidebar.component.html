@@ -25,11 +25,15 @@
 			</div>
 		</ng-template>
 		<ng-template pTemplate="content">
-			<div class="other">
-				<div class="stat">
+            <div class="other">
+                <div class="stat" [routerLink]="['/stats']">
+                    					<span
+                                                *ngIf="this.router.url === '/stats'"
+                                                class="activeIndicator"
+                                        ></span>
 					<i class="pi pi-chart-pie" style="font-size: 1.5rem"></i>
 
-					<span [routerLink]="['/stats']">{{ 'stats' | translate }}</span>
+                    <span>{{ 'stats' | translate }}</span>
 				</div>
 			</div>
 
@@ -42,7 +46,7 @@
 					class="category"
 				>
 					<span
-						*ngIf="category.id == currentCategory"
+                            *ngIf="category.id == currentCategory && displayIndicator"
 						class="activeIndicator"
 					></span>
 					<div class="categoryItem">

@@ -1,11 +1,9 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { NavigationEnd, Router } from '@angular/router';
-import { invoke } from '@tauri-apps/api/core';
-import ISettings from '../../interfaces/ISettings';
-import { DBService } from './db.service';
-import { MessageService } from 'primeng/api';
-import { TranslateService } from '@ngx-translate/core';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject} from 'rxjs';
+import {NavigationEnd, Router} from '@angular/router';
+import {invoke} from '@tauri-apps/api/core';
+import {MessageService} from 'primeng/api';
+import {TranslateService} from '@ngx-translate/core';
 
 @Injectable({
 	providedIn: 'root',
@@ -27,9 +25,12 @@ export class GenericService {
 	>(
 		true,
 	);
+
+	private displayIndicator: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
 	private audioInterval: string | number | NodeJS.Timeout | undefined;
 	private asAlreadyLaunched = false;
-	private devMode = true;
+	private devMode = false;
+	enableLogoAnimation = false;
 
 	constructor(
 		protected router: Router,
@@ -167,6 +168,22 @@ export class GenericService {
 			detail: message,
 			life: duration,
 			sticky: sticky,
+		});
+	}
+
+	getDisplayIndicator() {
+		return this.displayIndicator.asObservable();
+	}
+
+	setDisplayIndicator(displayIndicator: boolean) {
+		this.displayIndicator.next(displayIndicator);
+	}
+
+	async getAppVersion() {
+		return new Promise<string>((resolve) => {
+			invoke('get_app_version').then((response) => {
+				resolve(response as string);
+			});
 		});
 	}
 }

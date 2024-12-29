@@ -23,11 +23,15 @@
 }
 
 .gameLogo {
-	height: auto;
 	margin-bottom: 20px;
 	margin-top: 140px;
 	transition: all 0.5s;
 	visibility: hidden;
+	width: 40rem;
+	max-height: 20rem;
+	object-fit: contain;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .gameImage {
@@ -188,4 +192,41 @@ p.fadedText {
 
 #hltb {
 	margin-top: 40px;
+}
+
+.sticky {
+	position: fixed;
+	top: 0;
+	width: 20rem;
+	z-index: 9999;
+	margin-top: 15px;
+	height: auto;
+	max-height: 6rem;
+	object-fit: contain;
+}
+
+.backgroundTopbar {
+	position: fixed;
+	top: 0;
+	width: 100%;
+	height: 5vh;
+	background-color: rgba(0, 0, 0, 0.44);
+	backdrop-filter: blur(10px);
+	z-index: 1;
+}
+
+.fakeHeader {
+	position: fixed;
+	height: 8rem;
+	width: 100%;
+	left: 18rem;
+}
+
+app-info-card{
+	width: 100%;
+}
+
+#hltb {
+	display: flex;
+	justify-content: center;
 }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { CategoryService } from '../../services/category.service';
 import IGame from '../../../interfaces/IGame';
+import {GenericService} from "../../services/generic.service";
 
 @Component({
 	selector: 'app-stats',
@@ -27,6 +28,7 @@ export class StatsComponent implements OnInit {
 	constructor(
 		private gameService: GameService,
 		private categoryService: CategoryService,
+		private genericService: GenericService,
 	) {}
 
 	dateToDay(date: Date | number): string {
@@ -51,6 +53,7 @@ export class StatsComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.gameService.getGames();
+		this.genericService.setDisplayIndicator(false);
 		this.categoryService.getCategoriesObservable().subscribe((categories) => {
 			this.categories = categories;
 			this.favNumber = categories.reduce(
