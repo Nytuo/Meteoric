@@ -1,17 +1,18 @@
-import { Component, OnInit } from '@angular/core';
-import { GenericService } from '../../services/generic.service';
-import { Location } from '@angular/common';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { NavigationEnd, Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
-import { GameService } from '../../services/game.service';
-import { open } from '@tauri-apps/plugin-dialog';
-import { dirname } from '@tauri-apps/api/path';
-import { DBService } from '../../services/db.service';
-import { TauriService } from '../../services/tauri.service';
+import {Component, OnInit} from '@angular/core';
+import {GenericService} from '../../services/generic.service';
+import {Location} from '@angular/common';
+import {getCurrentWebviewWindow} from '@tauri-apps/api/webviewWindow';
+import {NavigationEnd, Router} from '@angular/router';
+import {BehaviorSubject} from 'rxjs';
+import {GameService} from '../../services/game.service';
+import {open} from '@tauri-apps/plugin-dialog';
+import {dirname} from '@tauri-apps/api/path';
+import {DBService} from '../../services/db.service';
+import {TauriService} from '../../services/tauri.service';
 import IGameLaunchedMessage from '../../../interfaces/IGameLaunchMessage';
-import { CategoryService } from '../../services/category.service';
-import { TranslateService } from '@ngx-translate/core';
+import {CategoryService} from '../../services/category.service';
+import {TranslateService} from '@ngx-translate/core';
+
 const appWindow = getCurrentWebviewWindow()
 
 @Component({
@@ -185,13 +186,13 @@ export class TopbarComponent implements OnInit {
 						this.currentGameCategories = this.categoryService
 							.getCategoriesForGame(this.gameID);
 						this.displayPlayForGame =
-							game?.exec_file && game?.game_dir
+							(((game?.exec_file && game?.game_dir) || (game?.game_importer_id && game?.importer_id))
 								? this.translate.instant('play')
-								: this.translate.instant('link');
-						this.btnicon = game?.exec_file && game?.game_dir
+								: this.translate.instant('link'));
+						this.btnicon =((game?.exec_file && game?.game_dir) || (game?.game_importer_id && game?.importer_id))
 							? 'pi pi-play'
 							: 'pi pi-link';
-						this.color = game?.exec_file && game?.game_dir
+						this.color = ((game?.exec_file && game?.game_dir) || (game?.game_importer_id && game?.importer_id))
 							? { backgroundColor: 'rgb(13 81 198)' }
 							: { backgroundColor: 'purple' };
 					}
@@ -222,13 +223,13 @@ export class TopbarComponent implements OnInit {
 			if (!game) {
 				return;
 			}
-			this.displayPlayForGame = game?.exec_file && game?.game_dir
+			this.displayPlayForGame = ((game?.exec_file && game?.game_dir) || (game?.game_importer_id && game?.importer_id))
 				? this.translate.instant('play')
 				: this.translate.instant('link');
-			this.btnicon = game?.exec_file && game?.game_dir
+			this.btnicon = ((game?.exec_file && game?.game_dir) || (game?.game_importer_id && game?.importer_id))
 				? 'pi pi-play'
 				: 'pi pi-link';
-			this.color = game?.exec_file && game?.game_dir
+			this.color =((game?.exec_file && game?.game_dir) || (game?.game_importer_id && game?.importer_id))
 				? { backgroundColor: 'rgb(13 81 198)' }
 				: { backgroundColor: 'purple' };
 		});
@@ -255,7 +256,7 @@ export class TopbarComponent implements OnInit {
 	}
 
 	async playGame() {
-		if (this.displayPlayForGame === 'LINK') {
+		if (this.displayPlayForGame === this.translate.instant('link')) {
 			const selected = await open({
 				multiple: false,
 				filters: [
@@ -291,14 +292,21 @@ export class TopbarComponent implements OnInit {
 					: { backgroundColor: 'purple' };
 			}
 			return;
-		} else if (this.displayPlayForGame === 'STOP') {
+		} else if (this.displayPlayForGame === this.translate.instant('stop')) {
 			if (!this.gamePID || this.gamePID === 0) {
 				return;
 			}
-			await this.genericService.killGame(this.gamePID);
+			await this.gameService.killGame(this.gamePID);
 		} else {
 			this.loading = true;
-			await this.genericService.launchGame(this.gameID);
+			let game = this.gameService.getGame(this.gameID);
+			if (!game) {
+				return;
+			}
+			await this.gameService.launchGame(game?.game_importer_id && game?.importer_id ? game?.game_importer_id : this.gameID, game.importer_id);
+			setTimeout(() => {
+				this.loading = false;
+			}, 10000);
 		}
 	}
 

@@ -242,6 +242,8 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
     let conn = Connection::open(db_path)?;
     let required_columns_games = vec![
         ("id", "INTEGER PRIMARY KEY"),
+        ("game_importer_id", "TEXT"),
+        ("importer_id", "TEXT"),
         ("name", "TEXT NOT NULL"),
         ("sort_name", "TEXT"),
         ("rating", "TEXT NOT NULL DEFAULT '0'"),
@@ -328,6 +330,8 @@ pub(crate) fn get_all_fields(conn: &Connection) -> Result<Vec<String>, rusqlite:
 fn parse_fields(game: &IGame) -> IGame {
     let game_copy = IGame {
         id: game.id.clone(),
+        game_importer_id: game.game_importer_id.replace("'", "''"),
+        importer_id: game.importer_id.replace("'", "''"),
         name: game.name.replace("'", "''"),
         sort_name: game.sort_name.replace("'", "''"),
         rating: game.rating.replace("'", "''"),
@@ -357,12 +361,14 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
     let game = parse_fields(&game);
     let game_name = game.name.clone();
     if id_exist {
-        let sql_update = format!("UPDATE games SET name = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', trophies_unlocked = '{}', hidden = '{}' WHERE id = '{}';", game.name, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.trophies_unlocked, game.hidden, game.id);
+        let sql_update = format!("UPDATE games SET name = '{}', game_importer_id = '{}', importer_id = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', trophies_unlocked = '{}', hidden = '{}' WHERE id = '{}';", game.name, game.game_importer_id, game.importer_id, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.trophies_unlocked, game.hidden, game.id);
         conn.execute(&sql_update, []).map_err(|e| e.to_string())?;
         println!("Game updated");
     } else {
         let all_fields = vec![
             game.name,
+            game.game_importer_id,
+            game.importer_id,
             game.sort_name,
             game.rating,
             game.platforms,
@@ -386,7 +392,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             .map(|field| field.to_string())
             .collect::<Vec<String>>()
             .join("', '");
-        let sql_insert = format!("INSERT INTO games (name, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden) VALUES ('{}')", all_fields);
+        let sql_insert = format!("INSERT INTO games (name, game_importer_id, importer_id, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden) VALUES ('{}')", all_fields);
         match conn.execute(&sql_insert, []).map_err(|e| e.to_string()) {
             Ok(_) => {
                 println!("Game inserted");

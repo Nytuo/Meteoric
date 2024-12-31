@@ -175,6 +175,8 @@ export class EditGameComponent implements OnInit, OnDestroy {
 	ngOnInit(): void {
 		this.currentGame = {
 			id: '-1',
+			game_importer_id: '',
+			importer_id: '',
 			trophies: '',
 			name: '',
 			sort_name: '',

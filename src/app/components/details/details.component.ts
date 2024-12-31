@@ -275,8 +275,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
 	}
 
 	launchAnimation() {
+		this.isSticky = false;
 		document.getElementsByClassName('gameInfo')[0].scrollTo(0, 0);
-		document.querySelector('#gameContent')?.classList.add('hidden');
 		document.querySelector('#gameHeaderOptional')?.classList.add('hidden');
 		document.querySelector('#game-logo-details')?.classList.add('logoLaunch');
 		document.querySelector('#title')?.classList.add('logoLaunch');

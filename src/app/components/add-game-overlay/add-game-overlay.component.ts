@@ -26,7 +26,7 @@ export class AddGameOverlayComponent implements OnInit {
 
 	currentGame: IGame | undefined;
 	loading: boolean = false;
-	statusOfImport: String = '';
+	statusOfImport: string = '';
 
 	constructor(
 		private db: DBService,
@@ -43,6 +43,8 @@ export class AddGameOverlayComponent implements OnInit {
 	ngOnInit(): void {
 		this.currentGame = {
 			id: '-1',
+			game_importer_id: '',
+			importer_id: '',
 			trophies: '',
 			name: '',
 			sort_name: '',

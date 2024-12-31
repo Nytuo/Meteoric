@@ -76,6 +76,10 @@ export class GenericService {
 		return this.gameLaunchAnimation.asObservable();
 	}
 
+	changeGameLaunchAnimation(gameLaunchAnimation: boolean) {
+		this.gameLaunchAnimation.next(gameLaunchAnimation);
+	}
+
 	changeDisplayBookmark(displayBookmark: boolean) {
 		this.displayBookmark.next(displayBookmark);
 	}
@@ -130,29 +134,6 @@ export class GenericService {
 				console.log(response);
 			},
 		);
-	}
-
-	async launchGame(gameId: string) {
-		this.gameLaunchAnimation.next(true);
-		setTimeout(() => {
-			invoke('launch_game', { gameId }).then((response) => {
-				console.log(response);
-			});
-			this.stopAllAudio();
-		}, 2000);
-		setTimeout(() => {
-			this.gameLaunchAnimation.next(false);
-		}, 5000);
-	}
-
-	async killGame(gamePID: number) {
-		invoke('kill_game', { pid: gamePID }).then((response) => {
-			this.sendNotification(
-				this.translateService.instant('game_ended_title'),
-				this.translateService.instant('game_ended_message'),
-				'info',
-			);
-		});
 	}
 
 	sendNotification(

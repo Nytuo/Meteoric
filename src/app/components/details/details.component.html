@@ -17,7 +17,7 @@
         />
     </div>
 
-    <div [style.display]="isSticky ? 'block' : 'none'">
+    <div [style.display]="isSticky ? 'block' : 'none'" class="divGameContent">
         <div *ngIf="game" class="gameHeader">
             <h1 class="gameTitle" id="title">{{ game?.name }}</h1>
             <div

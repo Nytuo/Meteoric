@@ -26,6 +26,8 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         let mut igame: IGame = IGame::new();
         igame.id = "-1".to_string();
         igame.name = game.name;
+        igame.importer_id = "steam".to_string();
+        igame.game_importer_id = game.appid.to_string();
         igame.platforms = "Steam".to_string();
         let conn = establish_connection().unwrap();
         let new_id = update_game(&conn, igame)?;

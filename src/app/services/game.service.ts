@@ -491,6 +491,8 @@ export class GameService {
 	private create_new_game(api_game: any): IGame {
 		return {
 			id: api_game.id ? api_game.id : '-1',
+			game_importer_id: api_game.game_importer_id ? api_game.game_importer_id : '',
+			importer_id: api_game.importer_id ? api_game.importer_id : '',
 			trophies: api_game.trophies ? api_game.trophies : '',
 			name: api_game.name ? api_game.name : '',
 			sort_name: api_game.name ? api_game.name : '',
@@ -557,6 +559,64 @@ export class GameService {
 						this.setGameObservable(game);
 					});
 				});
+		});
+	}
+
+	public getLaunchLinkForImporter(importerId: string, gameId: string): string {
+		if (importerId === 'steam') {
+			return 'steam://rungameid/' + gameId;
+		}
+		if (importerId === 'epic') {
+			return 'com.epicgames.launcher://apps/' + gameId + '?action=launch&silent=true';
+		}
+		if (importerId === 'gog') {
+			return 'gog://game/' + gameId;
+		}
+		return '';
+	}
+
+	async launchGame(gameId: string, launcherId: string = '') {
+		this.genericService.changeGameLaunchAnimation(true);
+		if (launcherId !== '') {
+			let link = this.getLaunchLinkForImporter(launcherId, gameId);
+			if (link === '') {
+				this.genericService.sendNotification(
+					this.translateService.instant('error'),
+					this.translateService.instant('no_launcher_found'),
+					'error',
+				);
+				return;
+			}
+			let tab = window.open(link, '_blank');
+			setTimeout(() => {
+				if (tab) {
+					tab.close();
+				}
+			}, 5000);
+			this.genericService.stopAllAudio();
+			setTimeout(() => {
+				this.genericService.changeGameLaunchAnimation(false);
+			}, 5000);
+		}else {
+			setTimeout(() => {
+				invoke('launch_game', { gameId }).then((response) => {
+					console.log(response);
+				});
+				this.genericService.stopAllAudio();
+			}, 2000);
+			setTimeout(() => {
+				this.genericService.changeGameLaunchAnimation(false);
+			}, 5000);
+		}
+	}
+
+	async killGame(gamePID: number) {
+		invoke('kill_game', { pid: gamePID }).then((response) => {
+			this.genericService.sendNotification(
+				this.translateService.instant('game_ended_title'),
+				this.translateService.instant('game_ended_message'),
+				'info',
+			);
 		});
 	}
 }

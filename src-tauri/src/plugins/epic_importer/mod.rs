@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -53,21 +54,24 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
 
     let lib_items: Option<egs_api::api::types::library::Library> = client.library_items(true).await;
     let games = lib_items.unwrap().records;
-    let mut parsed_games = Vec::new();
+    let mut parsed_games = HashMap::new();
     for game in &games {
+        let game_id = game.clone().product_id;
         let game_temp = game.clone().sandbox_name;
         if !game_temp.contains("UE Marketplace")
             && !game_temp.contains("Live")
             && !game_temp.contains("fab-listing-live")
         {
-            parsed_games.push(game_temp);
+            parsed_games.insert(game_id, game_temp);
         }
     }
     for game in &parsed_games {
         let mut igame: IGame = IGame::new();
         igame.id = "-1".to_string();
-        igame.name = game.clone();
+        igame.name = game.1.clone();
         igame.platforms = "Epic Games".to_string();
+        igame.game_importer_id = game.0.clone();
+        igame.importer_id = "epic".to_string();
         let conn = establish_connection().unwrap();
         update_game(&conn, igame).expect("Failed to update game");
     }

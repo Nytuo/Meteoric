@@ -51,6 +51,8 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                     let mut igame: IGame = IGame::new();
                     igame.id = "-1".to_string();
                     igame.name = game.title;
+                    igame.importer_id = "gog".to_string();
+                    igame.game_importer_id = game_id.to_string();
                     igame.release_date = game.release_timestamp.to_string();
                     let mut tags = Vec::new();
                     for tag in game.tags.clone() {

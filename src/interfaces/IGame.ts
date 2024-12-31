@@ -18,6 +18,8 @@ interface IStat {
 
 interface IGame {
 	id: string;
+	game_importer_id: string;
+	importer_id: string;
 	name: string;
 	sort_name: string;
 	jaquette: string;

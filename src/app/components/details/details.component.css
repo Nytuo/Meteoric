@@ -230,3 +230,8 @@ app-info-card{
 	display: flex;
 	justify-content: center;
 }
+
+.divGameContent{
+	transition: all 0.5s;
+	animation: fadeIn 1s;
+}

@@ -101,6 +101,8 @@ impl IStats {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct IGame {
     id: String,
+    game_importer_id: String,
+    importer_id: String,
     name: String,
     sort_name: String,
     rating: String,
@@ -126,6 +128,8 @@ impl IGame {
     pub fn field_names() -> Vec<&'static str> {
         vec![
             "id",
+            "game_importer_id",
+            "importer_id",
             "name",
             "sort_name",
             "rating",
@@ -151,6 +155,8 @@ impl IGame {
     pub fn new() -> IGame {
         IGame {
             id: String::new(),
+            game_importer_id: String::new(),
+            importer_id: String::new(),
             name: String::new(),
             sort_name: String::new(),
             rating: String::new(),
@@ -176,6 +182,8 @@ impl IGame {
     pub fn is_empty(&self, field: &str) -> bool {
         match field {
             "id" => self.id == "",
+            "game_importer_id" => self.game_importer_id == "",
+            "importer_id" => self.importer_id == "",
             "name" => self.name == "",
             "sort_name" => self.sort_name == "",
             "rating" => self.rating == "",
@@ -202,6 +210,8 @@ impl IGame {
     pub fn from_hashmap(hashmap: HashMap<String, String>) -> IGame {
         IGame {
             id: hashmap["id"].clone(),
+            game_importer_id: hashmap["game_importer_id"].clone(),
+            importer_id: hashmap["importer_id"].clone(),
             name: hashmap["name"].clone(),
             sort_name: hashmap["sort_name"].clone(),
             rating: hashmap["rating"].clone(),
@@ -227,6 +237,8 @@ impl IGame {
     pub fn get(&self, field: &str) -> Option<String> {
         match field {
             "id" => Some(self.id.clone()),
+            "game_importer_id" => Some(self.game_importer_id.clone()),
+            "importer_id" => Some(self.importer_id.clone()),
             "name" => Some(self.name.clone()),
             "sort_name" => Some(self.sort_name.clone()),
             "rating" => Some(self.rating.clone()),
