@@ -1,0 +1,7 @@
+<p-dialog (visibleChange)="hide()" [(visible)]="opened"
+          [style]="{     maxWidth: '50%', width: '50%', height: '80%', maxHeight: '80%' }" draggable="false" header="Achievements"
+          modal="true" resizable="false">
+    <div>
+        <app-achievement *ngFor="let achievement of achievements" [achievement]="achievement"></app-achievement>
+    </div>
+</p-dialog>

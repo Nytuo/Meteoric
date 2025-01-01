@@ -7,9 +7,9 @@ use gog::token::Token;
 use gog::Gog;
 use tokio::{sync::Mutex, task};
 
-use crate::database::establish_connection;
+use crate::database::{establish_connection, update_achievements, update_game_nodup};
 use crate::database::update_game;
-use crate::IGame;
+use crate::{IGame, ITrophy};
 
 lazy_static::lazy_static! {
     static ref TOKEN: Mutex<String> = Mutex::new("".to_string());
@@ -43,6 +43,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let gog = Gog::new(parsed_token);
+        let user_id = gog.uid();
         let games = gog.get_games().unwrap();
         for game_id in games {
             let games_detailled = gog.get_game_details(game_id);
@@ -61,9 +62,32 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                     igame.tags = tags.join(",");
                     igame.platforms = "GOG".to_string();
                     let conn = establish_connection().unwrap();
-                    update_game(&conn, igame).expect("Failed to update game");
+                    update_game_nodup(&conn, igame).expect("Failed to update game");
                 }
                 Err(_) => println!("failed to get game details"),
+            }
+            let achievements = gog.achievements(game_id, user_id);
+            match achievements {
+                Ok(achievements) => {
+                    let mut iachievements: Vec<ITrophy> = Vec::new();
+                    for achievement in achievements.items {
+                        let mut itrophy: ITrophy = ITrophy::new();
+                        itrophy.id = "-1".to_string();
+                        itrophy.name = achievement.name;
+                        itrophy.description = achievement.description;
+                        itrophy.game_id = game_id.to_string();
+                        itrophy.importer_id = "gog".to_string();
+                        itrophy.visible = achievement.visible;
+                        itrophy.image_url_unlocked = achievement.image_url_unlocked;
+                        itrophy.image_url_locked = achievement.image_url_locked;
+                        itrophy.date_of_unlock = achievement.date_unlocked.clone().unwrap();
+                        itrophy.unlocked = achievement.date_unlocked.clone().is_some();
+                        iachievements.push(itrophy);
+                    }
+                    let conn = establish_connection().unwrap();
+                    update_achievements(&conn, iachievements).expect("Failed to update achievements");
+                }
+                Err(_) => println!("failed to get achievements"),
             }
         }
     });

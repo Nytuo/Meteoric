@@ -1,0 +1,11 @@
+.card{
+    background-color: var(--background-color-prime);
+    border-radius: 10px;
+    padding: 10px;
+    margin: 0vh 10px 10px 10px;
+    text-align: justify;
+}
+
+.locked{
+    opacity: 0.5;
+}

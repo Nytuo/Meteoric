@@ -76,6 +76,8 @@ import { MeterGroupModule } from 'primeng/metergroup';
 import {CardModule} from "primeng/card";
 import {HltbComponent} from "./plugins/hltb/hltb.component";
 import {InfoCardComponent} from "./components/info-card/info-card.component";
+import {AchievementsComponent} from "./components/achievements/achievements.component";
+import {AchievementComponent} from "./components/achievement/achievement.component";
 
 @NgModule({
 	declarations: [
@@ -104,7 +106,9 @@ import {InfoCardComponent} from "./components/info-card/info-card.component";
 		IGDBComponent,
 		GogImporterComponent,
 		StatsComponent,
-		InfoCardComponent
+		InfoCardComponent,
+		AchievementsComponent,
+		AchievementComponent
 	],
 	imports: [
 		BrowserModule,

@@ -17,7 +17,7 @@
 			<div>{{ 'zoom' | translate }}</div>
 			<p-slider
 				(onChange)="changeZoom()"
-				(onSlideEnd)="applyZoom()"
+				(blur)="applyZoom()"
 				[(ngModel)]="zoomLevel"
 				max="50"
 				min="5"
@@ -27,7 +27,7 @@
 			<div>{{ 'gap' | translate }}</div>
 			<p-slider
 				(onChange)="changeGap()"
-				(onSlideEnd)="applyGap()"
+				(blur)="applyGap()"
 				[(ngModel)]="gapLevel"
 				max="50"
 				min="0"

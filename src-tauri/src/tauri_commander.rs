@@ -941,3 +941,23 @@ pub fn save_launch_video(file:String)-> Result<(), String> {
     std::fs::copy(file, startup_video).unwrap();
     Ok(())
 }
+
+#[tauri::command]
+pub fn get_achievements_for_game(game_id: String) -> String {
+    println!("Game id: {}", game_id);
+    let conn = establish_connection().unwrap();
+    let achievements = query_data(
+        &conn,
+        vec!["achievements"],
+        vec!["*"],
+        vec![("game_id", &game_id)],
+        false,
+    )
+        .unwrap()
+        .iter()
+        .map(|row| format!("{:?}", row))
+        .collect::<Vec<String>>()
+        .join(",");
+        println!("Achievements: {:?}", achievements);
+    format!("[{}]", achievements)
+}

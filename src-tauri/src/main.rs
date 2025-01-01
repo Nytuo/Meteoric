@@ -25,7 +25,7 @@ use crate::tauri_commander::{
     get_all_fields_from_db, get_all_games, get_all_images_location, get_all_videos_location,
     get_env_map, get_games_by_category, get_settings, import_library, kill_game, launch_game,
     post_game, remove_game_from_category, save_media_to_external_storage, search_metadata,
-    set_env_map, set_settings, startup_routine, upload_csv_to_db, upload_file,search_hltb,get_app_version,open_program_folder,open_data_folder,save_launch_video
+    set_env_map, set_settings, startup_routine, upload_csv_to_db, upload_file, search_hltb, get_app_version, open_program_folder, open_data_folder, save_launch_video, get_achievements_for_game,
 };
 
 mod database;
@@ -36,13 +36,47 @@ mod tauri_commander;
 #[derive(Serialize, Deserialize)]
 struct ITrophy {
     id: String,
+    game_id: String,
     name: String,
     description: String,
-    icon: String,
-    game_id: String,
-    status: String,
-    date_obtained: String,
-    platform: String,
+    visible: bool,
+    date_of_unlock: String,
+    importer_id: String,
+    image_url_locked: String,
+    image_url_unlocked: String,
+    unlocked: bool,
+}
+
+impl ITrophy {
+    fn new() -> ITrophy {
+        ITrophy {
+            id: String::new(),
+            game_id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            visible: false,
+            date_of_unlock: String::new(),
+            importer_id: String::new(),
+            image_url_locked: String::new(),
+            image_url_unlocked: String::new(),
+            unlocked: false,
+        }
+    }
+
+    fn from_hashmap(hashmap: HashMap<String, String>) -> ITrophy {
+        ITrophy {
+            id: hashmap["id"].clone(),
+            game_id: hashmap["game_id"].clone(),
+            name: hashmap["name"].clone(),
+            description: hashmap["description"].clone(),
+            visible: hashmap["visible"].parse().unwrap(),
+            date_of_unlock: hashmap["date_of_unlock"].clone(),
+            importer_id: hashmap["importer_id"].clone(),
+            image_url_locked: hashmap["image_url_locked"].clone(),
+            image_url_unlocked: hashmap["image_url_unlocked"].clone(),
+            unlocked: hashmap["unlocked"].parse().unwrap(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -305,8 +339,8 @@ fn to_title_case(s: &str) -> String {
     let exceptions: HashSet<&str> = vec![
         "of", "at", "and", "but", "or", "for", "nor", "on", "in", "with",
     ]
-    .into_iter()
-    .collect();
+        .into_iter()
+        .collect();
 
     s.split_whitespace()
         .enumerate()
@@ -441,7 +475,8 @@ async fn main() {
             get_app_version,
             open_program_folder,
             open_data_folder,
-            save_launch_video
+            save_launch_video,
+            get_achievements_for_game
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

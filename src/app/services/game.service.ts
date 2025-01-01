@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import IGame, { IStat } from '../../interfaces/IGame';
+import IGame, { IStat, ITrophy } from '../../interfaces/IGame';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { DBService } from './db.service';
 import { GenericService } from './generic.service';
@@ -13,6 +13,7 @@ export class GameService {
 	private gamesObservable = new BehaviorSubject<IGame[]>([]);
 	private gameObservable = new BehaviorSubject<IGame>({} as IGame);
 	private games: IGame[] = [];
+	private achievementsObservable = new BehaviorSubject<ITrophy[]>([]);
 
 	constructor(
 		private db: DBService,
@@ -618,5 +619,26 @@ export class GameService {
 				'info',
 			);
 		});
+	}
+
+	async getGameAchievements(gameId: string) {
+		if (gameId === '') {
+			return;
+		}
+		invoke('get_achievements_for_game', { gameId }).then((achievements) => {
+			if (achievements === undefined) {
+				console.log('No achievements found');
+			}
+			let ach = JSON.parse(achievements as string);
+			ach.sort((a: ITrophy, b: ITrophy) => {
+				return a.unlocked.localeCompare(b.unlocked);
+			}).reverse();
+
+			this.achievementsObservable.next(ach);
+		});
+	}
+
+	getAchievementsObservable(): Observable<ITrophy[]> {
+		return this.achievementsObservable.asObservable();
 	}
 }

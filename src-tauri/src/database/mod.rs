@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use directories::ProjectDirs;
 use rusqlite::{params, Connection};
 
-use crate::{send_message_to_frontend, IGame, IStats};
+use crate::{send_message_to_frontend, IGame, IStats, ITrophy};
 
 mod test;
 
@@ -283,6 +283,20 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("time_played", "TEXT NOT NULL"),
         ("date_of_play", "TEXT NOT NULL"),
     ];
+
+    let required_columns_achievements = vec![
+        ("id", "INTEGER PRIMARY KEY"),
+        ("game_id", "INTEGER NOT NULL"),
+        ("name", "TEXT NOT NULL"),
+        ("description", "TEXT NOT NULL"),
+        ("visible", "TEXT NOT NULL"),
+        ("image_url_unlocked", "TEXT NOT NULL"),
+        ("image_url_locked", "TEXT NOT NULL"),
+        ("date_of_unlock", "TEXT NOT NULL"),
+        ("importer_id", "TEXT NOT NULL"),
+        ("unlocked", "TEXT NOT NULL"),
+    ];
+
     create_table(&conn, "games", required_columns_games.clone())?;
     modify_table_add_missing_columns(&conn, "games", required_columns_games.clone())?;
     create_table(&conn, "category", required_columns_category.clone())?;
@@ -291,6 +305,8 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
     modify_table_add_missing_columns(&conn, "settings", required_columns_settings.clone())?;
     create_table(&conn, "stats", required_columns_stats.clone())?;
     modify_table_add_missing_columns(&conn, "stats", required_columns_stats.clone())?;
+    create_table(&conn, "achievements", required_columns_achievements.clone())?;
+    modify_table_add_missing_columns(&conn, "achievements", required_columns_achievements.clone())?;
     create_favorites_category(&conn)?;
     Ok(conn)
 }
@@ -530,6 +546,93 @@ pub fn set_settings_db(conn: &Connection, name: &str, value: &str) -> Result<(),
 
 pub fn delete_game_db(conn: &Connection, id: String) -> Result<(), String> {
     let sql = format!("DELETE FROM games WHERE id = '{}'", id);
+    conn.execute(&sql, []).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn update_game_nodup(conn: &Connection, game: IGame) -> Result<String, String> {
+    let sql_for_same_id = format!(
+        "SELECT id FROM games WHERE game_importer_id = '{}' AND importer_id = '{}'",
+        game.game_importer_id, game.importer_id
+    );
+    let mut stmt = conn.prepare(&sql_for_same_id).map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let id: i64 = row.get(0).map_err(|e| e.to_string())?;
+        let id = id.to_string();
+        Ok(id)
+    } else {
+        update_game(&conn, game).map_err(|e| e.to_string())
+    }
+}
+
+pub fn first_time_stat(conn: &Connection, game_id:String, time_played: String, date_of_play: String) -> Result<(), String> {
+    let sql_not_id = format!(
+        "SELECT id FROM stats WHERE game_id = '{}'",
+        game_id
+    );
+    let mut stmt = conn.prepare(&sql_not_id).map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        Ok(())
+    } else {
+        insert_stat_db(
+            &conn,
+            game_id.clone(),
+            time_played.clone(),
+            date_of_play.clone(),
+        )
+        .map_err(|e| e.to_string())
+    }
+}
+
+pub fn update_achievements(conn: &Connection, achievements: Vec<ITrophy>) -> Result<(), String> {
+    for achievement in achievements {
+        update_achievement_db(&conn, achievement).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+fn update_achievement_db(conn: &Connection, achievement: ITrophy) -> Result<(), String> {
+    let does_exist_in_db: bool = conn
+        .query_row(
+            &format!(
+                "SELECT COUNT(*) FROM achievements WHERE game_id = '{}' AND importer_id = '{}' AND name = '{}'",
+                achievement.game_id, achievement.importer_id, achievement.name
+            ),
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+    if !does_exist_in_db {
+        insert_achievement_db(
+            &conn,
+            achievement.game_id.clone(),
+            achievement.name.clone(),
+            achievement.description.clone(),
+            achievement.visible.clone(),
+            achievement.image_url_unlocked.clone(),
+            achievement.image_url_locked.clone(),
+            achievement.date_of_unlock.clone(),
+            achievement.importer_id.clone(),
+            achievement.unlocked.clone(),
+        )
+        .map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+    let sql = format!(
+        "UPDATE achievements SET description = '{}', visible = '{}', image_url_unlocked = '{}', image_url_locked = '{}', date_of_unlock = '{}', unlocked = '{}' WHERE game_id = '{}' AND importer_id = '{}' AND name = '{}'",
+        achievement.description, achievement.visible, achievement.image_url_unlocked, achievement.image_url_locked, achievement.date_of_unlock, achievement.unlocked, achievement.game_id, achievement.importer_id, achievement.name
+    );
+    conn.execute(&sql, []).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+fn insert_achievement_db( conn: &Connection, game_id: String, name: String, description: String, visible: bool, image_url_unlocked: String, image_url_locked: String, date_of_unlock: String, importer_id: String, unlocked: bool) -> Result<(), String> {
+    let sql = format!(
+        "INSERT INTO achievements (game_id, name, description, visible, image_url_unlocked, image_url_locked, date_of_unlock, importer_id, unlocked) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' , '{}')",
+        game_id, name, description, visible, image_url_unlocked, image_url_locked, date_of_unlock, importer_id, unlocked
+    );
     conn.execute(&sql, []).map_err(|e| e.to_string())?;
     Ok(())
 }

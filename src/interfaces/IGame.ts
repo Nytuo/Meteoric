@@ -1,12 +1,14 @@
 interface ITrophy {
-	id: string;
-	name: string;
-	description: string;
-	icon: string;
-	game_id: string;
-	status: string;
-	date_obtained: string;
-	platform: string;
+	id: string,
+    game_id: string,
+    name: string,
+    description: string,
+    visible: string,
+    date_of_unlock: string,
+    importer_id: string,
+    image_url_locked: string,
+    image_url_unlocked: string,
+    unlocked: string,
 }
 
 interface IStat {

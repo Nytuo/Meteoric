@@ -1,0 +1,16 @@
+<div class="card" [ngClass]="{ 'locked': achievement.unlocked === 'false' }">
+    <div style="display: flex; justify-content: space-between;">
+        <div style="display: flex; justify-content: flex-start; gap: 1rem;">
+            <img src="{{ achievement.unlocked === 'true' ? achievement.image_url_unlocked : achievement.image_url_locked }}"
+                 style="width: 5rem;height: 5rem;" alt="achievement icon"/>
+            <div>
+                {{ achievement.name }}
+                <br>
+                {{ achievement.unlocked === 'false' ? achievement.visible === 'true' ? achievement.description : '?????' : achievement.description }}
+            </div>
+        </div>
+        <div *ngIf="achievement.unlocked === 'true'" style="display: flex;flex-direction: column; justify-content: center;align-items: center;color: darkgray;">
+             {{'unlocked-at' | translate }} {{ achievement.date_of_unlock }}
+    </div>
+</div>
+</div>

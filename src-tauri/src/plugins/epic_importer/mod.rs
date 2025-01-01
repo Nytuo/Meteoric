@@ -7,7 +7,7 @@ use directories::ProjectDirs;
 use egs_api::EpicGames;
 use tokio::sync::Mutex;
 
-use crate::database::establish_connection;
+use crate::database::{establish_connection, update_game_nodup};
 use crate::database::update_game;
 use crate::IGame;
 
@@ -73,7 +73,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         igame.game_importer_id = game.0.clone();
         igame.importer_id = "epic".to_string();
         let conn = establish_connection().unwrap();
-        update_game(&conn, igame).expect("Failed to update game");
+        update_game_nodup(&conn, igame).expect("Failed to update game");
     }
     Ok(())
 }

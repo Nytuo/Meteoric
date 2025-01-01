@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {GameService} from '../../services/game.service';
-import IGame from '../../../interfaces/IGame';
+import IGame, { ITrophy } from '../../../interfaces/IGame';
 import {CarouselResponsiveOptions} from 'primeng/carousel';
 import {GenericService} from '../../services/generic.service';
 import type {SimpleIcon} from 'simple-icons';
@@ -28,65 +28,13 @@ export class DetailsComponent implements OnInit, OnDestroy {
 	isSticky: boolean = false;
 	imageHeight: number = 0;
 	responsiveOptions: CarouselResponsiveOptions[] | undefined = undefined;
-	activities: any[] = [
-		{
-			type: 'reach trophy',
-			player: 'John',
-			date: '2021-09-01',
-			content: 'You reached 25%',
-		},
-		{
-			type: 'Trophy',
-			player: 'John',
-			date: '2021-09-01',
-			content: 'item 1, item 2',
-		},
-		{
-			type: 'First time played',
-			player: 'John',
-			date: '2021-09-01',
-		},
-		{
-			type: 'hours played',
-			player: 'John',
-			date: '2021-09-01',
-			content: 'Reached 785 hours',
-		},
-	];
 	launcherIcon: string = 'meteor';
-	protected friends: {
-		player: string;
-		trophies: number;
-		timePlayed: number;
-		lastTimePlayed: string;
-		totalTrohpies: number;
-	}[] = [
-		{
-			player: 'John',
-			trophies: 3,
-			timePlayed: 785,
-			lastTimePlayed: '2021-09-01',
-			totalTrohpies: 10,
-		},
-		{
-			player: 'Doe',
-			trophies: 5,
-			timePlayed: 785,
-			lastTimePlayed: '2021-09-01',
-			totalTrohpies: 10,
-		},
-		{
-			player: 'Jane',
-			trophies: 7,
-			timePlayed: 785,
-			lastTimePlayed: '2021-09-01',
-			totalTrohpies: 10,
-		},
-	];
 	protected game: IGame | undefined;
 	private id: number = 0;
 	totalTimePlayed = '0';
 	lastTimePlayed = '0000-00-00';
+	isAchievementsVisible = false;
+	achievements: ITrophy[] = [];
 
 	constructor(
 		private route: ActivatedRoute,
@@ -148,6 +96,14 @@ export class DetailsComponent implements OnInit, OnDestroy {
 					this.resetAnimation();
 				}
 			});
+		
+		this.genericService.getAchievementsVisible().subscribe((status) => {
+			this.isAchievementsVisible = status;
+		});
+
+		this.gameService.getAchievementsObservable().subscribe((achievements) => {
+			this.achievements = achievements;
+		});
 	}
 
 	toParsedTime(time: string) {
@@ -261,7 +217,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 		const container = document.querySelector('.gameInfo');
 		if (!container) return;
 
-		if (event.deltaY > 0 && !this.isSticky) {
+		if (event.deltaY > 0 && !this.isSticky && !this.isAchievementsVisible) {
 			console.log(event.deltaY);
 			let image = document.getElementById('bg') as HTMLImageElement;
 			if (image === null) {
@@ -269,7 +225,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 			}
 			image.style.opacity = (0.6 - event.deltaY / 1000).toString();
 			this.isSticky = true;
-		} else if (event.deltaY < 0 && container.scrollTop === 0) {
+		} else if (event.deltaY < 0 && container.scrollTop === 0 && !this.isAchievementsVisible) {
 			this.isSticky = false;
 		}
 	}
@@ -304,6 +260,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 			return;
 		}
 		this.game = game;
+		this.gameService.getGameAchievements(this.game.game_importer_id);
 		this.gameTags = this.game?.tags;
 		this.gameRating = this.game?.rating;
 		if (this.game.tags === '') {

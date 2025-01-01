@@ -330,4 +330,11 @@ export class TopbarComponent implements OnInit {
 			}
 		}
 	}
+
+	toggleAchievements() {
+		if (!this.gameID) {
+			return;
+		}
+		this.genericService.toggleAchievementsVisible();
+	}
 }

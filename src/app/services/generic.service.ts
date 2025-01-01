@@ -26,6 +26,8 @@ export class GenericService {
 		true,
 	);
 
+	private achievementsVisible: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
 	private displayIndicator: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
 	private audioInterval: string | number | NodeJS.Timeout | undefined;
 	private asAlreadyLaunched = false;
@@ -42,6 +44,10 @@ export class GenericService {
 				this.changeDisplayBookmark(false);
 			}
 		});
+	}
+
+	getAchievementsVisible() {
+		return this.achievementsVisible.asObservable();
 	}
 
 	getDevMode() {
@@ -166,5 +172,9 @@ export class GenericService {
 				resolve(response as string);
 			});
 		});
+	}
+
+	toggleAchievementsVisible() {
+		this.achievementsVisible.next(!this.achievementsVisible.getValue());
 	}
 }

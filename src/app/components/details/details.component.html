@@ -2,128 +2,32 @@
 <div (wheel)="onScroll($event)" class="gameInfo">
 
     <div class="fakeHeader" [class.backgroundTopbar]="isSticky"></div>
-    <div style="display: flex; justify-content: center; align-items: flex-end;" [style.height]="!isSticky ? '90vh' : '8vh'">
-        <img
-                [class.sticky]="isSticky"
-                (load)="onImageLoad($event)"
-                *ngIf="game && game.logo"
-                [ngSrc]="game.logo"
-                alt=""
-                class="gameLogo"
-                height="250"
-                id="game-logo-details"
-                priority
-                width="500"
-        />
+    <div style="display: flex; justify-content: center; align-items: flex-end;"
+        [style.height]="!isSticky ? '90vh' : '8vh'">
+        <img [class.sticky]="isSticky" (load)="onImageLoad($event)" *ngIf="game && game.logo" [ngSrc]="game.logo" alt=""
+            class="gameLogo" height="250" id="game-logo-details" priority width="500" />
     </div>
 
     <div [style.display]="isSticky ? 'block' : 'none'" class="divGameContent">
         <div *ngIf="game" class="gameHeader">
             <h1 class="gameTitle" id="title">{{ game?.name }}</h1>
-            <div
-                    id="gameHeaderOptional"
-                    style="display: flex; flex-direction: column; align-items: center;"
-            >
+            <div id="gameHeaderOptional" style="display: flex; flex-direction: column; align-items: center;">
                 <div class="gameTopHeader">
-                    <p-rating
-                            [(ngModel)]="gameRating"
-                            [cancel]="false"
-                            [style]="{ 'margin-right': '10px' }"
-                            readonly="true"
-                    ></p-rating>
-                    <img
-                            [src]="launcherIcon"
-                            alt="launcher"
-                            class="svgLauncherIcon"
-                            height="32"
-                            width="32"
-                    />
+                    <p-rating [(ngModel)]="gameRating" [cancel]="false" [style]="{ 'margin-right': '10px' }"
+                        readonly="true"></p-rating>
+                    <img [src]="launcherIcon" alt="launcher" class="svgLauncherIcon" height="32" width="32" />
                 </div>
             </div>
             <div style="display: flex; flex-direction: row; justify-content: space-between; width: 60vw;">
                 <app-info-card color="green" [title]="'Total Time Played'"
-                               [description]="totalTimePlayed ? totalTimePlayed : '0'"
-                               [icon]="'pi pi-clock'"></app-info-card>
+                    [description]="totalTimePlayed ? totalTimePlayed : '0'" [icon]="'pi pi-clock'"></app-info-card>
                 <app-info-card color="orange" [title]="'Trophies Unlocked'"
-                               [description]="game.trophies_unlocked ? game.trophies_unlocked : '0'"
-                               [icon]="'pi pi-trophy'"></app-info-card>
+                    [description]="game.trophies_unlocked ? game.trophies_unlocked : '0'"
+                    [icon]="'pi pi-trophy'"></app-info-card>
                 <app-info-card color="red" [title]="'Last Time Played'" [description]="lastTimePlayed"
-                               [icon]="'pi pi-calendar'"></app-info-card>
+                    [icon]="'pi pi-calendar'"></app-info-card>
                 <app-info-card color="blue" [title]="'Tags'" [description]="gameTags ? gameTags : 'No tags'"
-                               [icon]="'pi pi-tag'"></app-info-card>
-            </div>
-        </div>
-
-        <div
-                style="
-			display: flex;
-			flex-direction: row;
-			flex-wrap: nowrap;
-			justify-content: space-between;
-			align-content: start;
-			width: 100%;
-			margin-top: 5rem;
-			margin-bottom: 5rem;
-		"
-                style="display: none"
-        >
-            <div class="leftPanel">
-                <div class="activity">
-                    <p class="fadedText">Activity</p>
-                    <p-divider align="center" layout="horizontal" type="solid"></p-divider>
-                    <p-table [tableStyle]="{ 'min-width': '10rem' }" [value]="activities">
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <th>Player</th>
-                                <th>Type</th>
-                                <th>Content</th>
-                                <th>Date</th>
-                            </tr>
-                        </ng-template>
-                        <ng-template let-activity pTemplate="body">
-                            <tr>
-                                <td>{{ activity.player }}</td>
-                                <td>{{ activity.type }}</td>
-                                <td>{{ activity.content }}</td>
-                                <td>{{ activity.date }}</td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                </div>
-            </div>
-            <p-divider align="center" layout="vertical" type="solid"></p-divider>
-            <div class="rightPanel">
-                <p class="fadedText">Friends And You</p>
-                <p-divider align="center" layout="horizontal" type="solid"></p-divider>
-
-                <p-table [tableStyle]="{ 'min-width': '35rem' }" [value]="friends">
-                    <ng-template pTemplate="header">
-                        <tr>
-                            <th>Player</th>
-                            <th>Trophies %</th>
-                            <th>Time Played</th>
-                            <th>Last Time Played</th>
-                        </tr>
-                    </ng-template>
-                    <ng-template let-friend pTemplate="body">
-                        <tr>
-                            <td>{{ friend.player }}</td>
-                            <td>{{ friend.totalTrohpies - friend.trophies }}</td>
-                            <td>{{ friend.timePlayed }}</td>
-                            <td>{{ friend.lastTimePlayed }}</td>
-                        </tr>
-                    </ng-template>
-                    <tr>
-                        <td>Friends Average</td>
-                        <td>{{ friendsTrohpiesAvg }}</td>
-                        <td>{{ friendsTimePlayedAvg }}</td>
-                    </tr>
-                    <tr>
-                        <td>All Players Average</td>
-                        <td>{{ allPlayersTrophyAvg }}</td>
-                        <td>{{ allPlayersTimePlayedAvg }}</td>
-                    </tr>
-                </p-table>
+                    [icon]="'pi pi-tag'"></app-info-card>
             </div>
         </div>
         <div id="hltb">
@@ -163,59 +67,37 @@
                     </p>
                 </div>
             </div>
-            <p-galleria
-                    [circular]="true"
-                    [containerStyle]="{
+            <p-galleria [circular]="true" [containerStyle]="{
 				'max-width': '640px',
 				'margin-left': 'auto',
 				'margin-right': 'auto',
-			}"
-                    [numVisible]="5"
-                    [responsiveOptions]="responsiveOptions"
-                    [showItemNavigators]="true"
-                    [showThumbnails]="false"
-                    [value]="media.images"
-                    *ngIf="media.images"
-            >
+			}" [numVisible]="5" [responsiveOptions]="responsiveOptions" [showItemNavigators]="true" [showThumbnails]="false"
+                [value]="media.images" *ngIf="media.images">
                 <ng-template [ngForOf]="media.images" let-item ngFor pTemplate="item">
-                    <img
-                            [ngSrc]="item"
-                            alt="screen"
-                            height="400"
-                            style="display: block; object-fit: contain"
-                            width="500"
-                    />
+                    <img [ngSrc]="item" alt="screen" height="400" style="display: block; object-fit: contain"
+                        width="500" />
                 </ng-template>
             </p-galleria>
-            <p-carousel
-                    [circular]="false"
-                    [numScroll]="1"
-                    [numVisible]="1"
-                    [responsiveOptions]="responsiveOptions"
-                    [showIndicators]="false"
-                    [style]="{
+            <p-carousel [circular]="false" [numScroll]="1" [numVisible]="1" [responsiveOptions]="responsiveOptions"
+                [showIndicators]="false" [style]="{
 				'max-width': '640px',
 				'margin-left': 'auto',
 				'margin-right': 'auto',
 				'margin-bottom': '5vh',
-			}"
-                    [value]="media.videos"
-                    *ngIf="media.videos"
-            >
+			}" [value]="media.videos" *ngIf="media.videos">
                 <ng-template let-item pTemplate="item">
-                    <video
-                            controls
-                            style="
+                    <video controls style="
 						width: 100%;
 						display: block;
 						height: 100%;
 						object-fit: contain;
-					"
-                    >
-                        <source [src]="item" type="video/mp4"/>
+					">
+                        <source [src]="item" type="video/mp4" />
                     </video>
                 </ng-template>
             </p-carousel>
         </div>
     </div>
+
+    <app-achievements [achievements]="achievements" [opened]="isAchievementsVisible"></app-achievements>
 </div>
