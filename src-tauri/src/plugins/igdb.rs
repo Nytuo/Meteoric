@@ -1,13 +1,16 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
-use reqwest::header::HeaderMap;
-use tokio::task;
-
-use crate::database::{establish_connection, update_game};
+use crate::database::{establish_connection, get_game_by_id, update_game};
 use crate::file_operations::save_media_to_external_storage;
 use crate::{to_title_case, IGame, Metadata};
+use chrono::{DateTime, NaiveDateTime, Utc};
+use directories::ProjectDirs;
+use reqwest::header::HeaderMap;
+use std::fs::File;
+use tokio::fs::OpenOptions;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+use tokio::task;
 
 pub async fn calculate_igdb_token(
     client_id: String,
@@ -64,8 +67,7 @@ pub(crate) async fn search_game_igdb(
             .post(request_url)
             .body(format!(
                 "fields {}; limit 1; where version_parent = null & name = \"{}\";",
-                fields,
-                to_title_case(game_name)
+                fields, game_name
             ))
             .headers(headers);
     } else {
@@ -218,7 +220,55 @@ pub(crate) async fn search_game_igdb(
     Ok(games.iter().map(|game| game.to_string()).collect())
 }
 
-pub fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std::error::Error>> {
+fn remove_odds_in_string(s: &str) -> String {
+    let mut s = s.to_string();
+    s.retain(|c| c.is_ascii_alphanumeric() || c.is_ascii_whitespace());
+    s
+}
+
+async fn add_to_execption_list_for_routine(game_name: &str) {
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
+    let path = proj_dirs.config_dir().join("exceptions_igdb_routine.txt");
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open(path)
+        .await
+        .unwrap();
+
+    let _ = file.write_all(format!("{}\n", game_name).as_bytes()).await;
+    let _ = file.sync_all().await;
+}
+
+async fn read_exception_list_for_routine() -> Vec<String> {
+    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
+    let path = proj_dirs.config_dir().join("exceptions_igdb_routine.txt");
+    if !path.exists() {
+        let _ = File::create(&path).unwrap();
+    }
+    let file = tokio::fs::File::open(path).await.unwrap();
+    let reader = tokio::io::BufReader::new(file);
+    let mut lines = reader.lines();
+    let mut exceptions = vec![];
+    while let Some(line) = lines.next_line().await.unwrap() {
+        exceptions.push(line);
+    }
+    exceptions
+}
+
+pub async fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std::error::Error>> {
+    let game_name = remove_odds_in_string(&game_name);
+    if game_name.is_empty() {
+        return Ok(());
+    }
+    let exceptions = task::block_in_place(|| {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(read_exception_list_for_routine())
+    });
+    if exceptions.contains(&game_name) {
+        return Ok(());
+    }
     let games = task::block_in_place(|| {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(search_game_igdb(&game_name, true))
@@ -226,11 +276,13 @@ pub fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std::erro
     .unwrap();
     if games.len() == 0 {
         println!("No games found for {}", &game_name);
+        add_to_execption_list_for_routine(game_name.clone().as_str()).await;
         return Ok(());
     }
     let first_game = games[0].clone();
     let game_json: serde_json::Value = serde_json::from_str(&first_game).unwrap();
-    let mut igame = IGame::new();
+    let conn = establish_connection().unwrap();
+    let mut igame = get_game_by_id(&conn, &db_id).unwrap();
     igame.name = game_json
         .get("name")
         .unwrap_or(&serde_json::Value::String("".to_string()))
@@ -271,9 +323,8 @@ pub fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std::erro
         .to_string();
     igame.critic_score = game_json
         .get("critic_score")
-        .unwrap_or(&serde_json::Value::String("0".to_string()))
-        .as_f64()
-        .unwrap()
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0)
         .to_string();
     igame.genres = game_json
         .get("genres")

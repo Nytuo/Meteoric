@@ -1,7 +1,10 @@
 <p-dialog (visibleChange)="hide()" [(visible)]="opened"
-          [style]="{     maxWidth: '50%', width: '50%', height: '80%', maxHeight: '80%' }" draggable="false" header="Achievements"
-          modal="true" resizable="false">
-    <div>
+    [style]="{     maxWidth: '50%', width: '50%', height: '80%', maxHeight: '80%' }" draggable="false"
+    header="Achievements" modal="true" resizable="false">
+    <div *ngIf="achievements.length === 0" class="text-center">
+        <h3>No achievements found for this game</h3>
+    </div>
+    <div *ngIf="achievements.length > 0" class="text-center">
         <app-achievement *ngFor="let achievement of achievements" [achievement]="achievement"></app-achievement>
     </div>
 </p-dialog>

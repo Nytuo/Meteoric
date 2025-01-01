@@ -7,8 +7,8 @@ use gog::token::Token;
 use gog::Gog;
 use tokio::{sync::Mutex, task};
 
-use crate::database::{establish_connection, update_achievements, update_game_nodup};
 use crate::database::update_game;
+use crate::database::{establish_connection, update_achievements, update_game_nodup};
 use crate::{IGame, ITrophy};
 
 lazy_static::lazy_static! {
@@ -77,15 +77,16 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                         itrophy.description = achievement.description;
                         itrophy.game_id = game_id.to_string();
                         itrophy.importer_id = "gog".to_string();
-                        itrophy.visible = achievement.visible;
+                        itrophy.visible = achievement.visible.to_string();
                         itrophy.image_url_unlocked = achievement.image_url_unlocked;
                         itrophy.image_url_locked = achievement.image_url_locked;
                         itrophy.date_of_unlock = achievement.date_unlocked.clone().unwrap();
-                        itrophy.unlocked = achievement.date_unlocked.clone().is_some();
+                        itrophy.unlocked = achievement.date_unlocked.clone().is_some().to_string();
                         iachievements.push(itrophy);
                     }
                     let conn = establish_connection().unwrap();
-                    update_achievements(&conn, iachievements).expect("Failed to update achievements");
+                    update_achievements(&conn, iachievements)
+                        .expect("Failed to update achievements");
                 }
                 Err(_) => println!("failed to get achievements"),
             }

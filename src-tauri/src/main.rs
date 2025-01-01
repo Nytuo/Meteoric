@@ -21,11 +21,12 @@ use crate::plugins::steam_grid::{
 };
 use crate::tauri_commander::{
     add_game_to_category, create_category, delete_element, delete_game, download_yt_audio,
-    export_game_database_to_archive, export_game_database_to_csv, get_all_categories,
-    get_all_fields_from_db, get_all_games, get_all_images_location, get_all_videos_location,
-    get_env_map, get_games_by_category, get_settings, import_library, kill_game, launch_game,
-    post_game, remove_game_from_category, save_media_to_external_storage, search_metadata,
-    set_env_map, set_settings, startup_routine, upload_csv_to_db, upload_file, search_hltb, get_app_version, open_program_folder, open_data_folder, save_launch_video, get_achievements_for_game,
+    export_game_database_to_archive, export_game_database_to_csv, get_achievements_for_game,
+    get_all_categories, get_all_fields_from_db, get_all_games, get_all_images_location,
+    get_all_videos_location, get_app_version, get_env_map, get_games_by_category, get_settings,
+    import_library, kill_game, launch_game, open_data_folder, open_program_folder, post_game,
+    remove_game_from_category, save_launch_video, save_media_to_external_storage, search_hltb,
+    search_metadata, set_env_map, set_settings, startup_routine, upload_csv_to_db, upload_file,
 };
 
 mod database;
@@ -39,12 +40,12 @@ struct ITrophy {
     game_id: String,
     name: String,
     description: String,
-    visible: bool,
+    visible: String,
     date_of_unlock: String,
     importer_id: String,
     image_url_locked: String,
     image_url_unlocked: String,
-    unlocked: bool,
+    unlocked: String,
 }
 
 impl ITrophy {
@@ -54,12 +55,12 @@ impl ITrophy {
             game_id: String::new(),
             name: String::new(),
             description: String::new(),
-            visible: false,
+            visible: String::new(),
             date_of_unlock: String::new(),
             importer_id: String::new(),
             image_url_locked: String::new(),
             image_url_unlocked: String::new(),
-            unlocked: false,
+            unlocked: String::new(),
         }
     }
 
@@ -339,8 +340,8 @@ fn to_title_case(s: &str) -> String {
     let exceptions: HashSet<&str> = vec![
         "of", "at", "and", "but", "or", "for", "nor", "on", "in", "with",
     ]
-        .into_iter()
-        .collect();
+    .into_iter()
+    .collect();
 
     s.split_whitespace()
         .enumerate()
@@ -388,15 +389,17 @@ fn populate_info() {
     let client_id = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
     let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
     igdb::set_credentials(Vec::from([client_id, client_secret]));
-    for (index, game) in games.iter().enumerate() {
-        send_message_to_frontend(&format!(
-            "[Routine-INFO-NL]Processing {}, {}/{}",
-            game.name,
-            index + 1,
-            games.len()
-        ));
-        let _ = igdb::routine(game.clone().name, game.clone().id);
-    }
+    tokio::spawn(async move {
+        for (index, game) in games.iter().enumerate() {
+            send_message_to_frontend(&format!(
+                "[Routine-INFO-NL]Processing {}, {}/{}",
+                game.name,
+                index + 1,
+                games.len()
+            ));
+            let _ = igdb::routine(game.clone().name, game.clone().id).await;
+        }
+    });
 }
 
 pub fn send_message_to_frontend(message: &str) {

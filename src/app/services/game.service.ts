@@ -61,7 +61,7 @@ export class GameService {
 		this.gamesObservable.next(this.games);
 	}
 
-	filterGames(on = 'name', value = '') {
+	filterGames(on = 'name', value = '', or='') {
 		if (value === '') {
 			this.gamesObservable.next(this.games);
 			return;
@@ -79,7 +79,7 @@ export class GameService {
 		}
 		this.gamesObservable.next(
 			this.games.filter((game) =>
-				game[on].toLowerCase().includes(value.toLowerCase()),
+                game[on].toLowerCase().includes(value.toLowerCase()) || game[on].toLowerCase().includes(or.toLowerCase()),
 			),
 		);
 	}
@@ -219,7 +219,7 @@ export class GameService {
 				return;
 			}
 			this.games = games;
-			this.filterGames('hidden', 'false');
+			this.filterGames('hidden', 'false', '');
 		});
 	}
 
