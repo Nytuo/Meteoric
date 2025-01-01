@@ -16,6 +16,7 @@ lazy_static::lazy_static! {
 }
 
 pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
+    println!("[STEAM IMPORTER] Starting Steam Importer");
     let apikey = APIKEY.lock().await;
     let steamid = STEAMID.lock().await;
     if apikey.is_empty() || steamid.is_empty() {

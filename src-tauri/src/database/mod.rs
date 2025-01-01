@@ -674,37 +674,12 @@ fn insert_achievement_db(
 }
 
 pub fn get_game_by_id(conn: &Connection, id: &str) -> Result<IGame, String> {
-    let mut stmt = conn
-        .prepare(&format!("SELECT * FROM games WHERE id = '{}'", id))
-        .map_err(|e| e.to_string())?;
-    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
-    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
-        let game = IGame {
-            id: row.get(0).map_err(|e| e.to_string())?,
-            game_importer_id: row.get(1).map_err(|e| e.to_string())?,
-            importer_id: row.get(2).map_err(|e| e.to_string())?,
-            name: row.get(3).map_err(|e| e.to_string())?,
-            sort_name: row.get(4).map_err(|e| e.to_string())?,
-            rating: row.get(5).map_err(|e| e.to_string())?,
-            platforms: row.get(6).map_err(|e| e.to_string())?,
-            description: row.get(7).map_err(|e| e.to_string())?,
-            critic_score: row.get(8).map_err(|e| e.to_string())?,
-            genres: row.get(9).map_err(|e| e.to_string())?,
-            styles: row.get(10).map_err(|e| e.to_string())?,
-            release_date: row.get(11).map_err(|e| e.to_string())?,
-            developers: row.get(12).map_err(|e| e.to_string())?,
-            editors: row.get(13).map_err(|e| e.to_string())?,
-            game_dir: row.get(14).map_err(|e| e.to_string())?,
-            exec_file: row.get(15).map_err(|e| e.to_string())?,
-            exec_args: row.get(16).map_err(|e| e.to_string())?,
-            tags: row.get(17).map_err(|e| e.to_string())?,
-            status: row.get(18).map_err(|e| e.to_string())?,
-            trophies: row.get(19).map_err(|e| e.to_string())?,
-            trophies_unlocked: row.get(20).map_err(|e| e.to_string())?,
-            hidden: row.get(21).map_err(|e| e.to_string())?,
-        };
-        Ok(game)
-    } else {
-        Err("No game found with the given id".to_string())
-    }
+    let game = query_data(&conn, vec!["games"], vec!["*"], vec![("id", &id)], false)
+        .unwrap()
+        .iter()
+        .map(|row| format!("{:?}", row))
+        .collect::<Vec<String>>()
+        .join(",");
+    let game = serde_json::from_str(&game).unwrap();
+    Ok(game)
 }

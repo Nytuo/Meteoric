@@ -7,8 +7,8 @@ use directories::ProjectDirs;
 use egs_api::EpicGames;
 use tokio::sync::Mutex;
 
-use crate::database::{establish_connection, update_game_nodup};
 use crate::database::update_game;
+use crate::database::{establish_connection, update_game_nodup};
 use crate::IGame;
 
 mod test;
@@ -44,12 +44,15 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if !client.is_logged_in() && client.auth_code(None, Some(authcode.to_string())).await {
-        println!("Logged In");
+        println!("[EPIC IMPORTER] Logged in");
         let user_details = client.user_details();
         let mut file = File::create(file_path)?;
         let json = serde_json::to_string(&user_details)?;
-        write!(file, "{}", json).expect("Unable to write to file");
+        write!(file, "{}", json).expect("[EPIC IMPORTER] Failed to write to file");
         client.login().await;
+    } else {
+        println!("[EPIC IMPORTER] Failed to login");
+        return Ok(());
     }
 
     let lib_items: Option<egs_api::api::types::library::Library> = client.library_items(true).await;
@@ -73,7 +76,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         igame.game_importer_id = game.0.clone();
         igame.importer_id = "epic".to_string();
         let conn = establish_connection().unwrap();
-        update_game_nodup(&conn, igame).expect("Failed to update game");
+        update_game_nodup(&conn, igame).expect("[EPIC IMPORTER] Failed to update game");
     }
     Ok(())
 }
@@ -85,6 +88,8 @@ pub async fn set_credentials(creds: Vec<String>) {
 }
 
 pub async fn get_games_from_user() -> Result<(), Box<dyn std::error::Error>> {
-    get_games().await.expect("Failed to get games");
+    get_games()
+        .await
+        .expect("[EPIC IMPORTER] Failed to get games");
     Ok(())
 }

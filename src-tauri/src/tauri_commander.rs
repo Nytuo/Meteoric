@@ -1,9 +1,9 @@
+use directories::ProjectDirs;
+use rusty_ytdl::{Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions};
 use std::collections::HashMap;
 use std::env;
 use std::path::PathBuf;
 use std::time::Duration;
-use directories::ProjectDirs;
-use rusty_ytdl::{Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions};
 use tokio::process::Command;
 use tokio::task;
 use tokio::time::Instant;
@@ -15,7 +15,8 @@ use crate::database::{
 };
 use crate::file_operations::{
     archive_db_and_extra_content, create_extra_dirs, get_all_files_in_dir_for,
-    get_all_files_in_dir_for_parsed, get_extra_dirs, read_env_file, remove_file, write_env_file,get_base_extra_dir
+    get_all_files_in_dir_for_parsed, get_base_extra_dir, get_extra_dirs, read_env_file,
+    remove_file, write_env_file,
 };
 use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
 use crate::{routine, send_message_to_frontend, IGame, IStats};
@@ -274,11 +275,7 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
 
 #[tauri::command]
 pub async fn startup_routine() -> Result<(), String> {
-    let handle = task::spawn_blocking(move || {
-        routine();
-    });
-
-    handle.await.unwrap();
+    routine().await;
     Ok(())
 }
 
@@ -364,7 +361,7 @@ pub fn get_games_by_category(category: String) -> String {
         vec![("name", &*("'".to_string() + &category + "'"))],
         false,
     )
-        .unwrap();
+    .unwrap();
     let games = query_data(
         &conn,
         vec!["games"],
@@ -481,7 +478,8 @@ pub fn post_game(game: String) -> Result<String, String> {
     let mut _game: HashMap<String, serde_json::Value> =
         serde_json::from_str(&game).map_err(|e| e.to_string())?;
 
-    let parsed_stats = _game.get("stats")
+    let parsed_stats = _game
+        .get("stats")
         .ok_or("Missing stats field")?
         .to_string()
         .replace("\\\"", "\"");
@@ -491,14 +489,19 @@ pub fn post_game(game: String) -> Result<String, String> {
 
     let __game: HashMap<String, String> = _game
         .iter()
-        .map(|(k, v)| (k.clone(), v.as_str().unwrap_or("").trim_matches('"').to_string()))
+        .map(|(k, v)| {
+            (
+                k.clone(),
+                v.as_str().unwrap_or("").trim_matches('"').to_string(),
+            )
+        })
         .collect();
 
     let game_without_stats: IGame = IGame::from_hashmap(__game);
     println!("{:?}", game_without_stats);
-bulk_update_stats(&conn, stats).unwrap_or_else(|e| {
-    send_message_to_frontend(&format!("Error updating stats: {}", e));
-});
+    bulk_update_stats(&conn, stats).unwrap_or_else(|e| {
+        send_message_to_frontend(&format!("Error updating stats: {}", e));
+    });
     let id = update_game(&conn, game_without_stats).map_err(|e| e.to_string())?;
 
     Ok(id)
@@ -543,7 +546,7 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
         vec![("id", &game_id)],
         false,
     )
-        .unwrap();
+    .unwrap();
     let game = game.get(0);
     let mut game_object: IGame = IGame::from_hashmap(game.unwrap().clone());
     if let Some(row) = game {
@@ -908,7 +911,9 @@ pub fn set_env_map(env_map: HashMap<String, String>) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn search_hltb(game_name: String) -> String {
-    let hltb_game = howlongtobeat_scraper::search_by_name(&game_name).await.unwrap();
+    let hltb_game = howlongtobeat_scraper::search_by_name(&game_name)
+        .await
+        .unwrap();
     let hltb_game = serde_json::to_string(&hltb_game).unwrap();
     hltb_game
 }
@@ -935,7 +940,7 @@ pub fn open_data_folder() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn save_launch_video(file:String)-> Result<(), String> {
+pub fn save_launch_video(file: String) -> Result<(), String> {
     let data_dir = get_base_extra_dir().unwrap();
     let startup_video = data_dir.join("startup.mp4");
     std::fs::copy(file, startup_video).unwrap();
@@ -953,11 +958,11 @@ pub fn get_achievements_for_game(game_id: String) -> String {
         vec![("game_id", &game_id)],
         false,
     )
-        .unwrap()
-        .iter()
-        .map(|row| format!("{:?}", row))
-        .collect::<Vec<String>>()
-        .join(",");
-        println!("Achievements: {:?}", achievements);
+    .unwrap()
+    .iter()
+    .map(|row| format!("{:?}", row))
+    .collect::<Vec<String>>()
+    .join(",");
+    println!("Achievements: {:?}", achievements);
     format!("[{}]", achievements)
 }

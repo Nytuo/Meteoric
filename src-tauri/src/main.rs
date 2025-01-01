@@ -14,7 +14,7 @@ use tauri::Emitter;
 
 use database::{establish_connection, query_all_data};
 use file_operations::have_no_metadata;
-use plugins::igdb;
+use plugins::{epic_importer, gog_importer, igdb, steam_importer};
 
 use crate::plugins::steam_grid::{
     steamgrid_get_grid, steamgrid_get_hero, steamgrid_get_icon, steamgrid_get_logo,
@@ -325,6 +325,7 @@ fn initialize() {
         {
             std::fs::create_dir_all(proj_dirs.config_dir().join("meteoric_extra_content")).unwrap();
         }
+        create_basic_env_file();
         println!("Config dir: {:?}", proj_dirs.config_dir());
         println!("Data dir: {:?}", proj_dirs.data_dir());
         println!("Cache dir: {:?}", proj_dirs.cache_dir());
@@ -362,8 +363,26 @@ fn to_title_case(s: &str) -> String {
         .join(" ")
 }
 
-pub fn routine() {
+pub async fn routine() {
+    println!("[ROUTINE] Starting routine");
+    let steam_api_key = env::var("STEAM_API_KEY").expect("[ROUTINE ERROR] STEAM_API_KEY not found");
+    let steam_user_id = env::var("STEAM_USER_ID").expect("[ROUTINE ERROR] STEAM_USER_ID not found");
+    let mut creds_temp = Vec::new();
+    creds_temp.push(steam_user_id.clone());
+    creds_temp.push(steam_api_key.clone());
+    steam_importer::set_credentials(creds_temp).await;
+    steam_importer::get_games_from_user()
+        .await
+        .expect("[ROUTINE ERROR] Steam Importer failed");
+    epic_importer::get_games_from_user()
+        .await
+        .expect("[ROUTINE ERROR] Epic Importer failed");
+    gog_importer::get_games_from_user()
+        .await
+        .expect("[ROUTINE ERROR] GOG Importer failed");
+
     populate_info();
+    println!("[ROUTINE] Routine done");
 }
 
 fn hash2_games(games: Vec<HashMap<String, String>>) -> Vec<IGame> {
@@ -390,7 +409,13 @@ fn populate_info() {
     let client_secret = env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
     igdb::set_credentials(Vec::from([client_id, client_secret]));
     tokio::spawn(async move {
+        let mut rate_limiter = 0;
         for (index, game) in games.iter().enumerate() {
+            rate_limiter += 1;
+            if rate_limiter == 10 {
+                std::thread::sleep(std::time::Duration::from_secs(5));
+                rate_limiter = 0;
+            }
             send_message_to_frontend(&format!(
                 "[Routine-INFO-NL]Processing {}, {}/{}",
                 game.name,
@@ -422,6 +447,20 @@ fn store_app_handle(app_handle: tauri::AppHandle) {
 fn get_app_handle() -> Option<tauri::AppHandle> {
     let handle = APP_HANDLE.lock().unwrap();
     handle.clone()
+}
+
+fn create_basic_env_file() {
+    let env_file = ProjectDirs::from("fr", "Nytuo", "Meteoric")
+        .unwrap()
+        .config_dir()
+        .join("Meteoric.env");
+    if !env_file.exists() {
+        std::fs::write(
+            env_file,
+            "STEAM_API_KEY=\nEGS_CLIENT_ID=\nIGDB_CLIENT_SECRET=\nEGS_CLIENT_SECRET=\nIGDB_CLIENT_ID=\nSTEAMGRIDDB_API_KEY=\nSTEAM_USER_ID=\n",
+        )
+        .expect("Failed to create env file");
+    }
 }
 
 #[tokio::main]

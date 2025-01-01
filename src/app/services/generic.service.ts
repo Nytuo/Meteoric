@@ -131,6 +131,7 @@ export class GenericService {
 	}
 
 	startRoutine() {
+		if (this.devMode) return;
 		invoke('startup_routine');
 	}
 

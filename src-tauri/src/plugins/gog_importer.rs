@@ -22,7 +22,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         let file_path = proj_dirs.config_dir().join("gogDetails.txt");
         let parsed_token: Token;
         if token.is_empty() && file_path.exists() && file_path.metadata().unwrap().len() > 0 {
-            println!("RECOVERING");
+            println!("[GOG IMPORTER] Found token file");
             let mut file = File::open(&file_path).unwrap();
             let mut contents = String::new();
             file.read_to_string(&mut contents).unwrap();
@@ -31,15 +31,18 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                     parsed_token = user_details;
                 }
                 Err(e) => {
-                    println!("Failed to deserialize JSON: {}", e); // Print error
+                    println!("[GOG IMPORTER] Failed to parse token file: {}", e);
                     return;
                 }
             }
-        } else {
+        } else if !token.is_empty() {
             parsed_token = Token::from_login_code(token.to_string()).unwrap();
             let mut file = File::create(file_path).unwrap();
             let json = serde_json::to_string(&parsed_token).unwrap();
             write!(file, "{}", json).expect("Unable to write to file");
+        } else {
+            println!("[GOG IMPORTER] No token found");
+            return;
         }
 
         let gog = Gog::new(parsed_token);
@@ -62,9 +65,9 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                     igame.tags = tags.join(",");
                     igame.platforms = "GOG".to_string();
                     let conn = establish_connection().unwrap();
-                    update_game_nodup(&conn, igame).expect("Failed to update game");
+                    update_game_nodup(&conn, igame).expect("[GOG IMPORTER] Failed to update game");
                 }
-                Err(_) => println!("failed to get game details"),
+                Err(_) => println!("[GOG IMPORTER] Failed to get game details"),
             }
             let achievements = gog.achievements(game_id, user_id);
             match achievements {
@@ -86,9 +89,9 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     let conn = establish_connection().unwrap();
                     update_achievements(&conn, iachievements)
-                        .expect("Failed to update achievements");
+                        .expect("[GOG IMPORTER] Failed to update achievements");
                 }
-                Err(_) => println!("failed to get achievements"),
+                Err(_) => println!("[GOG IMPORTER] Failed to get achievements"),
             }
         }
     });

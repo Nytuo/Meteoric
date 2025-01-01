@@ -275,7 +275,7 @@ pub async fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std
     })
     .unwrap();
     if games.len() == 0 {
-        println!("No games found for {}", &game_name);
+        println!("[IGDB] No game found for {}", game_name);
         add_to_execption_list_for_routine(game_name.clone().as_str()).await;
         return Ok(());
     }
@@ -390,7 +390,7 @@ pub async fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std
                 .get("background")
                 .unwrap_or(&serde_json::Value::String("".to_owned()))
                 .as_str()
-                .unwrap()
+                .unwrap_or_default()
                 .to_owned()
                 .clone(),
         ),
