@@ -66,7 +66,7 @@ pub(crate) async fn search_game_igdb(
         game_reaquest = reqwest::Client::new()
             .post(request_url)
             .body(format!(
-                "fields {}; limit 1; where version_parent = null & name = \"{}\";",
+                "fields {}; limit 1; where version_parent = null; search \"{}\";",
                 fields, game_name
             ))
             .headers(headers);
@@ -220,12 +220,6 @@ pub(crate) async fn search_game_igdb(
     Ok(games.iter().map(|game| game.to_string()).collect())
 }
 
-fn remove_odds_in_string(s: &str) -> String {
-    let mut s = s.to_string();
-    s.retain(|c| c.is_ascii_alphanumeric() || c.is_ascii_whitespace());
-    s
-}
-
 async fn add_to_execption_list_for_routine(game_name: &str) {
     let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric").unwrap();
     let path = proj_dirs.config_dir().join("exceptions_igdb_routine.txt");
@@ -257,26 +251,46 @@ async fn read_exception_list_for_routine() -> Vec<String> {
     exceptions
 }
 
+fn remove_odds_in_string(s: &str) -> String {
+    let without_symbols: String = s
+        .chars()
+        .filter(|&c| !matches!(c, '™' | '®' | '©'))
+        .collect();
+
+    let without_parenthesis = regex::Regex::new(r"\(.*?\)")
+        .unwrap()
+        .replace_all(&without_symbols, "")
+        .to_string();
+
+    let without_special_editions = regex::Regex::new(r"(?i)Complete Edition|GOTY.*")
+        .unwrap()
+        .replace_all(&without_parenthesis, "")
+        .to_string();
+
+    let parts: Vec<&str> = without_special_editions.split('-').collect();
+    parts[0].trim().to_string()
+}
+
 pub async fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std::error::Error>> {
-    let game_name = remove_odds_in_string(&game_name);
-    if game_name.is_empty() {
+    let game_name_without_odds = remove_odds_in_string(&game_name);
+    if game_name_without_odds.is_empty() {
         return Ok(());
     }
     let exceptions = task::block_in_place(|| {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(read_exception_list_for_routine())
     });
-    if exceptions.contains(&game_name) {
+    if exceptions.contains(&game_name_without_odds) {
         return Ok(());
     }
     let games = task::block_in_place(|| {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(search_game_igdb(&game_name, true))
+        rt.block_on(search_game_igdb(&game_name_without_odds, true))
     })
     .unwrap();
     if games.len() == 0 {
         println!("[IGDB] No game found for {}", game_name);
-        add_to_execption_list_for_routine(game_name.clone().as_str()).await;
+        add_to_execption_list_for_routine(game_name_without_odds.clone().as_str()).await;
         return Ok(());
     }
     let first_game = games[0].clone();

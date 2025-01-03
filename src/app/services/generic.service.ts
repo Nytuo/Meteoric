@@ -31,7 +31,7 @@ export class GenericService {
 	private displayIndicator: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
 	private audioInterval: string | number | NodeJS.Timeout | undefined;
 	private asAlreadyLaunched = false;
-	private devMode = true;
+	private devMode = false;
 	enableLogoAnimation = false;
 
 	constructor(
