@@ -25,6 +25,7 @@ interface IGame {
 	name: string;
 	sort_name: string;
 	jaquette: string;
+	jaquette_horizontal: string;
 	background: string;
 	logo: string;
 	icon: string;
@@ -53,5 +54,5 @@ interface IGame {
 	[key: string]: any;
 }
 
-export { IGame, IStat, ITrophy };
+export type { IGame, IStat, ITrophy };
 export default IGame;

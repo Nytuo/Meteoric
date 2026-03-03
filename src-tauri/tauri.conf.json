@@ -1,8 +1,8 @@
 {
   "build": {
-    "beforeDevCommand": "npm run start",
+    "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist/browser",
+    "frontendDist": "../dist",
     "devUrl": "http://localhost:1420"
   },
   "bundle": {
@@ -48,6 +48,7 @@
     },
     "windows": [
       {
+              "decorations": false,
         "title": "Meteoric",
         "width": 1280,
         "height": 720,

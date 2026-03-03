@@ -1,25 +1,23 @@
 use directories::ProjectDirs;
-use rusty_ytdl::{Video, VideoError, VideoOptions, VideoQuality, VideoSearchOptions};
 use std::collections::HashMap;
 use std::env;
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::process::Command;
-use tokio::task;
 use tokio::time::Instant;
 
 use crate::database::{
     add_category, add_game_to_category_db, bulk_update_stats, delete_game_db, establish_connection,
     get_all_fields, get_stats_for_game, insert_stat_db, query_all_data, query_data,
-    remove_game_from_category_db, set_settings_db, update_game, update_stat_db,
+    remove_game_from_category_db, set_settings_db, update_game,
 };
 use crate::file_operations::{
     archive_db_and_extra_content, create_extra_dirs, get_all_files_in_dir_for,
     get_all_files_in_dir_for_parsed, get_base_extra_dir, get_extra_dirs, read_env_file,
     remove_file, write_env_file,
 };
-use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl};
-use crate::{routine, send_message_to_frontend, IGame, IStats};
+use crate::plugins::{epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl, ytdl_manager};
+use crate::{routine, send_message_to_frontend, IGame, IStats, ITrophy};
 
 #[tauri::command]
 pub fn get_all_games() -> String {
@@ -122,6 +120,49 @@ pub fn get_all_videos_location(id: String) -> String {
         create_extra_dirs(&id).unwrap();
     }
     get_all_files_in_dir_for_parsed(&id, "videos")
+}
+
+#[tauri::command]
+pub fn get_game_image_paths(id: String) -> String {
+    use std::fs;
+    let game_dir = match get_extra_dirs(&id) {
+        Ok(dir) => dir,
+        Err(_) => return "{}".to_string(),
+    };
+    
+    let mut paths: HashMap<String, String> = HashMap::new();
+    
+    // Helper to find file with various extensions
+    let find_image = |name: &str| -> Option<String> {
+        let extensions = vec!["webp", "gif", "jpg", "jpeg", "png"];
+        for ext in extensions {
+            let path = game_dir.join(format!("{}.{}", name, ext));
+            if fs::metadata(&path).is_ok() {
+                let relative_path = format!("{}/{}.{}", id, name, ext);
+                return Some(relative_path);
+            }
+        }
+        None
+    };
+    
+    // Find each image file
+    if let Some(path) = find_image("background") {
+        paths.insert("background".to_string(), path);
+    }
+    if let Some(path) = find_image("jaquette") {
+        paths.insert("jaquette".to_string(), path);
+    }
+    if let Some(path) = find_image("jaquette_horizontal") {
+        paths.insert("jaquette_horizontal".to_string(), path);
+    }
+    if let Some(path) = find_image("logo") {
+        paths.insert("logo".to_string(), path);
+    }
+    if let Some(path) = find_image("icon") {
+        paths.insert("icon".to_string(), path);
+    }
+    
+    serde_json::to_string(&paths).unwrap_or_else(|_| "{}".to_string())
 }
 
 #[tauri::command]
@@ -258,6 +299,7 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
         "audio" => game_dir.join("musics").join("theme.mp3"),
         "background" => game_dir.join("background.jpg"),
         "jaquette" => game_dir.join("jaquette.jpg"),
+        "jaquette_horizontal" => game_dir.join("jaquette_horizontal.jpg"),
         "logo" => game_dir.join("logo.png"),
         "icon" => game_dir.join("icon.png"),
         _ => game_dir,
@@ -275,8 +317,20 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
 
 #[tauri::command]
 pub async fn startup_routine() -> Result<(), String> {
+    // Check / download / update yt-dlp in the background so it doesn't block
+    // the rest of the startup routine.
+    tokio::spawn(async {
+        ytdl_manager::check_and_update_ytdlp().await;
+    });
     routine().await;
     Ok(())
+}
+
+#[tauri::command]
+pub async fn check_ytdlp_updates() -> Result<String, String> {
+    ytdl_manager::check_and_update_ytdlp().await;
+    let version = ytdl_manager::get_ytdlp_path();
+    Ok(format!("yt-dlp path: {:?}", version))
 }
 
 #[tauri::command]
@@ -358,10 +412,13 @@ pub fn get_games_by_category(category: String) -> String {
         &conn,
         vec!["category"],
         vec!["DISTINCT games"],
-        vec![("name", &*("'".to_string() + &category + "'"))],
+        vec![("name", &category)],
         false,
     )
     .unwrap();
+    if game_ids_from_cat.is_empty() {
+        return "[]".to_string();
+    }
     let games = query_data(
         &conn,
         vec!["games"],
@@ -548,17 +605,37 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
     )
     .unwrap();
     let game = game.get(0);
-    let mut game_object: IGame = IGame::from_hashmap(game.unwrap().clone());
+    let _game_object: IGame = IGame::from_hashmap(game.unwrap().clone());
     if let Some(row) = game {
         let executable = row.get("exec_file").unwrap().clone();
         let launch_dir = row.get("game_dir").unwrap().clone();
         let args = row.get("exec_args").unwrap().clone();
-        let args = if !args.is_empty() { Some(args) } else { None };
+        let args: Vec<String> = if !args.is_empty() {
+            args.split_whitespace().map(|s| s.to_string()).collect()
+        } else {
+            Vec::new()
+        };
+        
+        // Validate executable exists
+        if !std::path::Path::new(&executable).exists() {
+            let error_msg = format!("Executable not found: {}", executable);
+            send_message_to_frontend(&format!("[LAUNCH-error]{}", error_msg));
+            return Err(error_msg);
+        }
+        
         let mut cmd = Command::new(&executable)
             .current_dir(&launch_dir)
             .args(&args)
             .spawn()
-            .map_err(|_| "Failed to launch game".to_string())?;
+            .map_err(|e| {
+                let error_msg = if let Some(216) = e.raw_os_error() {
+                    format!("Architecture mismatch: The game executable is not compatible with your Windows version. Try: 1) Right-click the .exe → Properties → Compatibility tab → try different Windows versions, 2) Verify/reinstall the game, 3) Check if you need to install Visual C++ Redistributables. ({})", e)
+                } else {
+                    format!("Failed to launch: {}", e)
+                };
+                send_message_to_frontend(&format!("[LAUNCH-error]{}", error_msg));
+                error_msg
+            })?;
         let pid = cmd.id().ok_or("Failed to get process ID".to_string())?;
         send_message_to_frontend(&format!("GL-{:?}", pid));
         let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -587,7 +664,7 @@ pub async fn kill_game(pid: u32) -> Result<(), String> {
     let os = env::consts::OS;
     if os == "windows" {
         kill_game_windows(pid)?;
-    } else if os == "linux" {
+    } else if os == "linux" || os == "macos" {
         kill_game_linux(pid)?;
     } else {
         send_message_to_frontend(
@@ -704,6 +781,7 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                     for i in str_value {
                         println!("Downloading: {}", i);
                         let url = i.as_str().unwrap();
+                        if url.is_empty() || url.contains("asset.localhost") || url.starts_with("asset://") { continue; }
                         get_nb_of_screenshots = get_nb_of_screenshots + 1;
                         let file_path = game_dir.join("screenshots").join(
                             "screenshot-".to_string() + &get_nb_of_screenshots.to_string() + ".jpg",
@@ -724,6 +802,7 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                 if let Some(str_value) = value.as_array() {
                     for i in str_value {
                         let url = i.as_str().unwrap();
+                        if url.is_empty() || url.contains("asset.localhost") || url.starts_with("asset://") { continue; }
                         get_nb_of_videos = get_nb_of_videos + 1;
                         let video_path = game_dir.join("videos");
                         let file_path = game_dir
@@ -762,11 +841,12 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
             if key == "audio"
                 || key == "background"
                 || key == "jaquette"
+                || key == "jaquette_horizontal"
                 || key == "logo"
                 || key == "icon"
             {
                 println!("Downloading: {}", url);
-                if url.is_empty() {
+                if url.is_empty() || url.contains("asset.localhost") || url.starts_with("asset://") {
                     continue;
                 }
                 let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
@@ -775,6 +855,7 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                     "audio" => game_dir_clone.join("musics").join("theme.mp3"),
                     "background" => game_dir_clone.join("background.jpg"),
                     "jaquette" => game_dir_clone.join("jaquette.jpg"),
+                    "jaquette_horizontal" => game_dir_clone.join("jaquette_horizontal.jpg"),
                     "logo" => game_dir_clone.join("logo.png"),
                     "icon" => game_dir_clone.join("icon.png"),
                     _ => game_dir_clone,
@@ -826,48 +907,27 @@ pub async fn download_youtube_video(
     url: &str,
     location: String,
     name: String,
-) -> Result<(), VideoError> {
-    let path = std::path::Path::new(&location).join(format!("{}.mp4", name));
-    let video_options = VideoOptions {
-        quality: VideoQuality::Lowest,
-        filter: VideoSearchOptions::VideoAudio,
-        ..Default::default()
-    };
-    let video = Video::new_with_options(url, video_options).unwrap();
-    match video.download(path).await {
-        Ok(_) => {
-            send_message_to_frontend("[Youtube Downloader-INFO-3000] Youtube Video Downloaded");
-            Ok(())
-        }
-        Err(err) => {
-            send_message_to_frontend(
-                "[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Video",
-            );
-            Err(VideoError::DownloadError(err.to_string()))
-        }
+) -> Result<(), String> {
+    if let Err(e) = ytdl_manager::download_video(url, &location, &name).await {
+        send_message_to_frontend(
+            "[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Video",
+        );
+        return Err(e);
     }
+    send_message_to_frontend("[Youtube Downloader-INFO-3000] Youtube Video Downloaded");
+    Ok(())
 }
 
-pub async fn download_youtube_audio(url: &str, location: PathBuf) -> Result<(), VideoError> {
-    let path = std::path::Path::new(&location);
-    let video_options = VideoOptions {
-        quality: VideoQuality::HighestAudio,
-        filter: VideoSearchOptions::Audio,
-        ..Default::default()
-    };
-    let video = Video::new_with_options(url, video_options).unwrap();
-    match video.download(path).await {
-        Ok(_) => {
-            send_message_to_frontend("[Youtube Downloader-INFO-3000] Youtube Audio Downloaded");
-            Ok(())
-        }
-        Err(err) => {
-            send_message_to_frontend(
-                "[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Audio",
-            );
-            Err(VideoError::DownloadError(err.to_string()))
-        }
+pub async fn download_youtube_audio(url: &str, location: PathBuf) -> Result<(), String> {
+    let output_path = location.to_string_lossy().to_string();
+    if let Err(e) = ytdl_manager::download_audio(url, &output_path).await {
+        send_message_to_frontend(
+            "[Youtube Downloader Error-ERROR-3000] Cannot Download This Youtube Audio",
+        );
+        return Err(e);
     }
+    send_message_to_frontend("[Youtube Downloader-INFO-3000] Youtube Audio Downloaded");
+    Ok(())
 }
 
 #[tauri::command]
@@ -914,8 +974,7 @@ pub async fn search_hltb(game_name: String) -> String {
     let hltb_game = howlongtobeat_scraper::search_by_name(&game_name)
         .await
         .unwrap();
-    let hltb_game = serde_json::to_string(&hltb_game).unwrap();
-    hltb_game
+    serde_json::to_string(&hltb_game).unwrap()
 }
 
 #[tauri::command]
@@ -949,20 +1008,241 @@ pub fn save_launch_video(file: String) -> Result<(), String> {
 
 #[tauri::command]
 pub fn get_achievements_for_game(game_id: String) -> String {
-    println!("Game id: {}", game_id);
-    let conn = establish_connection().unwrap();
-    let achievements = query_data(
+    let conn = match establish_connection() {
+        Ok(c) => c,
+        Err(_) => return "[]".to_string(),
+    };
+    let rows = match query_data(
         &conn,
         vec!["achievements"],
         vec!["*"],
         vec![("game_id", &game_id)],
         false,
-    )
-    .unwrap()
-    .iter()
-    .map(|row| format!("{:?}", row))
-    .collect::<Vec<String>>()
-    .join(",");
-    println!("Achievements: {:?}", achievements);
-    format!("[{}]", achievements)
+    ) {
+        Ok(r) => r,
+        Err(_) => return "[]".to_string(),
+    };
+    let trophies: Vec<ITrophy> = rows
+        .into_iter()
+        .map(|row| ITrophy {
+            id: row.get("id").cloned().unwrap_or_default(),
+            game_id: row.get("game_id").cloned().unwrap_or_default(),
+            name: row.get("name").cloned().unwrap_or_default(),
+            description: row.get("description").cloned().unwrap_or_default(),
+            visible: row.get("visible").cloned().unwrap_or_default(),
+            date_of_unlock: row.get("date_of_unlock").cloned().unwrap_or_default(),
+            importer_id: row.get("importer_id").cloned().unwrap_or_default(),
+            image_url_locked: row.get("image_url_locked").cloned().unwrap_or_default(),
+            image_url_unlocked: row.get("image_url_unlocked").cloned().unwrap_or_default(),
+            unlocked: row.get("unlocked").cloned().unwrap_or_default(),
+        })
+        .collect();
+    serde_json::to_string(&trophies).unwrap_or_else(|_| "[]".to_string())
 }
+
+// ──────────────────────────────────────────────────────
+// Epic Games — Download, Install, Launch, Cloud Saves, Achievements
+// ──────────────────────────────────────────────────────
+
+/// Get list of Epic games available for download/install.
+#[tauri::command]
+pub async fn epic_get_downloadable_games() -> Result<String, String> {
+    let games = epic_importer::get_downloadable_games().await?;
+    serde_json::to_string(&games).map_err(|e| e.to_string())
+}
+
+/// Get list of currently installed Epic games.
+#[tauri::command]
+pub async fn epic_get_installed_games() -> Result<String, String> {
+    let games = epic_importer::get_installed_epic_games().await;
+    serde_json::to_string(&games).map_err(|e| e.to_string())
+}
+
+/// Download and install an Epic game.
+/// `app_name`: the Epic app name (e.g. "Fortnite")
+/// `install_path`: directory where the game folder will be created
+#[tauri::command]
+pub async fn epic_download_game(app_name: String, install_path: String) -> Result<(), String> {
+    epic_importer::download_manager::download_game(&app_name, &install_path, None).await
+}
+
+/// Update an installed Epic game.
+#[tauri::command]
+pub async fn epic_update_game(app_name: String) -> Result<(), String> {
+    epic_importer::download_manager::update_game(&app_name, None).await
+}
+
+/// Uninstall an Epic game.
+#[tauri::command]
+pub async fn epic_uninstall_game(app_name: String) -> Result<(), String> {
+    epic_importer::download_manager::uninstall_game(&app_name).await
+}
+
+/// Launch an Epic game with proper EGS online authentication.
+#[tauri::command]
+pub async fn epic_launch_game(
+    app_name: String,
+    offline: bool,
+    extra_args: Vec<String>,
+) -> Result<u32, String> {
+    epic_importer::game_launch::launch_epic_game(&app_name, offline, extra_args).await
+}
+
+/// Check cloud save status for an Epic game.
+#[tauri::command]
+pub async fn epic_cloud_save_status(app_name: String) -> Result<String, String> {
+    let info = epic_importer::cloud_saves::check_save_status(&app_name).await?;
+    serde_json::to_string(&info).map_err(|e| e.to_string())
+}
+
+/// Upload local saves to Epic cloud.
+#[tauri::command]
+pub async fn epic_upload_saves(app_name: String) -> Result<(), String> {
+    epic_importer::cloud_saves::upload_saves(&app_name).await
+}
+
+/// Download cloud saves from Epic to local.
+#[tauri::command]
+pub async fn epic_download_saves(app_name: String) -> Result<(), String> {
+    epic_importer::cloud_saves::download_saves(&app_name).await
+}
+
+/// Delete cloud saves for an Epic game.
+#[tauri::command]
+pub async fn epic_delete_cloud_saves(app_name: String) -> Result<(), String> {
+    epic_importer::cloud_saves::delete_cloud_saves(&app_name).await
+}
+
+/// Sync achievements for an Epic game.
+/// `game_id`: Meteoric database game ID
+/// `app_name`: Epic app name
+/// `namespace`: Epic sandbox/namespace ID
+#[tauri::command]
+pub async fn epic_sync_achievements(
+    game_id: String,
+    app_name: String,
+    namespace: String,
+) -> Result<usize, String> {
+    epic_importer::achievements::sync_achievements(&game_id, &app_name, &namespace).await
+}
+
+/// Check if the user is logged in to Epic Games.
+#[tauri::command]
+pub async fn epic_is_logged_in() -> bool {
+    epic_importer::is_logged_in().await
+}
+
+/// Get Epic Games user display name.
+#[tauri::command]
+pub async fn epic_get_display_name() -> Result<String, String> {
+    epic_importer::get_display_name()
+        .await
+        .ok_or_else(|| "Not logged in".to_string())
+}
+
+/// Debug: Get info about installed games cache.
+#[tauri::command]
+pub async fn epic_debug_cache_info() -> String {
+    epic_importer::debug_cache_info().await
+}
+
+/// Manually reload the installed games cache from disk.
+#[tauri::command]
+pub async fn epic_reload_cache() -> Result<usize, String> {
+    epic_importer::reload_installed_games_cache().await
+}
+
+// ──────────────────────────────────────────────────────
+// GOG — Download, Install, Launch, Cloud Saves, Achievements
+// ──────────────────────────────────────────────────────
+
+/// Get list of GOG games available for download/install.
+#[tauri::command]
+pub async fn gog_get_downloadable_games() -> Result<String, String> {
+    let games = gog_importer::get_downloadable_games().await?;
+    serde_json::to_string(&games).map_err(|e| e.to_string())
+}
+
+/// Get list of currently installed GOG games.
+#[tauri::command]
+pub async fn gog_get_installed_games() -> Result<String, String> {
+    let games = gog_importer::get_installed_gog_games().await;
+    serde_json::to_string(&games).map_err(|e| e.to_string())
+}
+
+/// Download and install a GOG game using Content System V2.
+#[allow(dependency_on_unit_never_type_fallback)]
+#[tauri::command]
+pub async fn gog_download_game(game_id: String, install_path: String) -> Result<(), String> {
+    gog_importer::gog_v2::download_game_v2(&game_id, &install_path, None).await
+}
+
+/// Uninstall a GOG game.
+#[tauri::command]
+pub async fn gog_uninstall_game(game_id: String) -> Result<(), String> {
+    gog_importer::download_manager::uninstall_game(&game_id).await
+}
+
+/// Launch a GOG game (DRM-free, no authentication needed).
+#[tauri::command]
+pub async fn gog_launch_game(
+    game_id: String,
+    extra_args: Vec<String>,
+) -> Result<u32, String> {
+    gog_importer::game_launch::launch_gog_game(&game_id, extra_args).await
+}
+
+/// Check cloud save status for a GOG game.
+#[tauri::command]
+pub async fn gog_cloud_save_status(
+    game_id: String,
+    local_save_path: Option<String>,
+) -> Result<String, String> {
+    let info = gog_importer::cloud_saves::check_cloud_saves(
+        &game_id,
+        local_save_path.as_deref(),
+    )
+    .await?;
+    serde_json::to_string(&info).map_err(|e| e.to_string())
+}
+
+/// Upload local saves to GOG cloud.
+#[tauri::command]
+pub async fn gog_upload_saves(game_id: String, local_save_path: String) -> Result<(), String> {
+    gog_importer::cloud_saves::upload_cloud_saves(&game_id, &local_save_path).await
+}
+
+/// Download cloud saves from GOG to local.
+#[tauri::command]
+pub async fn gog_download_saves(game_id: String, local_save_path: String) -> Result<(), String> {
+    gog_importer::cloud_saves::download_cloud_saves(&game_id, &local_save_path).await
+}
+
+/// Sync achievements for a GOG game.
+#[tauri::command]
+pub async fn gog_sync_achievements(game_id: String, product_id: String) -> Result<usize, String> {
+    gog_importer::achievements::sync_achievements(&game_id, &product_id).await
+}
+
+/// Sync achievements for a Steam game.
+/// `game_id`: Meteoric database game ID
+/// `app_id`: Steam application ID (numeric)
+#[tauri::command]
+pub async fn steam_sync_achievements(game_id: String, app_id: String) -> Result<usize, String> {
+    steam_importer::sync_achievements(&game_id, &app_id).await
+}
+
+/// Check if the user is logged in to GOG.
+#[tauri::command]
+pub async fn gog_is_logged_in() -> bool {
+    gog_importer::is_logged_in().await
+}
+
+/// Get GOG user display name.
+#[tauri::command]
+pub async fn gog_get_display_name() -> Result<String, String> {
+    gog_importer::get_display_name()
+        .await
+        .ok_or_else(|| "Not logged in".to_string())
+}
+

@@ -33,7 +33,13 @@ pub(crate) fn query_data(
             tables.join(","),
             conditions
                 .iter()
-                .map(|(field, value)| format!("{} = {}", field, value))
+                .map(|(field, value)| {
+                    if value.parse::<f64>().is_ok() {
+                        format!("{} = {}", field, value)
+                    } else {
+                        format!("{} = '{}'", field, value.replace('\'', "''"))
+                    }
+                })
                 .collect::<Vec<String>>()
                 .join(" AND ")
         );
@@ -84,7 +90,8 @@ pub(crate) fn add_game_to_category_db(
         )
         .unwrap_or_default()
         .unwrap_or_default()
-        .contains(&format!(",{},", game_id));
+        .split(',')
+        .any(|id| id == game_id);
     if is_already_present {
         return Ok(());
     }
@@ -586,7 +593,7 @@ pub fn first_time_stat(
     let sql_not_id = format!("SELECT id FROM stats WHERE game_id = '{}'", game_id);
     let mut stmt = conn.prepare(&sql_not_id).map_err(|e| e.to_string())?;
     let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
-    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+    if let Some(_row) = rows.next().map_err(|e| e.to_string())? {
         Ok(())
     } else {
         insert_stat_db(

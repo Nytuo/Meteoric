@@ -29,12 +29,31 @@ mod tests {
         let result = download_screenshots(&game_dir, &client, &screenshots).await;
 
         assert!(result.is_ok());
-        assert!(screenshots_dir.join("screenshot-1.jpg").exists());
-        assert!(screenshots_dir.join("screenshot-2.jpg").exists());
-        let mut file = File::open(screenshots_dir.join("screenshot-1.jpg")).unwrap();
+        // Images should be saved as WebP (static) or GIF (animated)
+        let has_webp_1 = screenshots_dir.join("screenshot-1.webp").exists();
+        let has_gif_1 = screenshots_dir.join("screenshot-1.gif").exists();
+        assert!(has_webp_1 || has_gif_1, "Screenshot 1 should exist as webp or gif");
+        
+        let has_webp_2 = screenshots_dir.join("screenshot-2.webp").exists();
+        let has_gif_2 = screenshots_dir.join("screenshot-2.gif").exists();
+        assert!(has_webp_2 || has_gif_2, "Screenshot 2 should exist as webp or gif");
+        
+        // Check file size
+        let file_path_1 = if has_webp_1 {
+            screenshots_dir.join("screenshot-1.webp")
+        } else {
+            screenshots_dir.join("screenshot-1.gif")
+        };
+        let mut file = File::open(file_path_1).unwrap();
         let mut metadata = file.metadata().unwrap();
         assert!(metadata.len() > 0);
-        file = File::open(screenshots_dir.join("screenshot-2.jpg")).unwrap();
+        
+        let file_path_2 = if has_webp_2 {
+            screenshots_dir.join("screenshot-2.webp")
+        } else {
+            screenshots_dir.join("screenshot-2.gif")
+        };
+        file = File::open(file_path_2).unwrap();
         metadata = file.metadata().unwrap();
         assert!(metadata.len() > 0);
     }
@@ -93,10 +112,18 @@ mod tests {
         let result = download_single_file(&game_dir, &client, &key, &value).await;
 
         assert!(result.is_ok());
-        assert!(game_dir.join("background.jpg").exists());
-        let mut file = File::open(game_dir.join("background.jpg")).unwrap();
+        // Background should be saved as WebP or GIF
+        let has_webp = game_dir.join("background.webp").exists();
+        let has_gif = game_dir.join("background.gif").exists();
+        assert!(has_webp || has_gif, "Background should exist as webp or gif");
+        let file_path = if has_webp {
+            game_dir.join("background.webp")
+        } else {
+            game_dir.join("background.gif")
+        };
+        let mut file = File::open(file_path).unwrap();
         let mut metadata = file.metadata().unwrap();
-        assert_eq!(metadata.len(), 18213);
+        assert!(metadata.len() > 0);
 
         //jaquette
         let game_dir = temp_dir.path().to_path_buf();
@@ -107,10 +134,17 @@ mod tests {
         let result = download_single_file(&game_dir, &client, &key, &value).await;
 
         assert!(result.is_ok());
-        assert!(game_dir.join("jaquette.jpg").exists());
-        file = File::open(game_dir.join("jaquette.jpg")).unwrap();
+        let has_webp = game_dir.join("jaquette.webp").exists();
+        let has_gif = game_dir.join("jaquette.gif").exists();
+        assert!(has_webp || has_gif, "Jaquette should exist as webp or gif");
+        let file_path = if has_webp {
+            game_dir.join("jaquette.webp")
+        } else {
+            game_dir.join("jaquette.gif")
+        };
+        file = File::open(file_path).unwrap();
         metadata = file.metadata().unwrap();
-        assert_eq!(metadata.len(), 18213);
+        assert!(metadata.len() > 0);
 
         //logo
         let game_dir = temp_dir.path().to_path_buf();
@@ -121,10 +155,17 @@ mod tests {
         let result = download_single_file(&game_dir, &client, &key, &value).await;
 
         assert!(result.is_ok());
-        assert!(game_dir.join("logo.png").exists());
-        file = File::open(game_dir.join("logo.png")).unwrap();
+        let has_webp = game_dir.join("logo.webp").exists();
+        let has_gif = game_dir.join("logo.gif").exists();
+        assert!(has_webp || has_gif, "Logo should exist as webp or gif");
+        let file_path = if has_webp {
+            game_dir.join("logo.webp")
+        } else {
+            game_dir.join("logo.gif")
+        };
+        file = File::open(file_path).unwrap();
         metadata = file.metadata().unwrap();
-        assert_eq!(metadata.len(), 18213);
+        assert!(metadata.len() > 0);
 
         //icon
         let game_dir = temp_dir.path().to_path_buf();
@@ -135,10 +176,17 @@ mod tests {
         let result = download_single_file(&game_dir, &client, &key, &value).await;
 
         assert!(result.is_ok());
-        assert!(game_dir.join("icon.png").exists());
-        file = File::open(game_dir.join("icon.png")).unwrap();
+        let has_webp = game_dir.join("icon.webp").exists();
+        let has_gif = game_dir.join("icon.gif").exists();
+        assert!(has_webp || has_gif, "Icon should exist as webp or gif");
+        let file_path = if has_webp {
+            game_dir.join("icon.webp")
+        } else {
+            game_dir.join("icon.gif")
+        };
+        file = File::open(file_path).unwrap();
         metadata = file.metadata().unwrap();
-        assert_eq!(metadata.len(), 18213);
+        assert!(metadata.len() > 0);
 
         //audio
         let game_dir = temp_dir.path().to_path_buf();
