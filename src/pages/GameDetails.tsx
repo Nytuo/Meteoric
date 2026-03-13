@@ -221,13 +221,13 @@ export function GameDetails() {
     const heroOpacity = Math.max(0, 1 - scrollY / 300);
 
     const hltbItems = [
-        { label: "Main Story", value: hltbData.mainStory, Icon: BookOpen },
-        { label: "Main + Extras", value: hltbData.mainExtra, Icon: Swords },
-        { label: "Completionist", value: hltbData.completionist, Icon: Trophy },
+        { label: "Main Story", value: hltbData.mainStory, Icon: BookOpen, hide: hltbData.mainStory === "N/A" },
+        { label: "Main + Extras", value: hltbData.mainExtra, Icon: Swords, hide: hltbData.mainExtra === "N/A" },
+        { label: "Completionist", value: hltbData.completionist, Icon: Trophy, hide: hltbData.completionist === "N/A" },
         { label: "All Styles", value: hltbData.allStyles, Icon: Clock, hide: hltbData.allStyles === "N/A" },
         { label: "Co-op", value: hltbData.coop, Icon: Users, hide: hltbData.coop === "N/A" },
         { label: "Versus", value: hltbData.versus, Icon: Gamepad2, hide: hltbData.versus === "N/A" },
-    ].filter((it) => !(it as any).hide);
+    ].filter((it) => !it.hide);
 
     return (
         <div className="relative h-full overflow-hidden">

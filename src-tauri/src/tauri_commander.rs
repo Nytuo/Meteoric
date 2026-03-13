@@ -971,10 +971,14 @@ pub fn set_env_map(env_map: HashMap<String, String>) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn search_hltb(game_name: String) -> String {
-    let hltb_game = howlongtobeat_scraper::search_by_name(&game_name)
-        .await
-        .unwrap();
-    serde_json::to_string(&hltb_game).unwrap()
+    let client = crate::hltb_client::HltbClient::new();
+    match client.search(&game_name).await {
+        Ok(result) => serde_json::to_string(&result).unwrap_or_default(),
+        Err(e) => {
+            eprintln!("[HLTB] Search failed for '{}': {}", game_name, e);
+            serde_json::to_string(&crate::hltb_client::HltbResponse::default()).unwrap_or_default()
+        }
+    }
 }
 
 #[tauri::command]

@@ -42,6 +42,7 @@ use crate::tauri_commander::{
 
 mod database;
 mod file_operations;
+mod hltb_client;
 mod plugins;
 mod tauri_commander;
 

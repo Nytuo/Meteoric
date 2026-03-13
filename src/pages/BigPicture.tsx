@@ -669,30 +669,42 @@ export function BigPicture() {
 								</div>
 							) : (
 								<>
-									<div className="sd-stat-row">
-										<span className="sd-stat-hours">{hltbData.mainStory}</span>
-										<span className="sd-stat-type">MAIN STORY</span>
-									</div>
-									<div className="sd-stat-row">
-										<span className="sd-stat-hours">{hltbData.mainExtra}</span>
-										<span className="sd-stat-type">MAIN + EXTRAS</span>
-									</div>
-									<div className="sd-stat-row">
-										<span className="sd-stat-hours">{hltbData.completionist}</span>
-										<span className="sd-stat-type">COMPLETIONIST</span>
-									</div>
-									<div className="sd-stat-row">
-										<span className="sd-stat-hours">{hltbData.coop}</span>
-										<span className="sd-stat-type">CO-OP</span>
-									</div>
-									<div className="sd-stat-row">
-										<span className="sd-stat-hours">{hltbData.versus}</span>
-										<span className="sd-stat-type">VERSUS</span>
-									</div>
-									<div className="sd-stat-row">
-										<span className="sd-stat-hours">{hltbData.allStyles}</span>
-										<span className="sd-stat-type">ALL STYLES</span>
-									</div>
+									{hltbData.mainStory !== "N/A" && (
+										<div className="sd-stat-row">
+											<span className="sd-stat-hours">{hltbData.mainStory}</span>
+											<span className="sd-stat-type">MAIN STORY</span>
+										</div>
+									)}
+									{hltbData.mainExtra !== "N/A" && (
+										<div className="sd-stat-row">
+											<span className="sd-stat-hours">{hltbData.mainExtra}</span>
+											<span className="sd-stat-type">MAIN + EXTRAS</span>
+										</div>
+									)}
+									{hltbData.completionist !== "N/A" && (
+										<div className="sd-stat-row">
+											<span className="sd-stat-hours">{hltbData.completionist}</span>
+											<span className="sd-stat-type">COMPLETIONIST</span>
+										</div>
+									)}
+									{hltbData.coop !== "N/A" && (
+										<div className="sd-stat-row">
+											<span className="sd-stat-hours">{hltbData.coop}</span>
+											<span className="sd-stat-type">CO-OP</span>
+										</div>
+									)}
+									{hltbData.versus !== "N/A" && (
+										<div className="sd-stat-row">
+											<span className="sd-stat-hours">{hltbData.versus}</span>
+											<span className="sd-stat-type">VERSUS</span>
+										</div>
+									)}
+									{hltbData.allStyles !== "N/A" && (
+										<div className="sd-stat-row">
+											<span className="sd-stat-hours">{hltbData.allStyles}</span>
+											<span className="sd-stat-type">ALL STYLES</span>
+										</div>
+									)}
 								</>
 							)}
 						</div>
