@@ -1,8 +1,3 @@
-/// Epic Games cloud saves sync — handles uploading and downloading cloud saves.
-///
-/// Based on legendary's cloud save logic, rewritten in Rust.
-/// The egs-api crate's cloud save methods are on EpicAPI (private field of EpicGames),
-/// so we implement direct HTTP calls using the access token from user_details().
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -15,11 +10,6 @@ use crate::send_message_to_frontend;
 
 const CLOUD_SAVE_BASE: &str =
     "https://datastorage-public-service-liveegs.live.use1a.on.epicgames.com";
-
-
-// ──────────────────────────────────────────────
-// Cloud save state
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum SaveGameStatus {
@@ -40,12 +30,6 @@ pub struct CloudSaveInfo {
     pub remote_timestamp: Option<String>,
 }
 
-// ──────────────────────────────────────────────
-// Save path resolution
-// ──────────────────────────────────────────────
-
-/// Resolve the local save path for an Epic game, replacing EGS path variables.
-/// Variables: {installdir}, {epicid}, {appdata}, {userdir}, {usersavedgames}, {userprofile}
 pub async fn resolve_save_path(app_name: &str) -> Result<Option<PathBuf>, String> {
     let installed = {
         let games = INSTALLED_GAMES.lock().await;
@@ -68,19 +52,16 @@ pub async fn resolve_save_path(app_name: &str) -> Result<Option<PathBuf>, String
 
     let save_folder = match save_folder {
         Some(f) if !f.is_empty() => f,
-        _ => return Ok(None), // Game doesn't support cloud saves
+        _ => return Ok(None),
     };
 
     let account_id = get_account_id().await.unwrap_or_default();
 
-    // Replace backslashes
     let mut save_path = save_folder.replace('\\', "/");
 
-    // Replace known variables
     save_path = save_path.replace("{installdir}", &installed.install_path);
     save_path = save_path.replace("{epicid}", &account_id);
 
-    // Platform-specific variable replacements
     #[cfg(target_os = "windows")]
     {
         let local_appdata = std::env::var("LOCALAPPDATA").unwrap_or_default();
@@ -88,16 +69,16 @@ pub async fn resolve_save_path(app_name: &str) -> Result<Option<PathBuf>, String
         save_path = save_path.replace("{appdata}", &local_appdata);
         save_path = save_path.replace("{userdir}", &format!("{}/Documents", userprofile));
         save_path = save_path.replace("{userprofile}", &userprofile);
-        save_path = save_path.replace(
-            "{usersavedgames}",
-            &format!("{}/Saved Games", userprofile),
-        );
+        save_path = save_path.replace("{usersavedgames}", &format!("{}/Saved Games", userprofile));
     }
 
     #[cfg(target_os = "macos")]
     {
         let home = std::env::var("HOME").unwrap_or_default();
-        save_path = save_path.replace("{appdata}", &format!("{}/Library/Application Support", home));
+        save_path = save_path.replace(
+            "{appdata}",
+            &format!("{}/Library/Application Support", home),
+        );
         save_path = save_path.replace("{userdir}", &format!("{}/Documents", home));
         save_path = save_path.replace("{userlibrary}", &format!("{}/Library", home));
     }
@@ -105,8 +86,7 @@ pub async fn resolve_save_path(app_name: &str) -> Result<Option<PathBuf>, String
     #[cfg(target_os = "linux")]
     {
         let home = std::env::var("HOME").unwrap_or_default();
-        // On Linux, these would typically point into a Wine prefix
-        // For now, use sensible defaults
+
         save_path = save_path.replace("{appdata}", &format!("{}/.local/share", home));
         save_path = save_path.replace("{userdir}", &format!("{}/Documents", home));
         save_path = save_path.replace("{userprofile}", &home);
@@ -116,11 +96,6 @@ pub async fn resolve_save_path(app_name: &str) -> Result<Option<PathBuf>, String
     Ok(Some(PathBuf::from(save_path)))
 }
 
-// ──────────────────────────────────────────────
-// Cloud save HTTP helpers
-// ──────────────────────────────────────────────
-
-/// Response type matching egs-api CloudSaveResponse
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 struct CloudSaveResponse {
@@ -142,7 +117,6 @@ struct CloudSaveFile {
     account_id: Option<String>,
 }
 
-/// Get the access token and account ID from the current session.
 async fn get_auth_info() -> Result<(String, String), String> {
     let client = EPIC.lock().await;
     let ud = client.user_details();
@@ -166,7 +140,6 @@ fn auth_headers(access_token: &str) -> HeaderMap {
     headers
 }
 
-/// List cloud saves (GET)
 async fn cloud_save_list(
     access_token: &str,
     user_id: &str,
@@ -201,7 +174,6 @@ async fn cloud_save_list(
         .map_err(|e| format!("Failed to parse cloud save response: {}", e))
 }
 
-/// Query cloud saves for specific filenames (POST)
 async fn cloud_save_query(
     access_token: &str,
     user_id: &str,
@@ -232,7 +204,6 @@ async fn cloud_save_query(
         .map_err(|e| format!("Failed to parse cloud save response: {}", e))
 }
 
-/// Delete a cloud save file (DELETE)
 async fn cloud_save_delete_file(access_token: &str, path: &str) -> Result<(), String> {
     let url = format!("{}/api/v1/data/egstore/{}", CLOUD_SAVE_BASE, path);
 
@@ -251,17 +222,11 @@ async fn cloud_save_delete_file(access_token: &str, path: &str) -> Result<(), St
     Ok(())
 }
 
-// ──────────────────────────────────────────────
-// Check cloud save state
-// ──────────────────────────────────────────────
-
-/// Check the status of cloud saves for a game.
 pub async fn check_save_status(app_name: &str) -> Result<CloudSaveInfo, String> {
     ensure_logged_in().await?;
 
     let local_path = resolve_save_path(app_name).await?;
 
-    // Check if local saves exist and get timestamp
     let (local_exists, local_timestamp) = match &local_path {
         Some(path) if path.exists() => {
             let newest = get_newest_file_time(path);
@@ -270,7 +235,6 @@ pub async fn check_save_status(app_name: &str) -> Result<CloudSaveInfo, String> 
         _ => (false, None),
     };
 
-    // Check remote saves
     let (access_token, user_id) = get_auth_info().await?;
     let cloud_saves = cloud_save_list(&access_token, &user_id, Some(app_name), true).await?;
 
@@ -287,40 +251,34 @@ pub async fn check_save_status(app_name: &str) -> Result<CloudSaveInfo, String> 
         .filter_map(|f| f.last_modified.clone())
         .max();
 
-    // Determine status
     let status = match (local_exists, remote_exists) {
         (false, false) => SaveGameStatus::NoSave,
         (true, false) => SaveGameStatus::LocalNewer,
         (false, true) => SaveGameStatus::RemoteNewer,
-        (true, true) => {
-            match (&local_timestamp, &remote_timestamp) {
-                (Some(local_ts), Some(remote_ts)) => {
-                    // Parse and compare timestamps
-                    let local_dt =
-                        chrono::NaiveDateTime::parse_from_str(local_ts, "%Y-%m-%d %H:%M:%S")
-                            .ok();
-                    let remote_dt =
-                        chrono::DateTime::parse_from_rfc3339(remote_ts)
-                            .ok()
-                            .map(|dt| dt.naive_utc());
+        (true, true) => match (&local_timestamp, &remote_timestamp) {
+            (Some(local_ts), Some(remote_ts)) => {
+                let local_dt =
+                    chrono::NaiveDateTime::parse_from_str(local_ts, "%Y-%m-%d %H:%M:%S").ok();
+                let remote_dt = chrono::DateTime::parse_from_rfc3339(remote_ts)
+                    .ok()
+                    .map(|dt| dt.naive_utc());
 
-                    match (local_dt, remote_dt) {
-                        (Some(l), Some(r)) => {
-                            let diff = (l - r).num_seconds().abs();
-                            if diff < 60 {
-                                SaveGameStatus::SameAge
-                            } else if l > r {
-                                SaveGameStatus::LocalNewer
-                            } else {
-                                SaveGameStatus::RemoteNewer
-                            }
+                match (local_dt, remote_dt) {
+                    (Some(l), Some(r)) => {
+                        let diff = (l - r).num_seconds().abs();
+                        if diff < 60 {
+                            SaveGameStatus::SameAge
+                        } else if l > r {
+                            SaveGameStatus::LocalNewer
+                        } else {
+                            SaveGameStatus::RemoteNewer
                         }
-                        _ => SaveGameStatus::Conflict,
                     }
+                    _ => SaveGameStatus::Conflict,
                 }
-                _ => SaveGameStatus::Conflict,
             }
-        }
+            _ => SaveGameStatus::Conflict,
+        },
     };
 
     Ok(CloudSaveInfo {
@@ -333,48 +291,30 @@ pub async fn check_save_status(app_name: &str) -> Result<CloudSaveInfo, String> 
     })
 }
 
-// ──────────────────────────────────────────────
-// Upload saves
-// ──────────────────────────────────────────────
-
-/// Upload local saves to the cloud.
 pub async fn upload_saves(app_name: &str) -> Result<(), String> {
     ensure_logged_in().await?;
 
     let local_path = resolve_save_path(app_name).await?;
     let local_path = match local_path {
         Some(p) if p.exists() => p,
-        Some(p) => {
-            return Err(format!(
-                "Save directory does not exist: {}",
-                p.display()
-            ))
-        }
+        Some(p) => return Err(format!("Save directory does not exist: {}", p.display())),
         None => return Err("Game does not support cloud saves".to_string()),
     };
 
-    send_message_to_frontend(&format!(
-        "[EPIC-CLOUD] Uploading saves for {}...",
-        app_name
-    ));
+    send_message_to_frontend(&format!("[EPIC-CLOUD] Uploading saves for {}...", app_name));
 
-    // Collect all save files
     let save_files = collect_save_files(&local_path)?;
     if save_files.is_empty() {
         return Err("No save files found".to_string());
     }
 
-    // Get upload URLs from EGS
     let filenames: Vec<String> = save_files.keys().cloned().collect();
     let (access_token, user_id) = get_auth_info().await?;
 
-    // Query for write links
-    let cloud_response =
-        cloud_save_query(&access_token, &user_id, app_name, &filenames).await?;
+    let cloud_response = cloud_save_query(&access_token, &user_id, app_name, &filenames).await?;
 
     let http_client = reqwest::Client::new();
 
-    // Upload each file
     for (rel_path, file_bytes) in &save_files {
         if let Some(cloud_file) = cloud_response.files.get(rel_path) {
             if let Some(ref write_link) = cloud_file.write_link {
@@ -405,11 +345,6 @@ pub async fn upload_saves(app_name: &str) -> Result<(), String> {
     Ok(())
 }
 
-// ──────────────────────────────────────────────
-// Download saves
-// ──────────────────────────────────────────────
-
-/// Download cloud saves to local.
 pub async fn download_saves(app_name: &str) -> Result<(), String> {
     ensure_logged_in().await?;
 
@@ -424,22 +359,18 @@ pub async fn download_saves(app_name: &str) -> Result<(), String> {
         app_name
     ));
 
-    // Get cloud save files
     let (access_token, user_id) = get_auth_info().await?;
     let cloud_saves = cloud_save_list(&access_token, &user_id, Some(app_name), true).await?;
 
     let http_client = reqwest::Client::new();
 
-    // Create save directory
     fs::create_dir_all(&local_path)
         .map_err(|e| format!("Failed to create save directory: {}", e))?;
 
     let mut downloaded_count = 0;
 
-    // Download each file
     for (filename, cloud_file) in &cloud_saves.files {
         if let Some(ref read_link) = cloud_file.read_link {
-            // Skip manifest files - we only want actual save data
             if filename.ends_with(".manifest") {
                 continue;
             }
@@ -456,7 +387,6 @@ pub async fn download_saves(app_name: &str) -> Result<(), String> {
                     .await
                     .map_err(|e| format!("Failed to read {}: {}", filename, e))?;
 
-                // Determine local file path from the cloud filename
                 let rel_path = extract_relative_save_path(filename, app_name);
                 let file_path = local_path.join(&rel_path);
 
@@ -480,32 +410,24 @@ pub async fn download_saves(app_name: &str) -> Result<(), String> {
     Ok(())
 }
 
-// ──────────────────────────────────────────────
-// Delete cloud saves
-// ──────────────────────────────────────────────
-
-/// Delete cloud saves for a game.
 pub async fn delete_cloud_saves(app_name: &str) -> Result<(), String> {
     ensure_logged_in().await?;
 
     let (access_token, user_id) = get_auth_info().await?;
-    let cloud_saves =
-        cloud_save_list(&access_token, &user_id, Some(app_name), false).await?;
+    let cloud_saves = cloud_save_list(&access_token, &user_id, Some(app_name), false).await?;
 
     for (filename, _) in &cloud_saves.files {
         cloud_save_delete_file(&access_token, filename).await?;
     }
 
-    send_message_to_frontend(&format!("[EPIC-CLOUD] Deleted cloud saves for {}", app_name));
+    send_message_to_frontend(&format!(
+        "[EPIC-CLOUD] Deleted cloud saves for {}",
+        app_name
+    ));
 
     Ok(())
 }
 
-// ──────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────
-
-/// Collect all files in a save directory as a HashMap of relative_path -> bytes.
 fn collect_save_files(base_path: &Path) -> Result<HashMap<String, Vec<u8>>, String> {
     let mut files = HashMap::new();
 
@@ -535,7 +457,6 @@ fn collect_save_files(base_path: &Path) -> Result<HashMap<String, Vec<u8>>, Stri
     Ok(files)
 }
 
-/// Get newest file modification time in a directory tree.
 fn get_newest_file_time(path: &Path) -> Option<String> {
     let mut newest: Option<std::time::SystemTime> = None;
 
@@ -564,11 +485,9 @@ fn get_newest_file_time(path: &Path) -> Option<String> {
     })
 }
 
-/// Extract a relative save path from a cloud save filename.
-/// Cloud save paths are typically: egstore/savesync/{account_id}/{app_name}/{filename}
 fn extract_relative_save_path(cloud_filename: &str, _app_name: &str) -> String {
     let parts: Vec<&str> = cloud_filename.split('/').collect();
-    // Take everything after the app_name segment
+
     if parts.len() > 4 {
         parts[4..].join("/")
     } else if let Some(last) = parts.last() {

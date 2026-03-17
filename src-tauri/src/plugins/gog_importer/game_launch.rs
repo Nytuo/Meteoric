@@ -1,17 +1,9 @@
-/// GOG game launcher — handles launching GOG games.
-///
-/// GOG games are DRM-free so no authentication tokens are needed for launch.
-/// Game launch info comes from goggame-{id}.info files in the install directory.
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
 use super::INSTALLED_GAMES;
 use crate::send_message_to_frontend;
-
-// ──────────────────────────────────────────────
-// Launch parameters
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GogLaunchParams {
@@ -20,7 +12,6 @@ pub struct GogLaunchParams {
     pub game_args: Vec<String>,
 }
 
-/// PlayTask from goggame-{id}.info
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct GogGameInfo {
@@ -46,10 +37,6 @@ struct PlayTask {
     task_type: Option<String>,
 }
 
-// ──────────────────────────────────────────────
-// Build launch parameters
-// ──────────────────────────────────────────────
-
 pub async fn get_launch_parameters(game_id: &str) -> Result<GogLaunchParams, String> {
     let installed = {
         let mut games = INSTALLED_GAMES.lock().await;
@@ -66,21 +53,15 @@ pub async fn get_launch_parameters(game_id: &str) -> Result<GogLaunchParams, Str
     let installed = installed.ok_or_else(|| format!("Game '{}' is not installed", game_id))?;
     let install_path = PathBuf::from(&installed.install_path);
 
-    // Try to find launch info from goggame-{id}.info
     let info_file = install_path.join(format!("goggame-{}.info", game_id));
     if info_file.exists() {
         if let Ok(contents) = std::fs::read_to_string(&info_file) {
             if let Ok(info) = serde_json::from_str::<GogGameInfo>(&contents) {
-                // Find the primary play task, or the first FileExecute task
-                let task = info
-                    .play_tasks
-                    .iter()
-                    .find(|t| t.is_primary)
-                    .or_else(|| {
-                        info.play_tasks.iter().find(|t| {
-                            t.task_type.as_deref() != Some("URLTask") && !t.path.is_empty()
-                        })
-                    });
+                let task = info.play_tasks.iter().find(|t| t.is_primary).or_else(|| {
+                    info.play_tasks
+                        .iter()
+                        .find(|t| t.task_type.as_deref() != Some("URLTask") && !t.path.is_empty())
+                });
 
                 if let Some(task) = task {
                     let exe_path = install_path.join(&task.path);
@@ -108,7 +89,6 @@ pub async fn get_launch_parameters(game_id: &str) -> Result<GogLaunchParams, Str
         }
     }
 
-    // Fallback to the stored executable
     if !installed.executable.is_empty() {
         let exe_path = install_path.join(&installed.executable);
         let working_dir = if let Some(ref wd) = installed.working_dir {
@@ -138,21 +118,15 @@ pub async fn get_launch_parameters(game_id: &str) -> Result<GogLaunchParams, Str
     ))
 }
 
-/// Launch a GOG game. Returns the process ID.
-pub async fn launch_gog_game(
-    game_id: &str,
-    extra_args: Vec<String>,
-) -> Result<u32, String> {
+pub async fn launch_gog_game(game_id: &str, extra_args: Vec<String>) -> Result<u32, String> {
     let params = get_launch_parameters(game_id).await?;
 
     send_message_to_frontend(&format!("[GOG-LAUNCH] Launching {}...", game_id));
 
-    // Build argument list
     let mut all_args = Vec::new();
     all_args.extend(params.game_args);
     all_args.extend(extra_args);
 
-    // Validate executable exists
     if !std::path::Path::new(&params.executable).exists() {
         return Err(format!(
             "Executable not found: {}. The game may not be installed correctly.",
@@ -160,7 +134,6 @@ pub async fn launch_gog_game(
         ));
     }
 
-    // Launch the process
     let mut cmd = tokio::process::Command::new(&params.executable);
     cmd.current_dir(&params.working_directory);
     cmd.args(&all_args);
@@ -180,18 +153,14 @@ pub async fn launch_gog_game(
 
     send_message_to_frontend(&format!("GL-{}", pid));
 
-    // Track the game process in the background for playtime
     let game_id_owned = game_id.to_string();
     tokio::spawn(async move {
         let mut child = child;
         let start = std::time::Instant::now();
-        let date = chrono::Local::now()
-            .format("%Y-%m-%d %H:%M:%S")
-            .to_string();
+        let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let _ = child.wait().await;
         let elapsed_ms = start.elapsed().as_millis();
 
-        // Record play time
         let conn = crate::database::establish_connection().unwrap();
         let db_games = crate::database::query_data(
             &conn,

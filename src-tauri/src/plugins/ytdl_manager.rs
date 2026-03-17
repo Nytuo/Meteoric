@@ -4,13 +4,9 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
-// ---------------------------------------------------------------------------
-// Binary path helpers
-// ---------------------------------------------------------------------------
-
 pub fn get_ytdlp_path() -> PathBuf {
-    let proj_dirs = ProjectDirs::from("fr", "Nytuo", "Meteoric")
-        .expect("Cannot resolve project directories");
+    let proj_dirs =
+        ProjectDirs::from("fr", "Nytuo", "Meteoric").expect("Cannot resolve project directories");
     let binary_name = if cfg!(target_os = "windows") {
         "yt-dlp.exe"
     } else {
@@ -19,11 +15,6 @@ pub fn get_ytdlp_path() -> PathBuf {
     proj_dirs.config_dir().join(binary_name)
 }
 
-// ---------------------------------------------------------------------------
-// Version helpers
-// ---------------------------------------------------------------------------
-
-/// Fetches the latest yt-dlp release tag from GitHub (e.g. "2024.04.09").
 async fn get_latest_version(client: &Client) -> Result<String, Box<dyn std::error::Error>> {
     let resp = client
         .get("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest")
@@ -38,8 +29,6 @@ async fn get_latest_version(client: &Client) -> Result<String, Box<dyn std::erro
     Ok(tag)
 }
 
-/// Returns the installed yt-dlp version string, or `None` if the binary is
-/// absent or fails to run.
 async fn get_installed_version() -> Option<String> {
     let path = get_ytdlp_path();
     if !path.exists() {
@@ -50,10 +39,7 @@ async fn get_installed_version() -> Option<String> {
         .output()
         .await
         .ok()?;
-    let version = String::from_utf8(output.stdout)
-        .ok()?
-        .trim()
-        .to_string();
+    let version = String::from_utf8(output.stdout).ok()?.trim().to_string();
     if version.is_empty() {
         None
     } else {
@@ -61,12 +47,6 @@ async fn get_installed_version() -> Option<String> {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Download / install
-// ---------------------------------------------------------------------------
-
-/// Downloads the yt-dlp binary for the current platform and saves it to the
-/// config directory.
 async fn download_ytdlp(client: &Client, tag: &str) -> Result<(), Box<dyn std::error::Error>> {
     let os = env::consts::OS;
     let asset_name = match os {
@@ -84,22 +64,17 @@ async fn download_ytdlp(client: &Client, tag: &str) -> Result<(), Box<dyn std::e
 
     let response = client.get(&url).send().await?;
     if !response.status().is_success() {
-        return Err(format!(
-            "Failed to download yt-dlp: HTTP {}",
-            response.status()
-        )
-        .into());
+        return Err(format!("Failed to download yt-dlp: HTTP {}", response.status()).into());
     }
     let bytes = response.bytes().await?;
 
     let path = get_ytdlp_path();
-    // Ensure parent directory exists
+
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
     fs::write(&path, &bytes)?;
 
-    // Make the binary executable on Unix platforms
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -112,16 +87,6 @@ async fn download_ytdlp(client: &Client, tag: &str) -> Result<(), Box<dyn std::e
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-/// Called at application start-up.
-/// - If yt-dlp is absent  → downloads the latest release.
-/// - If yt-dlp is present → checks the installed version against the latest  
-///   GitHub release and updates if out-of-date.
-///
-/// Errors are non-fatal and are printed to stdout.
 pub async fn check_and_update_ytdlp() {
     let client = Client::builder()
         .timeout(std::time::Duration::from_secs(30))
@@ -157,26 +122,24 @@ pub async fn check_and_update_ytdlp() {
     }
 }
 
-/// Download a YouTube (or any yt-dlp-supported) URL as an MP3 audio file.
-///
-/// `output_path` should be the **full file path** including the `.mp3`
-/// extension (e.g. `.../musics/theme.mp3`).
-pub async fn download_audio(
-    url: &str,
-    output_path: &str,
-) -> Result<(), String> {
+pub async fn download_audio(url: &str, output_path: &str) -> Result<(), String> {
     let ytdlp = get_ytdlp_path();
     if !ytdlp.exists() {
-        return Err("yt-dlp binary not found. Please restart the app to trigger the download.".to_string());
+        return Err(
+            "yt-dlp binary not found. Please restart the app to trigger the download.".to_string(),
+        );
     }
 
     let output = tokio::process::Command::new(&ytdlp)
         .args([
             "-x",
-            "--audio-format", "mp3",
-            "--audio-quality", "0",
+            "--audio-format",
+            "mp3",
+            "--audio-quality",
+            "0",
             "--no-playlist",
-            "-o", output_path,
+            "-o",
+            output_path,
             url,
         ])
         .output()
@@ -191,28 +154,25 @@ pub async fn download_audio(
     Ok(())
 }
 
-/// Download a YouTube (or any yt-dlp-supported) URL as an MP4 video file.
-///
-/// `output_dir` is the directory; `name` is the file stem (without extension).
-pub async fn download_video(
-    url: &str,
-    output_dir: &str,
-    name: &str,
-) -> Result<(), String> {
+pub async fn download_video(url: &str, output_dir: &str, name: &str) -> Result<(), String> {
     let ytdlp = get_ytdlp_path();
     if !ytdlp.exists() {
-        return Err("yt-dlp binary not found. Please restart the app to trigger the download.".to_string());
+        return Err(
+            "yt-dlp binary not found. Please restart the app to trigger the download.".to_string(),
+        );
     }
 
-    // Build the output template so yt-dlp writes <name>.mp4
     let output_template = format!("{}/{}.%(ext)s", output_dir, name);
 
     let output = tokio::process::Command::new(&ytdlp)
         .args([
-            "-S", "res:480,+codec:h264",
-            "--merge-output-format", "mp4",
+            "-S",
+            "res:480,+codec:h264",
+            "--merge-output-format",
+            "mp4",
             "--no-playlist",
-            "-o", &output_template,
+            "-o",
+            &output_template,
             url,
         ])
         .output()

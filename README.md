@@ -51,13 +51,16 @@
 Meteoric is a versatile video game library manager inspired by GOG Galaxy and Playnite. Built with Rust, Angular, and Tauri, it helps manage your game library and achievements by connecting to services like Steam, GOG, and Epic Games.
 
 ### Key Features
+
 - Centralized game library management.
 - Integration with Steam, GOG, and Epic Games to retrieve games and achievements.
 - Lightweight and fast with Tauri and Rust backend.
 - Modern UI powered by Angular.
 
 ### Built With
+
 #### Core Technologies
+
 <div style="display: flex; align-item: center">
   <img src="https://img.shields.io/badge/Rust-black?style=for-the-badge&logo=rust"/>
   <img src="https://img.shields.io/badge/Angular-black?style=for-the-badge&logo=angular"/>
@@ -65,6 +68,7 @@ Meteoric is a versatile video game library manager inspired by GOG Galaxy and Pl
 </div>
 
 #### Frontend & Backend
+
 <div style="display: flex; align-item: center">
   <img src="https://img.shields.io/badge/TypeScript-black?style=for-the-badge&logo=typescript"/>
   <img src="https://img.shields.io/badge/JavaScript-black?style=for-the-badge&logo=javascript"/>
@@ -75,6 +79,7 @@ Meteoric is a versatile video game library manager inspired by GOG Galaxy and Pl
 ## Getting Started
 
 ### Prerequisites
+
 - Install [Rust](https://www.rust-lang.org/).
 - Install [Node.js](https://nodejs.org/).
 - See the [Tauri Documentation](https://v2.tauri.app/fr/start/prerequisites/) for the needed libs per platform
@@ -106,6 +111,7 @@ See the [open issues](https://github.com/Nytuo/Meteoric/issues) for a list of pr
 ## Support
 
 Reach out via:
+
 - [GitHub Discussions](https://github.com/Nytuo/Meteoric/discussions)
 
 ## Contributing

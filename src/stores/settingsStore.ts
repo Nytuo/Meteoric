@@ -1,110 +1,115 @@
-import { create } from "zustand";
-import { invoke } from "@tauri-apps/api/core";
-import type { ISettings } from "@/types";
-import { db } from "@/lib/db";
-import { toast } from "sonner";
-import i18n from "@/i18n";
+import { create } from 'zustand';
+import { invoke } from '@tauri-apps/api/core';
+import type { ISettings } from '@/types';
+import { db } from '@/lib/db';
+import { toast } from 'sonner';
+import i18n from '@/i18n';
 
-const ACCENT_CLASSES = ["accent-blue", "accent-purple", "accent-green", "accent-teal", "accent-orange", "accent-red"];
+const ACCENT_CLASSES = [
+  'accent-blue',
+  'accent-purple',
+  'accent-green',
+  'accent-teal',
+  'accent-orange',
+  'accent-red',
+];
 
 function applyThemeClasses(theme: string, accent: string) {
-	const html = document.documentElement;
-	if (theme === "dark") {
-		html.classList.add("dark");
-	} else {
-		html.classList.remove("dark");
-	}
-	ACCENT_CLASSES.forEach((c) => html.classList.remove(c));
-	if (accent && accent !== "default") {
-		html.classList.add(`accent-${accent}`);
-	}
+  const html = document.documentElement;
+  if (theme === 'dark') {
+    html.classList.add('dark');
+  } else {
+    html.classList.remove('dark');
+  }
+  ACCENT_CLASSES.forEach((c) => html.classList.remove(c));
+  if (accent && accent !== 'default') {
+    html.classList.add(`accent-${accent}`);
+  }
 }
 
 interface SettingsStore {
-	settings: ISettings;
-	apiKeys: Record<string, string>;
+  settings: ISettings;
+  apiKeys: Record<string, string>;
 
-	fetchSettings: () => Promise<void>;
-	updateSettings: (patch: Partial<ISettings>) => void;
-	applySettings: (settings: ISettings) => void;
-	changeLanguage: (lang: string) => void;
-	changeTheme: (theme: string) => void;
-	changeAccent: (accent: string) => void;
-	fetchApiKeys: () => Promise<void>;
-	setApiKey: (key: string, value: string) => void;
-	saveApiKeys: () => Promise<void>;
+  fetchSettings: () => Promise<void>;
+  updateSettings: (patch: Partial<ISettings>) => void;
+  applySettings: (settings: ISettings) => void;
+  changeLanguage: (lang: string) => void;
+  changeTheme: (theme: string) => void;
+  changeAccent: (accent: string) => void;
+  fetchApiKeys: () => Promise<void>;
+  setApiKey: (key: string, value: string) => void;
+  saveApiKeys: () => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
-	settings: {},
-	apiKeys: {},
+  settings: {},
+  apiKeys: {},
 
-	async fetchSettings() {
-		try {
-			const settings = await db.getSettings();
-			if (settings.gap && isNaN(Number(settings.gap))) settings.gap = "1";
-			if (settings.zoom && isNaN(Number(settings.zoom))) settings.zoom = "10";
-			set({ settings });
-			// Apply language
-			i18n.changeLanguage(settings.language || "en");
-			// Apply theme / accent
-			applyThemeClasses(settings.theme || "dark", settings.accent || "default");
-		} catch {
-			toast.error("Failed to load settings");
-		}
-	},
+  async fetchSettings() {
+    try {
+      const settings = await db.getSettings();
+      if (settings.gap && isNaN(Number(settings.gap))) settings.gap = '1';
+      if (settings.zoom && isNaN(Number(settings.zoom))) settings.zoom = '10';
+      set({ settings });
 
-	updateSettings(patch) {
-		set({ settings: { ...get().settings, ...patch } });
-	},
+      i18n.changeLanguage(settings.language || 'en');
 
-	applySettings(settings) {
-		set({ settings });
-		db.setSettings(settings);
-		applyThemeClasses(settings.theme || "dark", settings.accent || "default");
-		toast.success("Settings saved");
-	},
+      applyThemeClasses(settings.theme || 'dark', settings.accent || 'default');
+    } catch {
+      toast.error('Failed to load settings');
+    }
+  },
 
-	changeLanguage(lang) {
-		i18n.changeLanguage(lang);
-		const s = { ...get().settings, language: lang };
-		set({ settings: s });
-		db.setSettings(s);
-	},
+  updateSettings(patch) {
+    set({ settings: { ...get().settings, ...patch } });
+  },
 
-	changeTheme(theme) {
-		const s = { ...get().settings, theme };
-		set({ settings: s });
-		db.setSettings(s);
-		applyThemeClasses(theme, s.accent || "default");
-	},
+  applySettings(settings) {
+    set({ settings });
+    db.setSettings(settings);
+    applyThemeClasses(settings.theme || 'dark', settings.accent || 'default');
+    toast.success('Settings saved');
+  },
 
-	changeAccent(accent) {
-		const s = { ...get().settings, accent };
-		set({ settings: s });
-		db.setSettings(s);
-		applyThemeClasses(s.theme || "dark", accent);
-	},
+  changeLanguage(lang) {
+    i18n.changeLanguage(lang);
+    const s = { ...get().settings, language: lang };
+    set({ settings: s });
+    db.setSettings(s);
+  },
 
-	async fetchApiKeys() {
-		try {
-			const res = await invoke<Record<string, string>>("get_env_map");
-			set({ apiKeys: res });
-		} catch {
-			// No env map
-		}
-	},
+  changeTheme(theme) {
+    const s = { ...get().settings, theme };
+    set({ settings: s });
+    db.setSettings(s);
+    applyThemeClasses(theme, s.accent || 'default');
+  },
 
-	setApiKey(key, value) {
-		set({ apiKeys: { ...get().apiKeys, [key]: value } });
-	},
+  changeAccent(accent) {
+    const s = { ...get().settings, accent };
+    set({ settings: s });
+    db.setSettings(s);
+    applyThemeClasses(s.theme || 'dark', accent);
+  },
 
-	async saveApiKeys() {
-		try {
-			await invoke("set_env_map", { envMap: get().apiKeys });
-			toast.success("API keys saved");
-		} catch (e: any) {
-			toast.error("Failed to save API keys: " + e);
-		}
-	},
+  async fetchApiKeys() {
+    try {
+      const res = await invoke<Record<string, string>>('get_env_map');
+      set({ apiKeys: res });
+    } catch {}
+  },
+
+  setApiKey(key, value) {
+    set({ apiKeys: { ...get().apiKeys, [key]: value } });
+  },
+
+  async saveApiKeys() {
+    try {
+      await invoke('set_env_map', { envMap: get().apiKeys });
+      toast.success('API keys saved');
+    } catch (e: any) {
+      toast.error('Failed to save API keys: ' + e);
+    }
+  },
 }));

@@ -18,10 +18,6 @@ pub mod game_launch;
 
 mod test;
 
-// ──────────────────────────────────────────────
-// Global state
-// ──────────────────────────────────────────────
-
 lazy_static::lazy_static! {
     static ref AUTHCODE: Mutex<String> = Mutex::new(String::new());
     pub(crate) static ref EPIC: Mutex<EpicGames> = Mutex::new(EpicGames::new());
@@ -29,10 +25,6 @@ lazy_static::lazy_static! {
         Mutex::new(HashMap::new());
     static ref ASSET_CACHE: Mutex<HashMap<String, EpicAsset>> = Mutex::new(HashMap::new());
 }
-
-// ──────────────────────────────────────────────
-// Installed game tracking
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InstalledEpicGame {
@@ -53,10 +45,6 @@ pub struct InstalledEpicGame {
     pub launch_parameters: Option<String>,
 }
 
-// ──────────────────────────────────────────────
-// Config helpers
-// ──────────────────────────────────────────────
-
 pub fn get_config_dir() -> PathBuf {
     ProjectDirs::from("fr", "Nytuo", "Meteoric")
         .unwrap()
@@ -64,25 +52,19 @@ pub fn get_config_dir() -> PathBuf {
         .to_path_buf()
 }
 
-/// Detect the appropriate Epic Games platform string for downloads.
-/// Returns "Windows", "Win32", or "Mac" based on the current OS.
-/// For Windows, always returns "Windows" (64-bit) as it's most common and has widest game support.
 pub fn get_platform() -> String {
     #[cfg(target_os = "windows")]
     {
-        // Always use "Windows" (64-bit) as it's the most compatible platform.
-        // Games that require Win32 specifically are rare, and most work with Windows platform.
         "Windows".to_string()
     }
-    
+
     #[cfg(target_os = "macos")]
     {
         "Mac".to_string()
     }
-    
+
     #[cfg(not(any(target_os = "windows", target_os = "macos")))]
     {
-        // For Linux, fall back to Windows (most games use Proton/Wine)
         "Windows".to_string()
     }
 }
@@ -111,20 +93,14 @@ pub fn get_manifests_dir() -> PathBuf {
     dir
 }
 
-// ──────────────────────────────────────────────
-// Persistence: installed games
-// ──────────────────────────────────────────────
-
 pub async fn save_installed_games() {
     let path = get_installed_games_path();
     let games = INSTALLED_GAMES.lock().await;
     match serde_json::to_string_pretty(&*games) {
-        Ok(json) => {
-            match fs::write(&path, json) {
-                Ok(_) => println!("[EPIC] Saved {} installed games to {:?}", games.len(), path),
-                Err(e) => eprintln!("[EPIC ERROR] Failed to write installed games file: {}", e),
-            }
-        }
+        Ok(json) => match fs::write(&path, json) {
+            Ok(_) => println!("[EPIC] Saved {} installed games to {:?}", games.len(), path),
+            Err(e) => eprintln!("[EPIC ERROR] Failed to write installed games file: {}", e),
+        },
         Err(e) => eprintln!("[EPIC ERROR] Failed to serialize installed games: {}", e),
     }
 }
@@ -134,18 +110,21 @@ pub async fn load_installed_games() {
     println!("[EPIC] ========================================");
     println!("[EPIC] Loading installed games from: {}", path.display());
     println!("[EPIC] File exists: {}", path.exists());
-    
+
     if !path.exists() {
         println!("[EPIC] No installed games file found, starting with empty cache");
         println!("[EPIC] ========================================");
         return;
     }
-    
+
     match fs::read_to_string(&path) {
         Ok(data) => {
             println!("[EPIC] Successfully read file, size: {} bytes", data.len());
-            println!("[EPIC] First 200 chars: {}", &data.chars().take(200).collect::<String>());
-            
+            println!(
+                "[EPIC] First 200 chars: {}",
+                &data.chars().take(200).collect::<String>()
+            );
+
             match serde_json::from_str::<HashMap<String, InstalledEpicGame>>(&data) {
                 Ok(games) => {
                     let count = games.len();
@@ -153,11 +132,10 @@ pub async fn load_installed_games() {
                     for (key, game) in &games {
                         println!("[EPIC]   - {} => {} ({})", key, game.title, game.app_name);
                     }
-                    
+
                     let mut cache = INSTALLED_GAMES.lock().await;
                     *cache = games;
-                    
-                    // Verify it was actually stored
+
                     println!("[EPIC] Cache now contains {} games", cache.len());
                     println!("[EPIC] ========================================");
                 }
@@ -175,29 +153,21 @@ pub async fn load_installed_games() {
     }
 }
 
-// ──────────────────────────────────────────────
-// Authentication
-// ──────────────────────────────────────────────
-
-/// Ensure the client is logged in, either via stored credentials or auth code.
 pub async fn ensure_logged_in() -> Result<(), String> {
     let authcode = AUTHCODE.lock().await.clone();
     let mut client = EPIC.lock().await;
 
-    // Already logged in?
     if client.is_logged_in() {
         return Ok(());
     }
 
-    // Try recovering from saved credentials
     let creds_path = get_credentials_path();
     if authcode.is_empty() && creds_path.exists() {
         if let Ok(meta) = creds_path.metadata() {
             if meta.len() > 0 {
                 if let Ok(contents) = fs::read_to_string(&creds_path) {
-                    match serde_json::from_str::<egs_api::api::types::account::UserData>(
-                        &contents,
-                    ) {
+                    match serde_json::from_str::<egs_api::api::types::account::UserData>(&contents)
+                    {
                         Ok(user_details) => {
                             client.set_user_details(user_details);
                             if client.login().await {
@@ -219,32 +189,22 @@ pub async fn ensure_logged_in() -> Result<(), String> {
         }
     }
 
-    // Login with auth code
-    if !authcode.is_empty()
-        && client
-            .auth_code(None, Some(authcode.clone()))
-            .await
-    {
+    if !authcode.is_empty() && client.auth_code(None, Some(authcode.clone())).await {
         println!("[EPIC] Logged in with auth code");
         client.login().await;
         let ud = client.user_details();
-        let _ = fs::write(
-            &creds_path,
-            serde_json::to_string(&ud).unwrap_or_default(),
-        );
+        let _ = fs::write(&creds_path, serde_json::to_string(&ud).unwrap_or_default());
         return Ok(());
     }
 
     Err("Failed to login to Epic Games. Please provide a valid auth code.".into())
 }
 
-/// Check if we are currently logged in
 pub async fn is_logged_in() -> bool {
     let client = EPIC.lock().await;
     client.is_logged_in()
 }
 
-/// Get user display name
 pub async fn get_display_name() -> Option<String> {
     let client = EPIC.lock().await;
     if client.is_logged_in() {
@@ -255,7 +215,6 @@ pub async fn get_display_name() -> Option<String> {
     }
 }
 
-/// Get account id
 pub async fn get_account_id() -> Option<String> {
     let client = EPIC.lock().await;
     if client.is_logged_in() {
@@ -266,11 +225,6 @@ pub async fn get_account_id() -> Option<String> {
     }
 }
 
-// ──────────────────────────────────────────────
-// Library: fetch and cache assets
-// ──────────────────────────────────────────────
-
-/// Fetch the asset list from EGS and cache it
 pub async fn fetch_assets() -> Result<Vec<EpicAsset>, String> {
     ensure_logged_in().await?;
     let platform = get_platform();
@@ -283,26 +237,18 @@ pub async fn fetch_assets() -> Result<Vec<EpicAsset>, String> {
     Ok(assets)
 }
 
-/// Get a cached asset by app_name
 pub async fn get_cached_asset(app_name: &str) -> Option<EpicAsset> {
     let cache = ASSET_CACHE.lock().await;
     cache.get(app_name).cloned()
 }
 
-// ──────────────────────────────────────────────
-// Library import (database population)
-// ──────────────────────────────────────────────
-
 pub async fn get_games() -> Result<(), String> {
-    // Load installed games cache FIRST, before login check
-    // This ensures we can launch games even if Epic login fails
     load_installed_games().await;
-    
+
     ensure_logged_in().await?;
 
     let mut client = EPIC.lock().await;
 
-    // Fetch library items
     let lib_items = client.library_items(true).await;
     let records = match lib_items {
         Some(lib) => lib.records,
@@ -312,14 +258,12 @@ pub async fn get_games() -> Result<(), String> {
         }
     };
 
-    // Also fetch assets for more detailed info
     let assets = client.list_assets(Some("Windows".to_string()), None).await;
     let asset_map: HashMap<String, EpicAsset> = assets
         .iter()
         .map(|a| (a.app_name.clone(), a.clone()))
         .collect();
 
-    // Cache assets
     {
         let mut cache = ASSET_CACHE.lock().await;
         for (k, v) in &asset_map {
@@ -332,7 +276,7 @@ pub async fn get_games() -> Result<(), String> {
     for record in &records {
         let game_id = record.product_id.clone();
         let game_name = record.sandbox_name.clone();
-        // Filter out marketplace/fab items
+
         if game_name.contains("UE Marketplace")
             || game_name.contains("Live")
             || game_name.contains("fab-listing-live")
@@ -342,7 +286,7 @@ pub async fn get_games() -> Result<(), String> {
         parsed_games.insert(game_id, (game_name, record.app_name.clone()));
     }
 
-    drop(client); // Release lock before database operations
+    drop(client);
 
     for (product_id, (game_name, app_name)) in &parsed_games {
         let mut igame = IGame::new();
@@ -352,7 +296,6 @@ pub async fn get_games() -> Result<(), String> {
         igame.game_importer_id = product_id.clone();
         igame.importer_id = "epic".to_string();
 
-        // Store epic metadata in exec_args for later use in launching/downloading
         if let Some(asset) = asset_map.get(app_name) {
             igame.exec_args = format!(
                 "epic:{}:{}:{}",
@@ -361,27 +304,18 @@ pub async fn get_games() -> Result<(), String> {
         }
 
         let new_id = update_game_nodup(&conn, igame).expect("[EPIC] Failed to update game");
-        
-        // Epic Games API doesn't provide total playtime or last played time
-        // We'll initialize with zero playtime and current time
-        // Actual playtime will be tracked when games are launched via game_launch.rs
+
         let _ = crate::database::first_time_stat(
             &conn,
             new_id,
-            "0".to_string(), // No playtime data from API
-            chrono::Local::now()
-                .format("%Y-%m-%d %H:%M:%S")
-                .to_string(),
+            "0".to_string(),
+            chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
         );
     }
 
     send_message_to_frontend("[EPIC-INFO] Library import complete");
     Ok(())
 }
-
-// ──────────────────────────────────────────────
-// Get list of games available for download
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EpicGameEntry {
@@ -430,10 +364,6 @@ pub async fn get_downloadable_games() -> Result<Vec<EpicGameEntry>, String> {
     Ok(entries)
 }
 
-// ──────────────────────────────────────────────
-// Get installed Epic games
-// ──────────────────────────────────────────────
-
 pub async fn get_installed_epic_games() -> Vec<InstalledEpicGame> {
     let games = INSTALLED_GAMES.lock().await;
     games.values().cloned().collect()
@@ -448,20 +378,22 @@ pub async fn debug_cache_info() -> String {
     let path = get_installed_games_path();
     let games = INSTALLED_GAMES.lock().await;
     let mut info = String::new();
-    
+
     info.push_str(&format!("File path: {}\n", path.display()));
     info.push_str(&format!("File exists: {}\n", path.exists()));
-    
+
     if path.exists() {
         if let Ok(metadata) = fs::metadata(&path) {
             info.push_str(&format!("File size: {} bytes\n", metadata.len()));
         }
         if let Ok(contents) = fs::read_to_string(&path) {
-            info.push_str(&format!("File contents (first 500 chars):\n{}\n", 
-                &contents.chars().take(500).collect::<String>()));
+            info.push_str(&format!(
+                "File contents (first 500 chars):\n{}\n",
+                &contents.chars().take(500).collect::<String>()
+            ));
         }
     }
-    
+
     info.push_str(&format!("\nCache size: {} games\n", games.len()));
     if !games.is_empty() {
         info.push_str("Games in cache:\n");
@@ -469,7 +401,7 @@ pub async fn debug_cache_info() -> String {
             info.push_str(&format!("  - {} ({})\n", app_name, game.title));
         }
     }
-    
+
     info
 }
 
@@ -481,10 +413,6 @@ pub async fn reload_installed_games_cache() -> Result<usize, String> {
     println!("[EPIC] Cached reloaded: {} games", count);
     Ok(count)
 }
-
-// ──────────────────────────────────────────────
-// Credentials
-// ──────────────────────────────────────────────
 
 pub async fn set_credentials(creds: Vec<String>) {
     let authorization_code = creds[0].to_string();

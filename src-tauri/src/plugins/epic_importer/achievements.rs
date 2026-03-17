@@ -1,11 +1,3 @@
-/// Epic Games achievements — fetches player achievements from the Epic Games Store.
-///
-/// The egs-api crate does not include an achievements API, so this module
-/// directly calls the Epic Games achievement service endpoints.
-///
-/// EGS achievements use the Epic Online Services (EOS) achievement API:
-///   POST https://graphql.epicgames.com/graphql
-///   with a specific GraphQL query for player achievements.
 use std::collections::HashMap;
 
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
@@ -14,10 +6,6 @@ use serde::{Deserialize, Serialize};
 use super::{ensure_logged_in, EPIC};
 use crate::database::{establish_connection, update_achievements};
 use crate::{send_message_to_frontend, ITrophy};
-
-// ──────────────────────────────────────────────
-// Achievement types
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EpicAchievement {
@@ -32,10 +20,6 @@ pub struct EpicAchievement {
     pub progress: f64,
     pub xp: u32,
 }
-
-// ──────────────────────────────────────────────
-// GraphQL queries for achievements
-// ──────────────────────────────────────────────
 
 const GRAPHQL_URL: &str = "https://launcher.store.epicgames.com/graphql";
 
@@ -90,12 +74,6 @@ query playerProfileAchievementsByProductId($EpicAccountId: String!, $ProductId: 
 }
 "#;
 
-// ──────────────────────────────────────────────
-// Achievement fetching
-// ──────────────────────────────────────────────
-
-/// Fetch achievements for a game (by sandbox/namespace).
-/// Returns a list of achievements with player progress merged in.
 pub async fn fetch_achievements(
     app_name: &str,
     namespace: &str,
@@ -105,15 +83,11 @@ pub async fn fetch_achievements(
     let (access_token, account_id) = {
         let client = EPIC.lock().await;
         let ud = client.user_details();
-        let token = ud
-            .access_token()
-            .map(|t| t.to_string())
-            .unwrap_or_default();
+        let token = ud.access_token().map(|t| t.to_string()).unwrap_or_default();
         let account = ud.account_id.clone().unwrap_or_default();
         (token, account)
     };
 
-    // Use the same User-Agent as Playnite's EpicApi — required to pass Cloudflare
     let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) EpicGamesLauncher";
 
     let http_client = reqwest::Client::builder()
@@ -121,7 +95,6 @@ pub async fn fetch_achievements(
         .build()
         .map_err(|e| e.to_string())?;
 
-    // Shared headers for all requests
     let mut base_headers = HeaderMap::new();
     base_headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     base_headers.insert(
@@ -129,7 +102,6 @@ pub async fn fetch_achievements(
         HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) EpicGamesLauncher"),
     );
 
-    // 1. Fetch available achievements for the game (anonymous — no auth needed per Playnite)
     let achievements_body = serde_json::json!({
         "query": ACHIEVEMENTS_QUERY,
         "variables": {
@@ -152,19 +124,25 @@ pub async fn fetch_achievements(
         .await
         .map_err(|e| format!("Failed to read achievements response body: {}", e))?;
 
-    send_message_to_frontend(&format!("[EPIC-ACH] Achievements response ({status}): {body_text}"));
+    send_message_to_frontend(&format!(
+        "[EPIC-ACH] Achievements response ({status}): {body_text}"
+    ));
 
-    let achievements_data: serde_json::Value = serde_json::from_str(&body_text)
-        .map_err(|e| format!("Failed to parse achievements response ({}): {} — body: {}", status, e, &body_text[..body_text.len().min(500)]))?;
+    let achievements_data: serde_json::Value = serde_json::from_str(&body_text).map_err(|e| {
+        format!(
+            "Failed to parse achievements response ({}): {} — body: {}",
+            status,
+            e,
+            &body_text[..body_text.len().min(500)]
+        )
+    })?;
 
-    // Extract productId needed for player achievements query
     let product_id = achievements_data
         .pointer("/data/Achievement/productAchievementsRecordBySandbox/productId")
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string();
 
-    // Parse the achievement definitions
     let mut achievements: Vec<EpicAchievement> = Vec::new();
 
     if let Some(achievements_list) = achievements_data
@@ -172,7 +150,6 @@ pub async fn fetch_achievements(
         .and_then(|v| v.as_array())
     {
         for wrapper in achievements_list {
-            // Each entry is { achievement: { name, hidden, ... } }
             let ach = match wrapper.get("achievement") {
                 Some(a) => a,
                 None => continue,
@@ -227,12 +204,10 @@ pub async fn fetch_achievements(
         }
     }
 
-    // 2. Fetch player progress using productId from step 1 (requires auth)
     let mut auth_headers = base_headers.clone();
     auth_headers.insert(
         AUTHORIZATION,
-        HeaderValue::from_str(&format!("bearer {}", access_token))
-            .map_err(|e| e.to_string())?,
+        HeaderValue::from_str(&format!("bearer {}", access_token)).map_err(|e| e.to_string())?,
     );
 
     let player_body = serde_json::json!({
@@ -257,19 +232,25 @@ pub async fn fetch_achievements(
         .await
         .map_err(|e| format!("Failed to read player achievements response body: {}", e))?;
 
-    send_message_to_frontend(&format!("[EPIC-ACH] Player achievements response ({status}): {body_text}"));
+    send_message_to_frontend(&format!(
+        "[EPIC-ACH] Player achievements response ({status}): {body_text}"
+    ));
 
-    let player_data: serde_json::Value = serde_json::from_str(&body_text)
-        .map_err(|e| format!("Failed to parse player achievements response ({}): {} — body: {}", status, e, &body_text[..body_text.len().min(500)]))?;
+    let player_data: serde_json::Value = serde_json::from_str(&body_text).map_err(|e| {
+        format!(
+            "Failed to parse player achievements response ({}): {} — body: {}",
+            status,
+            e,
+            &body_text[..body_text.len().min(500)]
+        )
+    })?;
 
-    // Merge player progress into achievements
     let mut player_map: HashMap<String, (bool, Option<String>, f64)> = HashMap::new();
     if let Some(records) = player_data
         .pointer("/data/PlayerProfile/playerProfile/productAchievements/data/playerAchievements")
         .and_then(|v| v.as_array())
     {
         for wrapper in records {
-            // Each entry is { playerAchievement: { achievementName, ... } }
             let record = match wrapper.get("playerAchievement") {
                 Some(r) => r,
                 None => continue,
@@ -296,9 +277,7 @@ pub async fn fetch_achievements(
     }
 
     for ach in &mut achievements {
-        if let Some((unlocked, unlock_date, progress)) =
-            player_map.get(&ach.achievement_name)
-        {
+        if let Some((unlocked, unlock_date, progress)) = player_map.get(&ach.achievement_name) {
             ach.unlocked = *unlocked;
             ach.unlock_date = unlock_date.clone();
             ach.progress = *progress;
@@ -308,8 +287,6 @@ pub async fn fetch_achievements(
     Ok(achievements)
 }
 
-/// Fetch achievements for a game and store them in the database.
-/// `game_id` is the Meteoric database ID, `namespace` is the EGS sandbox ID.
 pub async fn sync_achievements(
     game_id: &str,
     app_name: &str,
@@ -321,7 +298,6 @@ pub async fn sync_achievements(
         return Ok(0);
     }
 
-    // Convert to ITrophy for database storage
     let trophies: Vec<ITrophy> = achievements
         .iter()
         .map(|ach| ITrophy {
@@ -349,9 +325,9 @@ pub async fn sync_achievements(
     let count = trophies.len();
 
     let conn = establish_connection().unwrap();
-    update_achievements(&conn, trophies).map_err(|e| format!("Failed to save achievements: {}", e))?;
+    update_achievements(&conn, trophies)
+        .map_err(|e| format!("Failed to save achievements: {}", e))?;
 
-    // Update the trophies count on the game row
     let unlocked_count = achievements.iter().filter(|a| a.unlocked).count();
     let sql = format!(
         "UPDATE games SET trophies = '{}', trophies_unlocked = '{}' WHERE id = '{}'",

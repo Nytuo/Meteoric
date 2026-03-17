@@ -1,10 +1,3 @@
-/// GOG cloud saves — handles syncing saves with GOG's cloud storage.
-///
-/// GOG cloud saves use the cloudstorage.gog.com API. Each game has its own
-/// client_id/client_secret for cloud authentication, obtained from build metadata.
-/// Files are gzip-compressed before upload.
-///
-/// Reference: heroic-gogdl/gogdl/saves.py
 use std::fs;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
@@ -16,20 +9,12 @@ use flate2::Compression;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 
-use super::{ensure_token, build_gog_client, get_platform};
+use super::{build_gog_client, ensure_token, get_platform};
 use crate::send_message_to_frontend;
-
-// ──────────────────────────────────────────────
-// Constants
-// ──────────────────────────────────────────────
 
 const AUTH_URL: &str = "https://auth.gog.com";
 const CONTENT_SYSTEM_URL: &str = "https://content-system.gog.com";
 const CLOUDSTORAGE_URL: &str = "https://cloudstorage.gog.com";
-
-// ──────────────────────────────────────────────
-// Cloud save state
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum SaveGameStatus {
@@ -49,10 +34,6 @@ pub struct CloudSaveInfo {
     pub local_timestamp: Option<String>,
     pub remote_timestamp: Option<String>,
 }
-
-// ──────────────────────────────────────────────
-// Build metadata & per-game cloud auth
-// ──────────────────────────────────────────────
 
 #[derive(Deserialize, Debug)]
 struct BuildsResponse {
@@ -93,7 +74,6 @@ struct CloudTokenResponse {
     user_id: String,
 }
 
-/// Get the per-game cloud credentials and save path definitions from GOG build metadata.
 async fn get_cloud_meta(
     game_id: &str,
     access_token: &str,
@@ -125,9 +105,11 @@ async fn get_cloud_meta(
         .first()
         .ok_or("No builds found for this game")?;
 
-    eprintln!("[GOG-CLOUD] Using build: {} (link: {})", build.build_id, build.link);
+    eprintln!(
+        "[GOG-CLOUD] Using build: {} (link: {})",
+        build.build_id, build.link
+    );
 
-    // Get build metadata using the link from the builds response
     let resp = client
         .get(&build.link)
         .header(AUTHORIZATION, format!("Bearer {}", access_token))
@@ -135,7 +117,6 @@ async fn get_cloud_meta(
         .await
         .map_err(|e| format!("Failed to get build meta: {}", e))?;
 
-    // Get response as bytes
     let bytes = resp
         .bytes()
         .await
@@ -156,12 +137,14 @@ async fn get_cloud_meta(
             .map_err(|e| format!("Failed to decode response as UTF-8: {}", e))?
     };
 
-    eprintln!("[GOG-CLOUD] Build meta response length: {} bytes", body.len());
-    
-    // Check if cloudSaves field exists in raw JSON
+    eprintln!(
+        "[GOG-CLOUD] Build meta response length: {} bytes",
+        body.len()
+    );
+
     if body.contains("\"cloudSaves\"") {
         eprintln!("[GOG-CLOUD] Found 'cloudSaves' field in response");
-        // Try to extract and show the cloudSaves section
+
         if let Some(start) = body.find("\"cloudSaves\"") {
             let snippet = &body[start..std::cmp::min(start + 300, body.len())];
             eprintln!("[GOG-CLOUD] cloudSaves section: {}", snippet);
@@ -170,13 +153,15 @@ async fn get_cloud_meta(
         eprintln!("[GOG-CLOUD] No 'cloudSaves' field found in response");
     }
 
-    // Try to parse the JSON
-    let meta: BuildMeta = serde_json::from_str(&body)
-        .map_err(|e| {
-            let preview = if body.len() > 500 { &body[..500] } else { &body };
-            eprintln!("[GOG-CLOUD] Parse error: {}", e);
-            format!("Failed to parse build meta: {}. Response: {}", e, preview)
-        })?;
+    let meta: BuildMeta = serde_json::from_str(&body).map_err(|e| {
+        let preview = if body.len() > 500 {
+            &body[..500]
+        } else {
+            &body
+        };
+        eprintln!("[GOG-CLOUD] Parse error: {}", e);
+        format!("Failed to parse build meta: {}. Response: {}", e, preview)
+    })?;
 
     eprintln!("[GOG-CLOUD] BuildMeta parsed - client_id: {:?}, client_secret: {:?}, cloud_saves: {} items",
         meta.client_id.as_ref().map(|s| if s.len() > 8 { &s[..8] } else { s }),
@@ -194,7 +179,6 @@ async fn get_cloud_meta(
     Ok((client_id, client_secret, cloud_saves))
 }
 
-/// Get a cloud-scoped access token using the game's client_id/secret.
 async fn get_cloud_token(
     user_refresh_token: &str,
     client_id: &str,
@@ -222,22 +206,16 @@ async fn get_cloud_token(
         .map_err(|e| format!("Failed to parse cloud token response: {}", e))
 }
 
-// ──────────────────────────────────────────────
-// Cloud save operations
-// ──────────────────────────────────────────────
-
-/// Check cloud save status for a GOG game.
 pub async fn check_cloud_saves(
     game_id: &str,
     local_save_path: Option<&str>,
 ) -> Result<CloudSaveInfo, String> {
     let token = tokio::task::block_in_place(|| ensure_token())?;
 
-    // Get the GOG access token and refresh token
     let token_json =
         serde_json::to_string(&token).map_err(|e| format!("Failed to serialize token: {}", e))?;
-    let token_val: serde_json::Value = serde_json::from_str(&token_json)
-        .map_err(|e| format!("Failed to parse token: {}", e))?;
+    let token_val: serde_json::Value =
+        serde_json::from_str(&token_json).map_err(|e| format!("Failed to parse token: {}", e))?;
 
     let access_token = token_val["access_token"]
         .as_str()
@@ -251,37 +229,34 @@ pub async fn check_cloud_saves(
     let gog = tokio::task::block_in_place(|| build_gog_client(token));
     let user_id = tokio::task::block_in_place(|| gog.uid());
 
-    // Get cloud metadata
-    let (client_id, client_secret, cloud_defs) =
-        match get_cloud_meta(game_id, &access_token).await {
-            Ok(meta) => meta,
-            Err(_) => {
-                return Ok(CloudSaveInfo {
-                    game_id: game_id.to_string(),
-                    local_save_path: local_save_path.map(|s| s.to_string()),
-                    remote_save_exists: false,
-                    status: SaveGameStatus::NoSave,
-                    local_timestamp: None,
-                    remote_timestamp: None,
-                });
-            }
-        };
+    let (client_id, client_secret, cloud_defs) = match get_cloud_meta(game_id, &access_token).await
+    {
+        Ok(meta) => meta,
+        Err(_) => {
+            return Ok(CloudSaveInfo {
+                game_id: game_id.to_string(),
+                local_save_path: local_save_path.map(|s| s.to_string()),
+                remote_save_exists: false,
+                status: SaveGameStatus::NoSave,
+                local_timestamp: None,
+                remote_timestamp: None,
+            });
+        }
+    };
 
-    // Get cloud token
     let cloud_token = get_cloud_token(&refresh_token, &client_id, &client_secret).await?;
 
-    // Check remote files
-    let list_url = format!(
-        "{}/v1/{}/{}",
-        CLOUDSTORAGE_URL, user_id, client_id
-    );
+    let list_url = format!("{}/v1/{}/{}", CLOUDSTORAGE_URL, user_id, client_id);
     let client = reqwest::Client::builder()
         .gzip(true)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
     let resp = client
         .get(&list_url)
-        .header(AUTHORIZATION, format!("Bearer {}", cloud_token.access_token))
+        .header(
+            AUTHORIZATION,
+            format!("Bearer {}", cloud_token.access_token),
+        )
         .send()
         .await;
 
@@ -290,12 +265,11 @@ pub async fn check_cloud_saves(
         Err(_) => false,
     };
 
-    // Determine local path from cloud_defs if not provided
-    let resolved_path = local_save_path
-        .map(|s| s.to_string())
-        .or_else(|| {
-            cloud_defs.first().map(|def| resolve_cloud_path(&def.location))
-        });
+    let resolved_path = local_save_path.map(|s| s.to_string()).or_else(|| {
+        cloud_defs
+            .first()
+            .map(|def| resolve_cloud_path(&def.location))
+    });
 
     let local_exists = resolved_path
         .as_ref()
@@ -306,7 +280,7 @@ pub async fn check_cloud_saves(
         (false, false) => SaveGameStatus::NoSave,
         (true, false) => SaveGameStatus::LocalNewer,
         (false, true) => SaveGameStatus::RemoteNewer,
-        (true, true) => SaveGameStatus::Conflict, // Would need timestamp comparison
+        (true, true) => SaveGameStatus::Conflict,
     };
 
     Ok(CloudSaveInfo {
@@ -319,16 +293,12 @@ pub async fn check_cloud_saves(
     })
 }
 
-/// Upload local saves to GOG cloud.
-pub async fn upload_cloud_saves(
-    game_id: &str,
-    local_save_path: &str,
-) -> Result<(), String> {
+pub async fn upload_cloud_saves(game_id: &str, local_save_path: &str) -> Result<(), String> {
     let token = tokio::task::block_in_place(|| ensure_token())?;
     let token_json =
         serde_json::to_string(&token).map_err(|e| format!("Failed to serialize token: {}", e))?;
-    let token_val: serde_json::Value = serde_json::from_str(&token_json)
-        .map_err(|e| format!("Failed to parse token: {}", e))?;
+    let token_val: serde_json::Value =
+        serde_json::from_str(&token_json).map_err(|e| format!("Failed to parse token: {}", e))?;
 
     let access_token = token_val["access_token"]
         .as_str()
@@ -347,7 +317,10 @@ pub async fn upload_cloud_saves(
 
     let save_path = Path::new(local_save_path);
     if !save_path.exists() {
-        return Err(format!("Local save path does not exist: {}", local_save_path));
+        return Err(format!(
+            "Local save path does not exist: {}",
+            local_save_path
+        ));
     }
 
     let http_client = reqwest::Client::builder()
@@ -355,7 +328,6 @@ pub async fn upload_cloud_saves(
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
-    // Walk the save directory and upload each file
     let files = collect_files(save_path)?;
     let total = files.len();
 
@@ -365,7 +337,6 @@ pub async fn upload_cloud_saves(
             .map_err(|e| e.to_string())?;
         let relative_str = relative.to_string_lossy().replace('\\', "/");
 
-        // Read and gzip compress
         let mut raw = Vec::new();
         fs::File::open(file_path)
             .map_err(|e| format!("Failed to open file: {}", e))?
@@ -387,7 +358,10 @@ pub async fn upload_cloud_saves(
 
         http_client
             .put(&upload_url)
-            .header(AUTHORIZATION, format!("Bearer {}", cloud_token.access_token))
+            .header(
+                AUTHORIZATION,
+                format!("Bearer {}", cloud_token.access_token),
+            )
             .header(CONTENT_TYPE, "application/octet-stream")
             .body(compressed)
             .send()
@@ -410,30 +384,27 @@ pub async fn upload_cloud_saves(
     Ok(())
 }
 
-/// Download saves from GOG cloud to local path.
-pub async fn download_cloud_saves(
-    game_id: &str,
-    local_save_path: &str,
-) -> Result<(), String> {
-    // Use a default path if none provided
+pub async fn download_cloud_saves(game_id: &str, local_save_path: &str) -> Result<(), String> {
     let resolved_save_path = if local_save_path.is_empty() {
-        // Default to Documents/GOG Cloud Saves/{game_id}
-        let user_dirs = UserDirs::new()
-            .ok_or("Could not determine user directories")?;
-        let docs = user_dirs.document_dir()
+        let user_dirs = UserDirs::new().ok_or("Could not determine user directories")?;
+        let docs = user_dirs
+            .document_dir()
             .ok_or("Could not determine Documents folder")?;
         let default_path = docs.join("GOG Cloud Saves").join(game_id);
-        eprintln!("[GOG-CLOUD] No save path provided, using default: {}", default_path.display());
+        eprintln!(
+            "[GOG-CLOUD] No save path provided, using default: {}",
+            default_path.display()
+        );
         default_path.to_string_lossy().to_string()
     } else {
         local_save_path.to_string()
     };
-    
+
     let token = tokio::task::block_in_place(|| ensure_token())?;
     let token_json =
         serde_json::to_string(&token).map_err(|e| format!("Failed to serialize token: {}", e))?;
-    let token_val: serde_json::Value = serde_json::from_str(&token_json)
-        .map_err(|e| format!("Failed to parse token: {}", e))?;
+    let token_val: serde_json::Value =
+        serde_json::from_str(&token_json).map_err(|e| format!("Failed to parse token: {}", e))?;
 
     let access_token = token_val["access_token"]
         .as_str()
@@ -455,32 +426,29 @@ pub async fn download_cloud_saves(
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
-    // List remote files
-    let list_url = format!(
-        "{}/v1/{}/{}",
-        CLOUDSTORAGE_URL, user_id, client_id
-    );
+    let list_url = format!("{}/v1/{}/{}", CLOUDSTORAGE_URL, user_id, client_id);
     let resp = http_client
         .get(&list_url)
-        .header(AUTHORIZATION, format!("Bearer {}", cloud_token.access_token))
+        .header(
+            AUTHORIZATION,
+            format!("Bearer {}", cloud_token.access_token),
+        )
         .send()
         .await
         .map_err(|e| format!("Failed to list cloud saves: {}", e))?;
 
     eprintln!("[GOG-CLOUD] List response status: {}", resp.status());
-    
-    // Get response as bytes first to handle potential compression
+
     let bytes = resp
         .bytes()
         .await
         .map_err(|e| format!("Failed to read list response: {}", e))?;
-    
+
     eprintln!("[GOG-CLOUD] List response length: {} bytes", bytes.len());
     if bytes.len() >= 10 {
         eprintln!("[GOG-CLOUD] First 10 bytes: {:02x?}", &bytes[..10]);
     }
-    
-    // Check for compression
+
     let body = if bytes.len() >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b {
         eprintln!("[GOG-CLOUD] List response is gzip-compressed");
         let decompressed = decompress_gzip(&bytes)?;
@@ -495,23 +463,30 @@ pub async fn download_cloud_saves(
         String::from_utf8(bytes.to_vec())
             .map_err(|e| format!("Failed to decode list response as UTF-8: {}", e))?
     };
-    
-    eprintln!("[GOG-CLOUD] List response body (first 500 chars): {}", 
-        if body.len() > 500 { &body[..500] } else { &body });
 
-    // Parse as newline-separated list of file paths (not JSON)
+    eprintln!(
+        "[GOG-CLOUD] List response body (first 500 chars): {}",
+        if body.len() > 500 {
+            &body[..500]
+        } else {
+            &body
+        }
+    );
+
     let file_list: Vec<String> = body
         .lines()
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
         .map(|s| s.to_string())
         .collect();
-    
-    eprintln!("[GOG-CLOUD] Found {} files in cloud storage", file_list.len());
+
+    eprintln!(
+        "[GOG-CLOUD] Found {} files in cloud storage",
+        file_list.len()
+    );
 
     let save_dir = Path::new(local_save_path);
-    fs::create_dir_all(save_dir)
-        .map_err(|e| format!("Failed to create save dir: {}", e))?;
+    fs::create_dir_all(save_dir).map_err(|e| format!("Failed to create save dir: {}", e))?;
 
     let total = file_list.len();
     for (idx, remote_path) in file_list.iter().enumerate() {
@@ -522,7 +497,10 @@ pub async fn download_cloud_saves(
 
         let resp = http_client
             .get(&download_url)
-            .header(AUTHORIZATION, format!("Bearer {}", cloud_token.access_token))
+            .header(
+                AUTHORIZATION,
+                format!("Bearer {}", cloud_token.access_token),
+            )
             .send()
             .await
             .map_err(|e| format!("Failed to download {}: {}", remote_path, e))?;
@@ -532,8 +510,8 @@ pub async fn download_cloud_saves(
             .await
             .map_err(|e| format!("Failed to read download response: {}", e))?;
 
-        // Decompress gzip
-        let decompressed = decompress_gzip(&compressed).unwrap_or_else(|_| compressed.as_ref().to_vec());
+        let decompressed =
+            decompress_gzip(&compressed).unwrap_or_else(|_| compressed.as_ref().to_vec());
 
         let local_path = save_dir.join(remote_path);
         if let Some(parent) = local_path.parent() {
@@ -558,11 +536,6 @@ pub async fn download_cloud_saves(
     Ok(())
 }
 
-// ──────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────
-
-/// Resolve a GOG cloud save path definition to an actual filesystem path.
 fn resolve_cloud_path(location: &str) -> String {
     let mut path = location.replace('\\', "/");
 
@@ -573,7 +546,10 @@ fn resolve_cloud_path(location: &str) -> String {
         let userprofile = std::env::var("USERPROFILE").unwrap_or_default();
         let public = std::env::var("PUBLIC").unwrap_or_default();
         path = path.replace("<%LOCAL_APPDATA%>", &local_appdata);
-        path = path.replace("<%APPLICATION_DATA_LOCAL_LOW%>", &format!("{}/AppData/LocalLow", userprofile));
+        path = path.replace(
+            "<%APPLICATION_DATA_LOCAL_LOW%>",
+            &format!("{}/AppData/LocalLow", userprofile),
+        );
         path = path.replace("<%APPLICATION_DATA%>", &appdata);
         path = path.replace("<%SAVED_GAMES%>", &format!("{}/Saved Games", userprofile));
         path = path.replace("<%DOCUMENTS%>", &format!("{}/Documents", userprofile));
@@ -595,10 +571,22 @@ fn resolve_cloud_path(location: &str) -> String {
     #[cfg(target_os = "macos")]
     {
         let home = std::env::var("HOME").unwrap_or_default();
-        path = path.replace("<%LOCAL_APPDATA%>", &format!("{}/Library/Application Support", home));
-        path = path.replace("<%APPLICATION_DATA_LOCAL_LOW%>", &format!("{}/Library/Application Support", home));
-        path = path.replace("<%APPLICATION_DATA%>", &format!("{}/Library/Application Support", home));
-        path = path.replace("<%SAVED_GAMES%>", &format!("{}/Library/Application Support", home));
+        path = path.replace(
+            "<%LOCAL_APPDATA%>",
+            &format!("{}/Library/Application Support", home),
+        );
+        path = path.replace(
+            "<%APPLICATION_DATA_LOCAL_LOW%>",
+            &format!("{}/Library/Application Support", home),
+        );
+        path = path.replace(
+            "<%APPLICATION_DATA%>",
+            &format!("{}/Library/Application Support", home),
+        );
+        path = path.replace(
+            "<%SAVED_GAMES%>",
+            &format!("{}/Library/Application Support", home),
+        );
         path = path.replace("<%DOCUMENTS%>", &format!("{}/Documents", home));
         path = path.replace("<%USER_DIR%>", &home);
     }
@@ -606,7 +594,6 @@ fn resolve_cloud_path(location: &str) -> String {
     path
 }
 
-/// Collect all files in a directory recursively.
 fn collect_files(dir: &Path) -> Result<Vec<PathBuf>, String> {
     let mut files = Vec::new();
     if dir.is_file() {
@@ -624,7 +611,6 @@ fn collect_files(dir: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-/// Decompress gzip data.
 fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, String> {
     let mut decoder = GzDecoder::new(data);
     let mut decompressed = Vec::new();
@@ -634,7 +620,6 @@ fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, String> {
     Ok(decompressed)
 }
 
-/// Decompress zlib data.
 fn decompress_zlib_to_vec(data: &[u8]) -> Result<Vec<u8>, String> {
     use flate2::read::ZlibDecoder;
     let mut decoder = ZlibDecoder::new(data);

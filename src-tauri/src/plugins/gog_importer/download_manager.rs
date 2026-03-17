@@ -1,22 +1,14 @@
-/// GOG download manager — handles downloading and installing GOG games.
-///
-/// Uses the `gog` crate's download_game method to download installer parts,
-/// then extracts them into the install directory.
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
 use super::{
-    ensure_token, build_gog_client, get_gog_data_dir, save_installed_games,
-    InstalledGogGame, INSTALLED_GAMES,
+    build_gog_client, ensure_token, get_gog_data_dir, save_installed_games, InstalledGogGame,
+    INSTALLED_GAMES,
 };
 use crate::database::establish_connection;
 use crate::send_message_to_frontend;
-
-// ──────────────────────────────────────────────
-// Download progress types
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DownloadProgress {
@@ -41,12 +33,6 @@ pub enum DownloadStatus {
     Cancelled,
 }
 
-// ──────────────────────────────────────────────
-// Download & Install
-// ──────────────────────────────────────────────
-
-/// Download and install a GOG game given its game_id and install directory.
-/// GOG games are distributed as installer files that we download.
 pub async fn download_game(game_id: &str, install_path: &str) -> Result<(), String> {
     send_message_to_frontend(&format!(
         "[GOG-DL-INFO] Starting download for game {}...",
@@ -58,95 +44,87 @@ pub async fn download_game(game_id: &str, install_path: &str) -> Result<(), Stri
     let install_path_clone = install_path.clone();
     let game_id_str = game_id.to_string();
 
-    let result = tokio::task::block_in_place(move || -> Result<(String, String, PathBuf), String> {
-        let token = ensure_token()?;
-        let gog = build_gog_client(token);
+    let result =
+        tokio::task::block_in_place(move || -> Result<(String, String, PathBuf), String> {
+            let token = ensure_token()?;
+            let gog = build_gog_client(token);
 
-        // Get game details for title and downloads
-        let details = gog
-            .get_game_details(game_id_i64)
-            .map_err(|e| format!("Failed to get game details: {:?}", e))?;
+            let details = gog
+                .get_game_details(game_id_i64)
+                .map_err(|e| format!("Failed to get game details: {:?}", e))?;
 
-        let title = details.title.clone();
+            let title = details.title.clone();
 
-        // Create install directory
-        let install_dir = PathBuf::from(&install_path).join(&sanitize_dirname(&title));
-        fs::create_dir_all(&install_dir)
-            .map_err(|e| format!("Failed to create install dir: {}", e))?;
+            let install_dir = PathBuf::from(&install_path).join(&sanitize_dirname(&title));
+            fs::create_dir_all(&install_dir)
+                .map_err(|e| format!("Failed to create install dir: {}", e))?;
 
-        // Get download list based on platform
-        let is_linux = cfg!(target_os = "linux");
-        let downloads = details.all(is_linux);
+            let is_linux = cfg!(target_os = "linux");
+            let downloads = details.all(is_linux);
 
-        if downloads.is_empty() {
-            return Err("No downloads available for this game on your platform".into());
-        }
+            if downloads.is_empty() {
+                return Err("No downloads available for this game on your platform".into());
+            }
 
-        send_message_to_frontend(&format!(
-            "[GOG-DL-INFO] Downloading {} parts for {}...",
-            downloads.len(),
-            title
-        ));
+            send_message_to_frontend(&format!(
+                "[GOG-DL-INFO] Downloading {} parts for {}...",
+                downloads.len(),
+                title
+            ));
 
-        // Download each part
-        let responses = gog.download_game(downloads.clone());
-        let download_dir = get_gog_data_dir().join("downloads");
-        fs::create_dir_all(&download_dir).ok();
+            let responses = gog.download_game(downloads.clone());
+            let download_dir = get_gog_data_dir().join("downloads");
+            fs::create_dir_all(&download_dir).ok();
 
-        let mut downloaded_files = Vec::new();
-        for (idx, response_result) in responses.into_iter().enumerate() {
-            match response_result {
-                Ok(response) => {
-                    let filename = format!("{}_{}.bin", game_id_str, idx);
-                    let file_path = download_dir.join(&filename);
+            let mut downloaded_files = Vec::new();
+            for (idx, response_result) in responses.into_iter().enumerate() {
+                match response_result {
+                    Ok(response) => {
+                        let filename = format!("{}_{}.bin", game_id_str, idx);
+                        let file_path = download_dir.join(&filename);
 
-                    let bytes = response
-                        .bytes()
-                        .map_err(|e| format!("Failed to read download response: {}", e))?;
+                        let bytes = response
+                            .bytes()
+                            .map_err(|e| format!("Failed to read download response: {}", e))?;
 
-                    fs::write(&file_path, &bytes)
-                        .map_err(|e| format!("Failed to write installer file: {}", e))?;
+                        fs::write(&file_path, &bytes)
+                            .map_err(|e| format!("Failed to write installer file: {}", e))?;
 
-                    downloaded_files.push(file_path);
+                        downloaded_files.push(file_path);
 
-                    send_message_to_frontend(&format!(
-                        "[GOG-DL-PROGRESS] Part {}/{} downloaded ({:.2} MB)",
-                        idx + 1,
-                        downloads.len(),
-                        bytes.len() as f64 / 1_048_576.0
-                    ));
-                }
-                Err(e) => {
-                    return Err(format!("Download failed for part {}: {:?}", idx, e));
+                        send_message_to_frontend(&format!(
+                            "[GOG-DL-PROGRESS] Part {}/{} downloaded ({:.2} MB)",
+                            idx + 1,
+                            downloads.len(),
+                            bytes.len() as f64 / 1_048_576.0
+                        ));
+                    }
+                    Err(e) => {
+                        return Err(format!("Download failed for part {}: {:?}", idx, e));
+                    }
                 }
             }
-        }
 
-        // Get the version from the first download
-        let version = downloads
-            .first()
-            .and_then(|d| d.version.clone())
-            .unwrap_or_else(|| "unknown".to_string());
+            let version = downloads
+                .first()
+                .and_then(|d| d.version.clone())
+                .unwrap_or_else(|| "unknown".to_string());
 
-        // GOG installers are executable files (InnoSetup/makeself), not zip archives
-        // Keep them in a persistent downloads folder for the user to run
-        send_message_to_frontend(&format!(
-            "[GOG-DL-INFO] Installers downloaded to: {}",
-            download_dir.display()
-        ));
+            send_message_to_frontend(&format!(
+                "[GOG-DL-INFO] Installers downloaded to: {}",
+                download_dir.display()
+            ));
 
-        send_message_to_frontend(&format!(
-            "[GOG-DL-INFO] Please run the installer manually to complete installation: {}",
-            downloaded_files.first().map(|p| p.display().to_string()).unwrap_or_default()
-        ));
+            send_message_to_frontend(&format!(
+                "[GOG-DL-INFO] Please run the installer manually to complete installation: {}",
+                downloaded_files
+                    .first()
+                    .map(|p| p.display().to_string())
+                    .unwrap_or_default()
+            ));
 
-        // DO NOT delete the installer files - user needs them
-        // for file in &downloaded_files {
-        //     let _ = fs::remove_file(file);
-        // }
-
-        Ok((title, version, download_dir))
-    });
+            Ok((title, version, download_dir))
+        });
 
     let (title, version, installer_dir) = result?;
 
@@ -157,12 +135,9 @@ pub async fn download_game(game_id: &str, install_path: &str) -> Result<(), Stri
         installer_dir.display()
     ));
 
-    // Do NOT mark as installed yet - user needs to run the installer first
-    // Return success so UI knows download is done
     Ok(())
 }
 
-/// Uninstall a GOG game by removing its files and metadata.
 pub async fn uninstall_game(game_id: &str) -> Result<(), String> {
     let installed = {
         let mut games = INSTALLED_GAMES.lock().await;
@@ -170,7 +145,6 @@ pub async fn uninstall_game(game_id: &str) -> Result<(), String> {
     };
 
     if let Some(game) = installed {
-        // Remove install directory
         if Path::new(&game.install_path).exists() {
             fs::remove_dir_all(&game.install_path)
                 .map_err(|e| format!("Failed to remove install dir: {}", e))?;
@@ -178,7 +152,6 @@ pub async fn uninstall_game(game_id: &str) -> Result<(), String> {
 
         save_installed_games().await;
 
-        // Update database: clear exec_file and game_dir
         let conn = establish_connection().unwrap();
         let db_games = crate::database::query_data(
             &conn,
@@ -190,8 +163,10 @@ pub async fn uninstall_game(game_id: &str) -> Result<(), String> {
 
         if let Ok(db_games) = db_games {
             for game_row in &db_games {
-                let game_importer_id =
-                    game_row.get("game_importer_id").cloned().unwrap_or_default();
+                let game_importer_id = game_row
+                    .get("game_importer_id")
+                    .cloned()
+                    .unwrap_or_default();
                 if game_importer_id == game_id {
                     let db_game_id = game_row.get("id").cloned().unwrap_or_default();
                     let sql = format!(
@@ -211,17 +186,9 @@ pub async fn uninstall_game(game_id: &str) -> Result<(), String> {
     }
 }
 
-// ──────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────
-
-/// Attempt to extract a GOG installer file.
-/// GOG uses zip-based installers on some platforms.
 fn extract_installer(file_path: &Path, dest_dir: &Path) -> Result<(), String> {
-    let file = fs::File::open(file_path)
-        .map_err(|e| format!("Failed to open installer: {}", e))?;
+    let file = fs::File::open(file_path).map_err(|e| format!("Failed to open installer: {}", e))?;
 
-    // Try zip extraction first
     match zip::ZipArchive::new(file) {
         Ok(mut archive) => {
             for i in 0..archive.len() {
@@ -250,14 +217,10 @@ fn extract_installer(file_path: &Path, dest_dir: &Path) -> Result<(), String> {
             }
             Ok(())
         }
-        Err(_) => {
-            // Not a zip file - just copy the installer as-is
-            Err("Not a zip archive, copying installer directly".into())
-        }
+        Err(_) => Err("Not a zip archive, copying installer directly".into()),
     }
 }
 
-/// Sanitize a directory name (remove chars not valid for filesystems)
 fn sanitize_dirname(name: &str) -> String {
     name.chars()
         .map(|c| match c {
@@ -267,9 +230,7 @@ fn sanitize_dirname(name: &str) -> String {
         .collect()
 }
 
-/// Try to detect the main executable in an install directory
 fn detect_executable(install_dir: &Path) -> Option<String> {
-    // Look for goggame-*.info files first (GOG Galaxy format)
     if let Ok(entries) = fs::read_dir(install_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
@@ -289,7 +250,6 @@ fn detect_executable(install_dir: &Path) -> Option<String> {
         }
     }
 
-    // Fallback: look for .exe files on Windows
     #[cfg(target_os = "windows")]
     {
         if let Ok(entries) = walkdir::WalkDir::new(install_dir)
@@ -301,7 +261,7 @@ fn detect_executable(install_dir: &Path) -> Option<String> {
                 let path = entry.path();
                 if path.extension().map(|e| e == "exe").unwrap_or(false) {
                     let name = path.file_name().unwrap_or_default().to_string_lossy();
-                    // Skip installers and uninstallers
+
                     let lower = name.to_lowercase();
                     if lower.contains("unins")
                         || lower.contains("setup")
@@ -321,7 +281,6 @@ fn detect_executable(install_dir: &Path) -> Option<String> {
     None
 }
 
-/// Calculate directory size recursively
 fn dir_size(path: &Path) -> u64 {
     walkdir::WalkDir::new(path)
         .into_iter()

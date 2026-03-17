@@ -1,13 +1,13 @@
+use std::env;
 use steam_rs::steam_id::SteamId;
 use steam_rs::Steam;
 use tokio::sync::Mutex;
-use std::env;
 
 use crate::database::{
     establish_connection, first_time_stat, update_achievements, update_game_nodup,
 };
-use crate::{send_message_to_frontend, IGame, ITrophy};
 use crate::plugins::steam_api_lenient;
+use crate::{send_message_to_frontend, IGame, ITrophy};
 
 lazy_static::lazy_static! {
     static ref STEAMID: Mutex<String> = Mutex::new("".to_string());
@@ -18,9 +18,17 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     println!("[STEAM IMPORTER] Starting Steam Importer");
     let apikey = APIKEY.lock().await;
     let steamid = STEAMID.lock().await;
-    println!("[STEAM IMPORTER] API Key length: {}, Steam ID length: {}", apikey.len(), steamid.len());
+    println!(
+        "[STEAM IMPORTER] API Key length: {}, Steam ID length: {}",
+        apikey.len(),
+        steamid.len()
+    );
     if apikey.is_empty() || steamid.is_empty() {
-        println!("[STEAM IMPORTER] Credentials not set (apikey empty: {}, steamid empty: {})", apikey.is_empty(), steamid.is_empty());
+        println!(
+            "[STEAM IMPORTER] Credentials not set (apikey empty: {}, steamid empty: {})",
+            apikey.is_empty(),
+            steamid.is_empty()
+        );
         return Ok(());
     }
     let client = Steam::new(&apikey);
@@ -41,23 +49,16 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         igame.platforms = "Steam".to_string();
         let conn = establish_connection().unwrap();
         let new_id = update_game_nodup(&conn, igame)?;
-        
-        // Steam API provides playtime_forever in minutes
-        // Convert to milliseconds for consistency with Meteoric's stats system
+
         let playtime_ms = (game.playtime_forever * 60 * 1000).to_string();
-        
-        // Note: The steam-rs library doesn't expose rtime_last_played
-        // For now, use current time as import date
-        // TODO: Custom API call to get actual last played time
-        let date_of_play = chrono::Local::now()
-            .format("%Y-%m-%d %H:%M:%S")
-            .to_string();
-        
+
+        let date_of_play = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+
         println!(
             "[STEAM IMPORTER] Game: {} - Playtime: {} min ({} ms)",
             game.name, game.playtime_forever, playtime_ms
         );
-        
+
         first_time_stat(&conn, new_id, playtime_ms, date_of_play)?;
     }
 
@@ -106,12 +107,14 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                                 for player_achievement in player_achievements.iter() {
                                     if let Some(ref apiname) = player_achievement.apiname {
                                         if achievement.name == *apiname {
-                                            achievement.unlocked = if player_achievement.achieved == 1 {
-                                                "true".to_string()
-                                            } else {
-                                                "false".to_string()
-                                            };
-                                            if let Some(unlocktime) = player_achievement.unlocktime {
+                                            achievement.unlocked =
+                                                if player_achievement.achieved == 1 {
+                                                    "true".to_string()
+                                                } else {
+                                                    "false".to_string()
+                                                };
+                                            if let Some(unlocktime) = player_achievement.unlocktime
+                                            {
                                                 achievement.date_of_unlock = unlocktime.to_string();
                                             }
                                         }
@@ -121,25 +124,29 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                     Err(e) => {
-                        println!("[STEAM IMPORTER] Could not fetch player achievements: {}", e);
+                        println!(
+                            "[STEAM IMPORTER] Could not fetch player achievements: {}",
+                            e
+                        );
                     }
                 }
                 println!("[STEAM IMPORTER] ACHIEVEMENTS IMPORTED");
-                
-                // Calculate counts before moving iachievements
+
                 let count = iachievements.len();
-                let unlocked_count = iachievements.iter().filter(|t| t.unlocked == "true").count();
-                
+                let unlocked_count = iachievements
+                    .iter()
+                    .filter(|t| t.unlocked == "true")
+                    .count();
+
                 let conn = establish_connection().unwrap();
                 update_achievements(&conn, iachievements)?;
-                
-                // Update the trophies count on the game row
+
                 let sql = format!(
                     "UPDATE games SET trophies = '{}', trophies_unlocked = '{}' WHERE game_importer_id = '{}'",
                     count, unlocked_count, game.appid
                 );
                 let _ = conn.execute(&sql, []);
-                
+
                 println!("[STEAM IMPORTER] ACHIEVEMENTS UPDATED IN DB");
             }
             Err(e) => {
@@ -150,7 +157,10 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                         game.appid
                     );
                 } else {
-                    println!("[STEAM IMPORTER] Error getting schema for game {}: {}", game.appid, e);
+                    println!(
+                        "[STEAM IMPORTER] Error getting schema for game {}: {}",
+                        game.appid, e
+                    );
                 }
             }
         }
@@ -159,31 +169,27 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Sync achievements for a single Steam game.
-/// `game_id` is the Meteoric database game ID.
-/// `app_id` is the Steam application ID (numeric).
 pub async fn sync_achievements(game_id: &str, app_id: &str) -> Result<usize, String> {
-    // Parse app_id to u32
     let app_id_u32: u32 = app_id
         .parse()
         .map_err(|_| format!("Invalid Steam app ID: {}", app_id))?;
-    
-    // Try to get credentials from memory first
+
     let apikey = APIKEY.lock().await;
     let steamid = STEAMID.lock().await;
-    
-    // If not set in memory, try to load from environment variables
+
     if apikey.is_empty() || steamid.is_empty() {
         drop(apikey);
         drop(steamid);
-        
+
         match (env::var("STEAM_API_KEY"), env::var("STEAM_USER_ID")) {
             (Ok(api_key), Ok(user_id)) => {
                 let mut apikey = APIKEY.lock().await;
                 let mut steamid = STEAMID.lock().await;
                 *apikey = api_key;
                 *steamid = user_id;
-                send_message_to_frontend("[STEAM-ACH] Loaded credentials from environment variables");
+                send_message_to_frontend(
+                    "[STEAM-ACH] Loaded credentials from environment variables",
+                );
             }
             _ => {
                 return Err(
@@ -195,40 +201,48 @@ pub async fn sync_achievements(game_id: &str, app_id: &str) -> Result<usize, Str
         drop(apikey);
         drop(steamid);
     }
-    
-    // Re-acquire locks after dropping
+
     let apikey = APIKEY.lock().await;
     let steamid = STEAMID.lock().await;
 
-    // Validate Steam ID is numeric
     let steam_id_u64: u64 = steamid.parse().map_err(|_| {
         format!("Invalid Steam ID '{}'. Must be a numeric Steam ID (SteamID64), not a username. Find yours at https://steamid.io/", steamid)
     })?;
 
-    // Fetch achievement schema for the game using lenient API
-    let achievements_schema = match steam_api_lenient::get_achievement_schema(&apikey, app_id_u32).await {
-        Ok(schema) => schema,
-        Err(e) => {
-            let err_msg = format!("Failed to get achievement schema for game {}: {}", app_id, e);
-            send_message_to_frontend(&format!("[STEAM-ACH] {}", err_msg));
-            return Err(err_msg);
-        }
-    };
-    
+    let achievements_schema =
+        match steam_api_lenient::get_achievement_schema(&apikey, app_id_u32).await {
+            Ok(schema) => schema,
+            Err(e) => {
+                let err_msg = format!(
+                    "Failed to get achievement schema for game {}: {}",
+                    app_id, e
+                );
+                send_message_to_frontend(&format!("[STEAM-ACH] {}", err_msg));
+                return Err(err_msg);
+            }
+        };
+
     if achievements_schema.is_empty() {
-        send_message_to_frontend(&format!("[STEAM-ACH] No achievements found for app {}", app_id));
+        send_message_to_frontend(&format!(
+            "[STEAM-ACH] No achievements found for app {}",
+            app_id
+        ));
         return Ok(0);
     }
-    
+
     let mut iachievements: Vec<ITrophy> = Vec::new();
-    let mut api_name_map: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut api_name_map: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
 
     for achievement in &achievements_schema {
         let api_name = achievement.name.clone().unwrap_or_default();
         let mut itrophy = ITrophy::new();
         itrophy.id = "-1".to_string();
-        // Use display_name for the user-facing name (like Epic does)
-        itrophy.name = achievement.display_name.clone().unwrap_or_else(|| api_name.clone());
+
+        itrophy.name = achievement
+            .display_name
+            .clone()
+            .unwrap_or_else(|| api_name.clone());
         itrophy.description = achievement.description.clone().unwrap_or_default();
         itrophy.game_id = game_id.to_string();
         itrophy.importer_id = "steam".to_string();
@@ -241,13 +255,11 @@ pub async fn sync_achievements(game_id: &str, app_id: &str) -> Result<usize, Str
         itrophy.image_url_locked = achievement.icon_gray.clone().unwrap_or_default();
         itrophy.date_of_unlock = String::new();
         itrophy.unlocked = "false".to_string();
-        
-        // Map API name to index for later matching
+
         api_name_map.insert(api_name, iachievements.len());
         iachievements.push(itrophy);
     }
 
-    // Fetch player achievements and merge
     match steam_api_lenient::get_player_achievements(&apikey, steam_id_u64, app_id_u32).await {
         Ok(player_achievements) => {
             for player_achievement in player_achievements.iter() {
@@ -279,13 +291,15 @@ pub async fn sync_achievements(game_id: &str, app_id: &str) -> Result<usize, Str
     }
 
     let count = iachievements.len();
-    let unlocked_count = iachievements.iter().filter(|t| t.unlocked == "true").count();
+    let unlocked_count = iachievements
+        .iter()
+        .filter(|t| t.unlocked == "true")
+        .count();
 
     let conn = establish_connection().unwrap();
     update_achievements(&conn, iachievements)
         .map_err(|e| format!("Failed to save achievements: {}", e))?;
 
-    // Update the trophies count on the game row
     let sql = format!(
         "UPDATE games SET trophies = '{}', trophies_unlocked = '{}' WHERE id = '{}'",
         count, unlocked_count, game_id
@@ -301,11 +315,17 @@ pub async fn sync_achievements(game_id: &str, app_id: &str) -> Result<usize, Str
 }
 
 pub async fn set_credentials(creds: Vec<String>) {
-    println!("[STEAM IMPORTER] Setting credentials - received {} items", creds.len());
+    println!(
+        "[STEAM IMPORTER] Setting credentials - received {} items",
+        creds.len()
+    );
     if creds.len() >= 2 {
-        println!("[STEAM IMPORTER] Steam ID: '{}', API Key length: {}", creds[0], creds[1].len());
-        
-        // Validate Steam ID is numeric
+        println!(
+            "[STEAM IMPORTER] Steam ID: '{}', API Key length: {}",
+            creds[0],
+            creds[1].len()
+        );
+
         if creds[0].parse::<u64>().is_err() {
             eprintln!("[STEAM IMPORTER ERROR] Invalid Steam ID '{}'. Must be a numeric Steam ID (SteamID64), not a username.", creds[0]);
             eprintln!("[STEAM IMPORTER ERROR] Find your numeric Steam ID at https://steamid.io/");

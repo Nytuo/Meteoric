@@ -29,16 +29,21 @@ mod tests {
         let result = download_screenshots(&game_dir, &client, &screenshots).await;
 
         assert!(result.is_ok());
-        // Images should be saved as WebP (static) or GIF (animated)
+
         let has_webp_1 = screenshots_dir.join("screenshot-1.webp").exists();
         let has_gif_1 = screenshots_dir.join("screenshot-1.gif").exists();
-        assert!(has_webp_1 || has_gif_1, "Screenshot 1 should exist as webp or gif");
-        
+        assert!(
+            has_webp_1 || has_gif_1,
+            "Screenshot 1 should exist as webp or gif"
+        );
+
         let has_webp_2 = screenshots_dir.join("screenshot-2.webp").exists();
         let has_gif_2 = screenshots_dir.join("screenshot-2.gif").exists();
-        assert!(has_webp_2 || has_gif_2, "Screenshot 2 should exist as webp or gif");
-        
-        // Check file size
+        assert!(
+            has_webp_2 || has_gif_2,
+            "Screenshot 2 should exist as webp or gif"
+        );
+
         let file_path_1 = if has_webp_1 {
             screenshots_dir.join("screenshot-1.webp")
         } else {
@@ -47,7 +52,7 @@ mod tests {
         let mut file = File::open(file_path_1).unwrap();
         let mut metadata = file.metadata().unwrap();
         assert!(metadata.len() > 0);
-        
+
         let file_path_2 = if has_webp_2 {
             screenshots_dir.join("screenshot-2.webp")
         } else {
@@ -105,17 +110,19 @@ mod tests {
 
         let client = Client::new();
 
-        //bg
         let key = "background";
         let value = json!("https://picsum.photos/seed/test2/400/200");
 
         let result = download_single_file(&game_dir, &client, &key, &value).await;
 
         assert!(result.is_ok());
-        // Background should be saved as WebP or GIF
+
         let has_webp = game_dir.join("background.webp").exists();
         let has_gif = game_dir.join("background.gif").exists();
-        assert!(has_webp || has_gif, "Background should exist as webp or gif");
+        assert!(
+            has_webp || has_gif,
+            "Background should exist as webp or gif"
+        );
         let file_path = if has_webp {
             game_dir.join("background.webp")
         } else {
@@ -125,7 +132,6 @@ mod tests {
         let mut metadata = file.metadata().unwrap();
         assert!(metadata.len() > 0);
 
-        //jaquette
         let game_dir = temp_dir.path().to_path_buf();
 
         let key = "jaquette";
@@ -146,7 +152,6 @@ mod tests {
         metadata = file.metadata().unwrap();
         assert!(metadata.len() > 0);
 
-        //logo
         let game_dir = temp_dir.path().to_path_buf();
 
         let key = "logo";
@@ -167,7 +172,6 @@ mod tests {
         metadata = file.metadata().unwrap();
         assert!(metadata.len() > 0);
 
-        //icon
         let game_dir = temp_dir.path().to_path_buf();
 
         let key = "icon";
@@ -188,7 +192,6 @@ mod tests {
         metadata = file.metadata().unwrap();
         assert!(metadata.len() > 0);
 
-        //audio
         let game_dir = temp_dir.path().to_path_buf();
 
         let key = "audio";

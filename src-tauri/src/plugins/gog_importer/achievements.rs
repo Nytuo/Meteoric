@@ -1,14 +1,7 @@
-/// GOG achievements — fetches player achievements from the GOG API.
-///
-/// Uses the `gog` crate's existing `achievements()` method which returns
-/// an `AchievementList` with all achievements and unlock status.
-use super::{ensure_token, build_gog_client};
+use super::{build_gog_client, ensure_token};
 use crate::database::{establish_connection, update_achievements};
 use crate::{send_message_to_frontend, ITrophy};
 
-/// Fetch and sync achievements for a GOG game.
-/// `game_id` is the Meteoric database game ID.
-/// `product_id` is the GOG product/game ID (numeric).
 pub async fn sync_achievements(game_id: &str, product_id: &str) -> Result<usize, String> {
     let product_id_i64: i64 = product_id
         .parse()
@@ -56,7 +49,6 @@ pub async fn sync_achievements(game_id: &str, product_id: &str) -> Result<usize,
     update_achievements(&conn, trophies)
         .map_err(|e| format!("Failed to save achievements: {}", e))?;
 
-    // Update the trophies count on the game row
     let sql = format!(
         "UPDATE games SET trophies = '{}', trophies_unlocked = '{}' WHERE id = '{}'",
         count, unlocked_count, game_id

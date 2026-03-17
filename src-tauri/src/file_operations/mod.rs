@@ -5,11 +5,11 @@ use std::io::prelude::*;
 use std::io::Cursor;
 
 use directories::ProjectDirs;
+use image::codecs::gif::GifDecoder;
+use image::ImageReader;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
-use image::ImageReader;
-use image::codecs::gif::GifDecoder;
 
 use crate::database::establish_connection;
 use crate::database::query_all_data;
@@ -19,64 +19,56 @@ use crate::Metadata;
 
 mod test;
 
-// Helper function to detect if an image is animated
 fn is_animated_image(bytes: &[u8]) -> bool {
-    // Try to detect if it's a GIF
-    if bytes.len() > 6 && &bytes[0..6] == b"GIF89a" || (bytes.len() > 6 && &bytes[0..6] == b"GIF87a") {
-        // Try to decode as GIF and check frame count
+    if bytes.len() > 6 && &bytes[0..6] == b"GIF89a"
+        || (bytes.len() > 6 && &bytes[0..6] == b"GIF87a")
+    {
         if GifDecoder::new(Cursor::new(bytes)).is_ok() {
-            // If we can decode it and it might have multiple frames, consider it animated
             return true;
         }
     }
     false
 }
 
-// Helper function to convert image bytes to WebP
 fn convert_to_webp(bytes: &[u8]) -> Result<Vec<u8>, String> {
-    // First check if it's already WebP
     if bytes.len() > 4 && &bytes[0..4] == b"RIFF" && bytes.len() > 12 && &bytes[8..12] == b"WEBP" {
         return Ok(bytes.to_vec());
     }
-    
-    // Try to load the image
+
     let img = ImageReader::new(Cursor::new(bytes))
         .with_guessed_format()
         .map_err(|e| format!("Failed to guess image format: {}", e))?
         .decode()
         .map_err(|e| format!("Failed to decode image: {}", e))?;
-    
-    // Convert to WebP
+
     let mut webp_bytes = Vec::new();
     let encoder = image::codecs::webp::WebPEncoder::new_lossless(&mut webp_bytes);
-    encoder.encode(
-        img.as_bytes(),
-        img.width(),
-        img.height(),
-        img.color().into(),
-    ).map_err(|e| format!("Failed to encode as WebP: {}", e))?;
-    
+    encoder
+        .encode(
+            img.as_bytes(),
+            img.width(),
+            img.height(),
+            img.color().into(),
+        )
+        .map_err(|e| format!("Failed to encode as WebP: {}", e))?;
+
     Ok(webp_bytes)
 }
 
-// Helper function to save image with appropriate format
 async fn save_image_optimized(file_path: &PathBuf, bytes: &[u8]) -> Result<(), String> {
     let is_animated = is_animated_image(bytes);
-    
+
     if is_animated {
-        // For animated images, keep as GIF for now (or convert to animated WebP)
-        // We'll keep the original for animated content
         let file_path_gif = file_path.with_extension("gif");
         fs::write(&file_path_gif, bytes)
             .map_err(|e| format!("Error writing animated image: {}", e))?;
     } else {
-        // Convert static images to WebP
         let webp_bytes = convert_to_webp(bytes)?;
         let file_path_webp = file_path.with_extension("webp");
         fs::write(&file_path_webp, webp_bytes)
             .map_err(|e| format!("Error writing WebP image: {}", e))?;
     }
-    
+
     Ok(())
 }
 
@@ -251,8 +243,7 @@ async fn download_screenshots(
             .join("screenshots")
             .join("screenshot-".to_string() + &get_nb_of_screenshots.to_string());
         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
-        
-        // Save with automatic format optimization (WebP for static, GIF for animated)
+
         save_image_optimized(&file_path, &file_content).await?;
     }
 
@@ -305,24 +296,27 @@ async fn download_single_file(
 ) -> Result<(), String> {
     let url = value.as_str().unwrap();
 
-    if key == "audio" || key == "background" || key == "jaquette" || key == "jaquette_horizontal" || key == "logo" || key == "icon"
+    if key == "audio"
+        || key == "background"
+        || key == "jaquette"
+        || key == "jaquette_horizontal"
+        || key == "logo"
+        || key == "icon"
     {
         println!("Downloading: {}", url);
         if url.is_empty() {
             println!("Skipping {} - URL is empty", key);
-            return Ok(()); // Skip empty URLs gracefully instead of erroring
+            return Ok(());
         }
         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
         let game_dir_clone = game_dir.clone();
-        
-        // For audio files, save directly without conversion
+
         if key == "audio" {
             let file_path = game_dir_clone.join("musics").join("theme.mp3");
             if let Err(e) = fs::write(&file_path, &file_content) {
                 return Err(format!("Error writing file: {:?}", e));
             }
         } else {
-            // For image files, use optimized format (WebP for static, GIF for animated)
             let file_path = match key {
                 "background" => game_dir_clone.join("background"),
                 "jaquette" => game_dir_clone.join("jaquette"),

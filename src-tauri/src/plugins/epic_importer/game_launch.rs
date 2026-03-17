@@ -1,17 +1,9 @@
-/// Epic Games game launcher — handles launching games with proper EGS authentication.
-///
-/// Based on legendary's launch_game logic, rewritten in Rust.
-/// Uses egs-api for game token and ownership token generation.
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
 use super::{ensure_logged_in, get_epic_data_dir, EPIC, INSTALLED_GAMES};
 use crate::send_message_to_frontend;
-
-// ──────────────────────────────────────────────
-// Launch parameters
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EpicLaunchParams {
@@ -22,38 +14,37 @@ pub struct EpicLaunchParams {
     pub environment: Vec<(String, String)>,
 }
 
-// ──────────────────────────────────────────────
-// Build launch parameters
-// ──────────────────────────────────────────────
-
-/// Build the full set of launch parameters for an Epic game, including
-/// authentication exchange code, ownership token, and EGL parameters.
 pub async fn get_launch_parameters(
     app_name: &str,
     offline: bool,
 ) -> Result<EpicLaunchParams, String> {
     println!("[EPIC LAUNCH] ========================================");
     println!("[EPIC LAUNCH] Getting launch parameters for '{}'", app_name);
-    
-    // 1. Get installed game info
+
     let installed = {
         let mut games = INSTALLED_GAMES.lock().await;
-        println!("[EPIC LAUNCH] INSTALLED_GAMES cache contains {} games", games.len());
-        
+        println!(
+            "[EPIC LAUNCH] INSTALLED_GAMES cache contains {} games",
+            games.len()
+        );
+
         if games.is_empty() {
             println!("[EPIC LAUNCH WARNING] INSTALLED_GAMES cache is empty!");
             println!("[EPIC LAUNCH] Attempting to reload cache from disk...");
-            drop(games); // Release lock before calling load
+            drop(games);
             super::load_installed_games().await;
             games = INSTALLED_GAMES.lock().await;
-            println!("[EPIC LAUNCH] After reload: cache contains {} games", games.len());
+            println!(
+                "[EPIC LAUNCH] After reload: cache contains {} games",
+                games.len()
+            );
         } else {
             println!("[EPIC LAUNCH] Games in cache:");
             for key in games.keys() {
                 println!("[EPIC LAUNCH]   - {}", key);
             }
         }
-        
+
         games.get(app_name).cloned()
     };
 
@@ -63,9 +54,11 @@ pub async fn get_launch_parameters(
         println!("[EPIC LAUNCH] ========================================");
         err_msg
     })?;
-    
-    println!("[EPIC LAUNCH] Found game in cache: install_path={}, executable={}", 
-             installed.install_path, installed.executable);
+
+    println!(
+        "[EPIC LAUNCH] Found game in cache: install_path={}, executable={}",
+        installed.install_path, installed.executable
+    );
     println!("[EPIC LAUNCH] ========================================");
 
     let install_path = PathBuf::from(&installed.install_path);
@@ -76,19 +69,13 @@ pub async fn get_launch_parameters(
         .map(|p| p.to_string_lossy().to_string())
         .unwrap_or_else(|| install_path.to_string_lossy().to_string());
 
-    // 2. Game parameters from manifest
     let mut game_args = Vec::new();
     if let Some(ref params) = installed.launch_parameters {
         if !params.is_empty() {
-            game_args.extend(
-                params
-                    .split_whitespace()
-                    .map(|s| s.to_string()),
-            );
+            game_args.extend(params.split_whitespace().map(|s| s.to_string()));
         }
     }
 
-    // 3. EGL authentication parameters
     let mut egl_args = Vec::new();
     let mut game_token = String::new();
 
@@ -97,17 +84,17 @@ pub async fn get_launch_parameters(
 
         let mut client = EPIC.lock().await;
 
-        // Get exchange code for game authentication
         match client.game_token().await {
             Some(token) => {
                 game_token = token.code.clone();
             }
             None => {
-                println!("[EPIC-LAUNCH] Warning: Failed to get game token, game may not work online");
+                println!(
+                    "[EPIC-LAUNCH] Warning: Failed to get game token, game may not work online"
+                );
             }
         }
 
-        // Get user details
         let ud = client.user_details();
         let account_id = ud.account_id.clone().unwrap_or_default();
         let display_name = ud.display_name.clone().unwrap_or_default();
@@ -125,9 +112,7 @@ pub async fn get_launch_parameters(
             format!("-epicsandboxid={}", installed.namespace),
         ]);
 
-        // Ownership token for DRM-protected games
         if installed.requires_ownership_token {
-            // Get asset for ownership token
             let asset = {
                 let cache = super::ASSET_CACHE.lock().await;
                 cache.get(app_name).cloned()
@@ -147,7 +132,6 @@ pub async fn get_launch_parameters(
             }
         }
     } else {
-        // Offline mode: still set some parameters
         egl_args.extend(vec![
             "-AUTH_LOGIN=unused".to_string(),
             "-AUTH_PASSWORD=".to_string(),
@@ -167,7 +151,6 @@ pub async fn get_launch_parameters(
     })
 }
 
-/// Launch an Epic game. Returns the process ID.
 pub async fn launch_epic_game(
     app_name: &str,
     offline: bool,
@@ -177,23 +160,22 @@ pub async fn launch_epic_game(
 
     send_message_to_frontend(&format!("[EPIC-LAUNCH] Launching {}...", app_name));
 
-    // Build the full argument list
     let mut all_args = Vec::new();
     all_args.extend(params.game_args);
     all_args.extend(extra_args);
     all_args.extend(params.egl_args);
 
-    // Validate executable exists
     if !std::path::Path::new(&params.executable).exists() {
-        return Err(format!("Executable not found: {}. The game may not be installed correctly.", params.executable));
+        return Err(format!(
+            "Executable not found: {}. The game may not be installed correctly.",
+            params.executable
+        ));
     }
 
-    // Launch the process
     let mut cmd = tokio::process::Command::new(&params.executable);
     cmd.current_dir(&params.working_directory);
     cmd.args(&all_args);
 
-    // Set environment variables
     for (key, value) in &params.environment {
         cmd.env(key, value);
     }
@@ -213,24 +195,20 @@ pub async fn launch_epic_game(
             }
         })?;
 
-    let pid = child.id().ok_or("Failed to get process ID")?;;
+    let pid = child.id().ok_or("Failed to get process ID")?;
 
     send_message_to_frontend(&format!("GL-{}", pid));
 
-    // Track the game process in the background
     let app_name_owned = app_name.to_string();
     tokio::spawn(async move {
         let mut child = child;
         let start = std::time::Instant::now();
-        let date = chrono::Local::now()
-            .format("%Y-%m-%d %H:%M:%S")
-            .to_string();
+        let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let _ = child.wait().await;
         let elapsed_ms = start.elapsed().as_millis();
 
-        // Record play time
         let conn = crate::database::establish_connection().unwrap();
-        // Find the game by matching exec_args containing the app_name
+
         let db_games = crate::database::query_data(
             &conn,
             vec!["games"],

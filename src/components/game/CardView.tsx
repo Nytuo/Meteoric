@@ -1,52 +1,58 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import { GameCard } from "@/components/game/GameCard";
-import type { IGame } from "@/types";
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { GameCard } from '@/components/game/GameCard';
+import type { IGame } from '@/types';
 
 interface CardViewProps {
-	games: IGame[];
+  games: IGame[];
 }
 
 const BATCH_SIZE = 40;
 
 export function CardView({ games }: CardViewProps) {
-	const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
-	const sentinelRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-	// Reset visible count when games change
-	useEffect(() => {
-		setVisibleCount(BATCH_SIZE);
-	}, [games]);
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [games]);
 
-	// IntersectionObserver to load more items as user scrolls
-	const observerCallback = useCallback((entries: IntersectionObserverEntry[]) => {
-		if (entries[0]?.isIntersecting) {
-			setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, games.length));
-		}
-	}, [games.length]);
+  const observerCallback = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0]?.isIntersecting) {
+        setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, games.length));
+      }
+    },
+    [games.length]
+  );
 
-	useEffect(() => {
-		const sentinel = sentinelRef.current;
-		if (!sentinel) return;
-		const observer = new IntersectionObserver(observerCallback, { rootMargin: "200px" });
-		observer.observe(sentinel);
-		return () => observer.disconnect();
-	}, [observerCallback]);
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(observerCallback, {
+      rootMargin: '200px',
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [observerCallback]);
 
-	const visibleGames = useMemo(() => games.slice(0, visibleCount), [games, visibleCount]);
+  const visibleGames = useMemo(
+    () => games.slice(0, visibleCount),
+    [games, visibleCount]
+  );
 
-	return (
-		<div className="flex flex-wrap gap-5 p-6">
-			{visibleGames.map((game) => (
-				<GameCard key={game.id} game={game} />
-			))}
-			{games.length === 0 && (
-				<div className="flex h-64 w-full items-center justify-center">
-					<p className="text-sm text-muted-foreground">No games found</p>
-				</div>
-			)}
-			{visibleCount < games.length && (
-				<div ref={sentinelRef} className="h-1 w-full" />
-			)}
-		</div>
-	);
+  return (
+    <div className="flex flex-wrap gap-5 p-6">
+      {visibleGames.map((game) => (
+        <GameCard key={game.id} game={game} />
+      ))}
+      {games.length === 0 && (
+        <div className="flex h-64 w-full items-center justify-center">
+          <p className="text-sm text-muted-foreground">No games found</p>
+        </div>
+      )}
+      {visibleCount < games.length && (
+        <div ref={sentinelRef} className="h-1 w-full" />
+      )}
+    </div>
+  );
 }

@@ -154,7 +154,6 @@ fn modify_table_add_missing_columns(
     table_name: &str,
     required_columns: Vec<(&str, &str)>,
 ) -> Result<(), rusqlite::Error> {
-    // Check if the table exists
     let table_exists: bool = conn
         .query_row(
             &format!(
@@ -167,7 +166,6 @@ fn modify_table_add_missing_columns(
         .is_ok();
 
     if table_exists {
-        // Query the table schema to check for the presence of the required columns
         let mut stmt = conn.prepare(&format!("PRAGMA table_info({});", table_name))?;
         let columns: Vec<String> = stmt
             .query_map([], |row| row.get(1))?
@@ -180,7 +178,7 @@ fn modify_table_add_missing_columns(
                     "Column {} not found in table {}, adding it",
                     column_name, table_name
                 );
-                // Alter the table to add the missing column
+
                 let alter_table_query = format!(
                     "ALTER TABLE {} ADD COLUMN {} {};",
                     table_name, column_name, column_type
@@ -251,6 +249,7 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("id", "INTEGER PRIMARY KEY"),
         ("game_importer_id", "TEXT"),
         ("importer_id", "TEXT"),
+        ("igdb_id", "TEXT"),
         ("name", "TEXT NOT NULL"),
         ("sort_name", "TEXT"),
         ("rating", "TEXT NOT NULL DEFAULT '0'"),
@@ -270,6 +269,10 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("trophies", "TEXT"),
         ("trophies_unlocked", "INTEGER NOT NULL DEFAULT 0"),
         ("hidden", "TEXT NOT NULL DEFAULT 'false'"),
+        (
+            "confero_updated_at",
+            "TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now'))",
+        ),
     ];
     let required_columns_category = vec![
         ("id", "INTEGER PRIMARY KEY"),
@@ -355,6 +358,7 @@ fn parse_fields(game: &IGame) -> IGame {
         id: game.id.clone(),
         game_importer_id: game.game_importer_id.replace("'", "''"),
         importer_id: game.importer_id.replace("'", "''"),
+        igdb_id: game.igdb_id.replace("'", "''"),
         name: game.name.replace("'", "''"),
         sort_name: game.sort_name.replace("'", "''"),
         rating: game.rating.replace("'", "''"),
@@ -380,18 +384,26 @@ fn parse_fields(game: &IGame) -> IGame {
 
 pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
     let id_exist = game.id != "-1".to_string();
-    println!("ID exist: {:?}", id_exist);
+    println!("[update_game] ID exist: {:?}", id_exist);
     let game = parse_fields(&game);
     let game_name = game.name.clone();
     if id_exist {
-        let sql_update = format!("UPDATE games SET name = '{}', game_importer_id = '{}', importer_id = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', trophies_unlocked = '{}', hidden = '{}' WHERE id = '{}';", game.name, game.game_importer_id, game.importer_id, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.trophies_unlocked, game.hidden, game.id);
+        let sql_update = format!(
+            "UPDATE games SET name = '{}', game_importer_id = '{}', importer_id = '{}', igdb_id = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', trophies_unlocked = '{}', hidden = '{}', updated_at = STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = '{}';",
+            game.name, game.game_importer_id, game.importer_id, game.igdb_id, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.trophies_unlocked, game.hidden, game.id
+        );
+        println!(
+            "[update_game] Executing local update for game id {}: {}",
+            game.id, sql_update
+        );
         conn.execute(&sql_update, []).map_err(|e| e.to_string())?;
-        println!("Game updated");
+        println!("[update_game] Game updated (local edit)");
     } else {
         let all_fields = vec![
             game.name,
             game.game_importer_id,
             game.importer_id,
+            game.igdb_id,
             game.sort_name,
             game.rating,
             game.platforms,
@@ -415,7 +427,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             .map(|field| field.to_string())
             .collect::<Vec<String>>()
             .join("', '");
-        let sql_insert = format!("INSERT INTO games (name, game_importer_id, importer_id, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden) VALUES ('{}')", all_fields);
+        let sql_insert = format!("INSERT INTO games (name, game_importer_id, importer_id, igdb_id, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden) VALUES ('{}')", all_fields);
         match conn.execute(&sql_insert, []).map_err(|e| e.to_string()) {
             Ok(_) => {
                 println!("Game inserted");
@@ -562,6 +574,59 @@ pub fn set_settings_db(conn: &Connection, name: &str, value: &str) -> Result<(),
     Ok(())
 }
 
+pub fn get_setting_db(conn: &Connection, name: &str) -> Option<String> {
+    conn.query_row(
+        &format!(
+            "SELECT value FROM settings WHERE name = '{}'",
+            name.replace('\'', "''")
+        ),
+        [],
+        |row| row.get(0),
+    )
+    .ok()
+}
+
+pub fn apply_confero_update(
+    conn: &Connection,
+    game_id: &str,
+    status: &str,
+    rating: &str,
+    hidden: &str,
+    confero_updated_at: &str,
+) -> Result<bool, String> {
+    let rows = conn
+        .execute(
+            &format!(
+                "UPDATE games SET status = '{}', rating = '{}', hidden = '{}', confero_updated_at = '{}' WHERE id = '{}'",
+                status.replace('\'', "''"),
+                rating.replace('\'', "''"),
+                hidden.replace('\'', "''"),
+                confero_updated_at.replace('\'', "''"),
+                game_id.replace('\'', "''"),
+            ),
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(rows > 0)
+}
+
+pub fn set_confero_updated_at(
+    conn: &Connection,
+    game_id: &str,
+    confero_updated_at: &str,
+) -> Result<(), String> {
+    conn.execute(
+        &format!(
+            "UPDATE games SET confero_updated_at = '{}' WHERE id = '{}'",
+            confero_updated_at.replace('\'', "''"),
+            game_id.replace('\'', "''"),
+        ),
+        [],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub fn delete_game_db(conn: &Connection, id: String) -> Result<(), String> {
     let sql = format!("DELETE FROM games WHERE id = '{}'", id);
     conn.execute(&sql, []).map_err(|e| e.to_string())?;
@@ -678,6 +743,32 @@ fn insert_achievement_db(
     );
     conn.execute(&sql, []).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+pub fn find_game_by_igdb_id(conn: &Connection, igdb_id: &str) -> Option<String> {
+    conn.query_row(
+        &format!(
+            "SELECT id FROM games WHERE igdb_id = '{}' LIMIT 1",
+            igdb_id.replace('\'', "''")
+        ),
+        [],
+        |row| row.get::<_, i64>(0),
+    )
+    .ok()
+    .map(|id| id.to_string())
+}
+
+pub fn find_game_by_name(conn: &Connection, name: &str) -> Option<String> {
+    conn.query_row(
+        &format!(
+            "SELECT id FROM games WHERE name = '{}' LIMIT 1",
+            name.replace('\'', "''")
+        ),
+        [],
+        |row| row.get::<_, i64>(0),
+    )
+    .ok()
+    .map(|id| id.to_string())
 }
 
 pub fn get_game_by_id(conn: &Connection, id: &str) -> Result<IGame, String> {

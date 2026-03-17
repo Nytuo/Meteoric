@@ -19,20 +19,12 @@ pub mod download_manager;
 pub mod game_launch;
 pub mod gog_v2;
 
-// ──────────────────────────────────────────────
-// Global state
-// ──────────────────────────────────────────────
-
 lazy_static::lazy_static! {
     static ref AUTHCODE: Mutex<String> = Mutex::new(String::new());
     pub(crate) static ref GOG_TOKEN: Mutex<Option<Token>> = Mutex::new(None);
     pub(crate) static ref INSTALLED_GAMES: Mutex<HashMap<String, InstalledGogGame>> =
         Mutex::new(HashMap::new());
 }
-
-// ──────────────────────────────────────────────
-// Installed game tracking
-// ──────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InstalledGogGame {
@@ -48,10 +40,6 @@ pub struct InstalledGogGame {
     pub working_dir: Option<String>,
 }
 
-// ──────────────────────────────────────────────
-// GOG game entry (for the library/downloadable list)
-// ──────────────────────────────────────────────
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GogGameEntry {
     pub game_id: String,
@@ -63,10 +51,6 @@ pub struct GogGameEntry {
     pub background_image: Option<String>,
     pub cd_key: Option<String>,
 }
-
-// ──────────────────────────────────────────────
-// Config helpers
-// ──────────────────────────────────────────────
 
 pub fn get_config_dir() -> PathBuf {
     ProjectDirs::from("fr", "Nytuo", "Meteoric")
@@ -106,20 +90,14 @@ pub fn get_platform() -> String {
     }
 }
 
-// ──────────────────────────────────────────────
-// Persistence: installed games
-// ──────────────────────────────────────────────
-
 pub async fn save_installed_games() {
     let path = get_installed_games_path();
     let games = INSTALLED_GAMES.lock().await;
     match serde_json::to_string_pretty(&*games) {
-        Ok(json) => {
-            match fs::write(&path, json) {
-                Ok(_) => println!("[GOG] Saved {} installed games to {:?}", games.len(), path),
-                Err(e) => eprintln!("[GOG ERROR] Failed to write installed games file: {}", e),
-            }
-        }
+        Ok(json) => match fs::write(&path, json) {
+            Ok(_) => println!("[GOG] Saved {} installed games to {:?}", games.len(), path),
+            Err(e) => eprintln!("[GOG ERROR] Failed to write installed games file: {}", e),
+        },
         Err(e) => eprintln!("[GOG ERROR] Failed to serialize installed games: {}", e),
     }
 }
@@ -131,36 +109,26 @@ pub async fn load_installed_games() {
         return;
     }
     match fs::read_to_string(&path) {
-        Ok(data) => {
-            match serde_json::from_str::<HashMap<String, InstalledGogGame>>(&data) {
-                Ok(games) => {
-                    let count = games.len();
-                    let mut cache = INSTALLED_GAMES.lock().await;
-                    *cache = games;
-                    println!("[GOG] Loaded {} installed games from cache", count);
-                }
-                Err(e) => {
-                    eprintln!("[GOG ERROR] Failed to parse installed games JSON: {}", e);
-                }
+        Ok(data) => match serde_json::from_str::<HashMap<String, InstalledGogGame>>(&data) {
+            Ok(games) => {
+                let count = games.len();
+                let mut cache = INSTALLED_GAMES.lock().await;
+                *cache = games;
+                println!("[GOG] Loaded {} installed games from cache", count);
             }
-        }
+            Err(e) => {
+                eprintln!("[GOG ERROR] Failed to parse installed games JSON: {}", e);
+            }
+        },
         Err(e) => {
             eprintln!("[GOG ERROR] Failed to read installed games file: {}", e);
         }
     }
 }
 
-// ──────────────────────────────────────────────
-// Authentication
-// ──────────────────────────────────────────────
-
-/// Ensure we have a valid GOG token (from file or auth code).
-/// Returns a Gog client. The gog crate uses blocking reqwest, so this
-/// should be called inside `task::block_in_place`.
 pub fn ensure_token() -> Result<Token, String> {
     let creds_path = get_credentials_path();
 
-    // Try loading from file first
     if creds_path.exists() {
         if let Ok(meta) = creds_path.metadata() {
             if meta.len() > 0 {
@@ -182,28 +150,24 @@ pub fn ensure_token() -> Result<Token, String> {
     Err("Not logged in to GOG. Please provide an auth code.".into())
 }
 
-/// Refresh the token and save it back to file
 pub fn refresh_and_save_token(token: &Token) -> Result<Token, String> {
-    let refreshed = token.refresh()
+    let refreshed = token
+        .refresh()
         .map_err(|e| format!("Failed to refresh token: {}", e))?;
-    
-    // Save the refreshed token
+
     let creds_path = get_credentials_path();
     let json = serde_json::to_string(&refreshed)
         .map_err(|e| format!("Failed to serialize token: {}", e))?;
-    fs::write(&creds_path, &json)
-        .map_err(|e| format!("Failed to save refreshed token: {}", e))?;
-    
+    fs::write(&creds_path, &json).map_err(|e| format!("Failed to save refreshed token: {}", e))?;
+
     println!("[GOG] Token refreshed and saved");
     Ok(refreshed)
 }
 
-/// Build a Gog client from a token. Token auto-refreshes.
 pub fn build_gog_client(token: Token) -> Gog {
     Gog::new(token)
 }
 
-/// Check if we are currently logged in (have a valid saved token)
 pub async fn is_logged_in() -> bool {
     let creds_path = get_credentials_path();
     if !creds_path.exists() {
@@ -216,7 +180,6 @@ pub async fn is_logged_in() -> bool {
     }
 }
 
-/// Get user display name
 pub async fn get_display_name() -> Option<String> {
     tokio::task::block_in_place(|| {
         let token = ensure_token().ok()?;
@@ -226,7 +189,6 @@ pub async fn get_display_name() -> Option<String> {
     })
 }
 
-/// Get user id
 pub async fn get_user_id() -> Option<i64> {
     tokio::task::block_in_place(|| {
         let token = ensure_token().ok()?;
@@ -234,10 +196,6 @@ pub async fn get_user_id() -> Option<i64> {
         Some(gog.uid())
     })
 }
-
-// ──────────────────────────────────────────────
-// Library import (database population)
-// ──────────────────────────────────────────────
 
 pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     let authcode = AUTHCODE.lock().await.clone();
@@ -273,7 +231,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         let user_id = gog.uid();
         let games = gog.get_games().unwrap();
         let conn = establish_connection().unwrap();
-        
+
         for game_id in games {
             let games_detailled = gog.get_game_details(game_id);
             match games_detailled {
@@ -290,20 +248,16 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     igame.tags = tags.join(",");
                     igame.platforms = "GOG".to_string();
-                    // Store game_id in exec_args for later use
+
                     igame.exec_args = format!("gog:{}", game_id);
-                    let new_id = update_game_nodup(&conn, igame).expect("[GOG IMPORTER] Failed to update game");
-                    
-                    // GOG API doesn't provide total playtime or last played time
-                    // We'll initialize with zero playtime and current time
-                    // Actual playtime will be tracked when games are launched via game_launch.rs
+                    let new_id = update_game_nodup(&conn, igame)
+                        .expect("[GOG IMPORTER] Failed to update game");
+
                     let _ = crate::database::first_time_stat(
                         &conn,
                         new_id,
-                        "0".to_string(), // No playtime data from API
-                        chrono::Local::now()
-                            .format("%Y-%m-%d %H:%M:%S")
-                            .to_string(),
+                        "0".to_string(),
+                        chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
                     );
                 }
                 Err(_) => println!("[GOG IMPORTER] Failed to get game details"),
@@ -324,8 +278,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                         itrophy.image_url_locked = achievement.image_url_locked;
                         itrophy.date_of_unlock =
                             achievement.date_unlocked.clone().unwrap_or_default();
-                        itrophy.unlocked =
-                            achievement.date_unlocked.clone().is_some().to_string();
+                        itrophy.unlocked = achievement.date_unlocked.clone().is_some().to_string();
                         iachievements.push(itrophy);
                     }
                     let conn = establish_connection().unwrap();
@@ -341,18 +294,16 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// ──────────────────────────────────────────────
-// Get list of games available for download
-// ──────────────────────────────────────────────
-
 pub async fn get_downloadable_games() -> Result<Vec<GogGameEntry>, String> {
-    // Blocking part: authenticate once and fetch owned game IDs
-    let (game_ids, token) = tokio::task::block_in_place(|| -> Result<(Vec<i64>, gog::token::Token), String> {
-        let token = ensure_token()?;
-        let gog = build_gog_client(token.clone());
-        let game_ids = gog.get_games().map_err(|e| format!("Failed to get games: {}", e))?;
-        Ok((game_ids, token))
-    })?;
+    let (game_ids, token) =
+        tokio::task::block_in_place(|| -> Result<(Vec<i64>, gog::token::Token), String> {
+            let token = ensure_token()?;
+            let gog = build_gog_client(token.clone());
+            let game_ids = gog
+                .get_games()
+                .map_err(|e| format!("Failed to get games: {}", e))?;
+            Ok((game_ids, token))
+        })?;
 
     let installed = INSTALLED_GAMES.lock().await.clone();
     let mut entries = Vec::new();
@@ -362,11 +313,11 @@ pub async fn get_downloadable_games() -> Result<Vec<GogGameEntry>, String> {
         let is_installed = installed.contains_key(&game_id_str);
         let installed_game = installed.get(&game_id_str);
 
-        // Try the gog crate's embed-API details (may fail for DLCs / region-locked titles)
         let token_clone = token.clone();
         let details_result = tokio::task::block_in_place(move || -> Result<_, String> {
             let gog = build_gog_client(token_clone);
-            gog.get_game_details(game_id).map_err(|e| format!("{:?}", e))
+            gog.get_game_details(game_id)
+                .map_err(|e| format!("{:?}", e))
         });
 
         match details_result {
@@ -383,7 +334,6 @@ pub async fn get_downloadable_games() -> Result<Vec<GogGameEntry>, String> {
                 });
             }
             Err(_) => {
-                // Fallback: public GOG product API (no auth required)
                 if let Some(title) = fetch_product_title(game_id).await {
                     entries.push(GogGameEntry {
                         game_id: game_id_str,
@@ -396,7 +346,6 @@ pub async fn get_downloadable_games() -> Result<Vec<GogGameEntry>, String> {
                         cd_key: None,
                     });
                 }
-                // silently skip if both APIs fail (e.g. account-only DLC with no standalone page)
             }
         }
     }
@@ -404,7 +353,6 @@ pub async fn get_downloadable_games() -> Result<Vec<GogGameEntry>, String> {
     Ok(entries)
 }
 
-/// Fetch a game's title from the public GOG product API (no authentication needed).
 async fn fetch_product_title(game_id: i64) -> Option<String> {
     #[derive(serde::Deserialize)]
     struct ProductInfo {
@@ -422,10 +370,6 @@ async fn fetch_product_title(game_id: i64) -> Option<String> {
     let info: ProductInfo = resp.json().await.ok()?;
     Some(info.title)
 }
-
-// ──────────────────────────────────────────────
-// Get installed GOG games
-// ──────────────────────────────────────────────
 
 pub async fn get_installed_gog_games() -> Vec<InstalledGogGame> {
     let games = INSTALLED_GAMES.lock().await;
@@ -467,10 +411,6 @@ pub async fn reload_installed_games_cache() -> Result<usize, String> {
     let games = INSTALLED_GAMES.lock().await;
     Ok(games.len())
 }
-
-// ──────────────────────────────────────────────
-// Credentials
-// ──────────────────────────────────────────────
 
 pub async fn set_credentials(creds: Vec<String>) {
     let authorization_code = creds[0].to_string();

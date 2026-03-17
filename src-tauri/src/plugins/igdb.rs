@@ -32,12 +32,288 @@ pub async fn calculate_igdb_token(
     Ok(json)
 }
 
+pub(crate) async fn fetch_game_by_igdb_id(
+    igdb_id: &str,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let client_id = CLIENT_ID
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .to_string();
+    let client_secret = CLIENT_SECRET
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .to_string();
+    let mut access_token = ACCESS_TOKEN.lock().unwrap_or_else(|e| e.into_inner());
+    let mut expiration = TOKEN_EXPIRATION.lock().unwrap_or_else(|e| e.into_inner());
+
+    if expiration.is_empty()
+        || Utc::now() > chrono::DateTime::parse_from_rfc3339(&*expiration)?.with_timezone(&Utc)
+    {
+        let d = calculate_igdb_token(client_id.clone(), client_secret.clone()).await?;
+        let token = d
+            .get("access_token")
+            .ok_or("IGDB token response missing 'access_token'")?
+            .to_string()
+            .replace("\"", "");
+        let expires = d
+            .get("expires_in")
+            .and_then(|v| v.as_i64())
+            .ok_or("IGDB token response missing 'expires_in'")?;
+        *access_token = token;
+        *expiration = Utc::now()
+            .checked_add_signed(chrono::Duration::seconds(expires))
+            .unwrap_or_else(Utc::now)
+            .to_rfc3339();
+    }
+
+    let fields = "name,cover.image_id,genres.name,platforms.*,release_dates.date,summary,screenshots.image_id,aggregated_rating,artworks.image_id,category,first_release_date,franchise.name,game_engines.*,involved_companies.company.url,involved_companies.company.start_date,involved_companies.company.name,involved_companies.company.description,involved_companies.company.country,involved_companies.company.logo.image_id,involved_companies.developer,involved_companies.publisher,player_perspectives.name,rating,remakes.name,remasters.name,standalone_expansions.name,storyline,videos.video_id,themes.name,external_games.media,external_games.uid";
+    let body = format!("fields {}; limit 1; where id = {};", fields, igdb_id);
+
+    let mut headers = HeaderMap::new();
+    headers.insert("Client-ID", client_id.parse().unwrap());
+    headers.insert(
+        "Authorization",
+        format!("Bearer {}", *access_token).parse().unwrap(),
+    );
+    headers.insert("Accept", "application/json".parse().unwrap());
+
+    let response = reqwest::Client::new()
+        .post("https://api.igdb.com/v4/games")
+        .body(body)
+        .headers(headers)
+        .send()
+        .await?;
+
+    let text = response.text().await?;
+    let mut games: Vec<serde_json::Value> = serde_json::from_str(&text)?;
+
+    for i in 0..games.len() {
+        if games[i]["cover"].is_object() {
+            let cover_id = games[i]["cover"]["image_id"].as_str().unwrap_or("");
+            games[i]["cover"] = serde_json::Value::String(format!(
+                "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/{}.jpg",
+                cover_id
+            ));
+        }
+        if games[i]["screenshots"].is_array() {
+            for j in 0..games[i]["screenshots"].as_array().unwrap().len() {
+                let sid = games[i]["screenshots"][j]["image_id"]
+                    .as_str()
+                    .unwrap_or("");
+                games[i]["screenshots"][j] = serde_json::Value::String(format!(
+                    "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/{}.jpg",
+                    sid
+                ));
+            }
+        }
+        if games[i]["artworks"].is_array() {
+            for j in 0..games[i]["artworks"].as_array().unwrap().len() {
+                let aid = games[i]["artworks"][j]["image_id"].as_str().unwrap_or("");
+                games[i]["artworks"][j] = serde_json::Value::String(format!(
+                    "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/{}.jpg",
+                    aid
+                ));
+            }
+        }
+        if games[i]["videos"].is_array() {
+            for j in 0..games[i]["videos"].as_array().unwrap().len() {
+                let vid = games[i]["videos"][j]["video_id"].as_str().unwrap_or("");
+                games[i]["videos"][j] =
+                    serde_json::Value::String(format!("https://www.youtube.com/watch?v={}", vid));
+            }
+        }
+        games[i]["background"] = games[i]["screenshots"][0].clone();
+        games[i]["platforms"] = serde_json::Value::String("Other".to_string());
+
+        let summary = games[i]["summary"].as_str();
+        let storyline = games[i]["storyline"].as_str();
+        games[i]["description"] = serde_json::Value::String(match (summary, storyline) {
+            (Some(s), Some(st)) => format!("{} {}", s, st),
+            (Some(s), None) => s.to_string(),
+            (None, Some(st)) => st.to_string(),
+            (None, None) => "No description found".to_string(),
+        });
+
+        if let Some(genres) = games[i]["genres"].as_array() {
+            if !genres.is_empty() {
+                let names: Vec<&str> = genres.iter().filter_map(|g| g["name"].as_str()).collect();
+                games[i]["genres"] = serde_json::Value::String(names.join(", "));
+            }
+        }
+        if let Some(themes) = games[i]["themes"].as_array() {
+            if !themes.is_empty() {
+                let names: Vec<&str> = themes.iter().filter_map(|t| t["name"].as_str()).collect();
+                games[i]["styles"] = serde_json::Value::String(names.join(", "));
+            }
+        }
+        if let Some(companies) = games[i]["involved_companies"].as_array().cloned() {
+            let mut devs: Vec<&str> = vec![];
+            let mut pubs: Vec<&str> = vec![];
+            for c in &companies {
+                if let Some(name) = c["company"]["name"].as_str() {
+                    if c["developer"].as_bool() == Some(true) {
+                        devs.push(name);
+                    } else if c["publisher"].as_bool() == Some(true) {
+                        pubs.push(name);
+                    }
+                }
+            }
+            games[i]["developers"] = serde_json::Value::String(devs.join(", "));
+            games[i]["editors"] = serde_json::Value::String(pubs.join(", "));
+        }
+        games[i]["critic_score"] = games[i]["aggregated_rating"].clone();
+        if let Some(ts) = games[i]["first_release_date"].as_i64() {
+            let dt = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts, 0), Utc);
+            games[i]["release_date"] = serde_json::Value::String(dt.format("%d/%m/%Y").to_string());
+        }
+        if let Some(id_val) = games[i].get("id").cloned() {
+            games[i]["igdb_id"] = serde_json::Value::String(id_val.to_string());
+        }
+        games[i].as_object_mut().unwrap().remove("id");
+        games[i].as_object_mut().unwrap().remove("rating");
+        games[i].as_object_mut().unwrap().remove("release_dates");
+        games[i].as_object_mut().unwrap().remove("external_games");
+        games[i].as_object_mut().unwrap().remove("category");
+        games[i].as_object_mut().unwrap().remove("dlcs");
+        games[i]
+            .as_object_mut()
+            .unwrap()
+            .remove("involved_companies");
+        games[i]
+            .as_object_mut()
+            .unwrap()
+            .remove("player_perspectives");
+    }
+
+    Ok(games.iter().map(|g| g.to_string()).collect())
+}
+
+pub async fn enrich_from_igdb_id(
+    igdb_id: String,
+    db_id: String,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let games = task::block_in_place(|| {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(fetch_game_by_igdb_id(&igdb_id))
+    });
+
+    let games = match games {
+        Ok(g) if !g.is_empty() => g,
+        _ => {
+            let conn = establish_connection()?;
+            let igame = get_game_by_id(&conn, &db_id)?;
+            let name = remove_odds_in_string(&igame.name);
+            if name.is_empty() {
+                return Ok(());
+            }
+            task::block_in_place(|| {
+                let rt = tokio::runtime::Runtime::new().unwrap();
+                rt.block_on(search_game_igdb(&name, true))
+            })?
+        }
+    };
+
+    if games.is_empty() {
+        return Ok(());
+    }
+
+    let first_game = &games[0];
+    let game_json: serde_json::Value = serde_json::from_str(first_game)?;
+    let conn = establish_connection()?;
+    let mut igame = get_game_by_id(&conn, &db_id)?;
+
+    macro_rules! set_str {
+        ($field:ident, $key:expr) => {
+            if let Some(v) = game_json.get($key).and_then(|v| v.as_str()) {
+                if !v.is_empty() {
+                    igame.$field = v.to_string();
+                }
+            }
+        };
+    }
+    set_str!(name, "name");
+    set_str!(sort_name, "name");
+    set_str!(platforms, "platforms");
+    set_str!(description, "description");
+    set_str!(genres, "genres");
+    set_str!(styles, "styles");
+    set_str!(release_date, "release_date");
+    set_str!(developers, "developers");
+    set_str!(editors, "editors");
+    if let Some(igdb_id_val) = game_json.get("igdb_id").and_then(|v| v.as_str()) {
+        if !igdb_id_val.is_empty() {
+            igame.igdb_id = igdb_id_val.to_string();
+        }
+    }
+    if let Some(cs) = game_json.get("critic_score").and_then(|v| v.as_f64()) {
+        igame.critic_score = cs.to_string();
+    }
+    igame.id = db_id.clone();
+    let conn = establish_connection()?;
+    let _ = update_game(&conn, igame);
+
+    let screenshots: Vec<String> = game_json
+        .get("screenshots")
+        .and_then(|v| v.as_array())
+        .unwrap_or(&vec![])
+        .iter()
+        .filter_map(|v| v.as_str().map(|s| s.to_string()))
+        .collect();
+
+    let videos: Vec<String> = vec![];
+    let metadata = Metadata {
+        jaquette: Some(
+            game_json
+                .get("cover")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_owned(),
+        ),
+        background: Some(
+            game_json
+                .get("background")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_owned(),
+        ),
+        logo: Some(
+            game_json
+                .get("logo")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_owned(),
+        ),
+        icon: Some(
+            game_json
+                .get("icon")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_owned(),
+        ),
+        screenshots: Some(screenshots),
+        videos: None,
+        audio: None,
+    };
+    let _ = task::block_in_place(|| {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(save_media_to_external_storage(db_id, metadata))
+    });
+
+    Ok(())
+}
+
 pub(crate) async fn search_game_igdb(
     game_name: &str,
     routine_mode: bool,
 ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-    let client_id = CLIENT_ID.lock().unwrap_or_else(|e| e.into_inner()).to_string();
-    let client_secret = CLIENT_SECRET.lock().unwrap_or_else(|e| e.into_inner()).to_string();
+    let client_id = CLIENT_ID
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .to_string();
+    let client_secret = CLIENT_SECRET
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .to_string();
     let mut access_token = ACCESS_TOKEN.lock().unwrap_or_else(|e| e.into_inner());
     let mut expiration = TOKEN_EXPIRATION.lock().unwrap_or_else(|e| e.into_inner());
     if expiration.is_empty()
@@ -45,11 +321,13 @@ pub(crate) async fn search_game_igdb(
     {
         let d: HashMap<String, serde_json::Value> =
             calculate_igdb_token(client_id.clone(), client_secret.clone()).await?;
-        let token = d.get("access_token")
+        let token = d
+            .get("access_token")
             .ok_or("IGDB token response missing 'access_token' field")?
             .to_string()
             .replace("\"", "");
-        let expires = d.get("expires_in")
+        let expires = d
+            .get("expires_in")
             .and_then(|v| v.as_i64())
             .ok_or("IGDB token response missing 'expires_in' field")?;
         *access_token = token;
@@ -133,7 +411,6 @@ pub(crate) async fn search_game_igdb(
 
         let summary = games[i]["summary"].as_str();
         let storyline = games[i]["storyline"].as_str();
-        //merge summary and storyline
 
         games[i]["description"] = serde_json::Value::String(match (summary, storyline) {
             (Some(s), Some(st)) => format!("{} {}", s, st),
@@ -172,9 +449,7 @@ pub(crate) async fn search_game_igdb(
                         let joined_names = names.join(", ");
                         games[i]["styles"] = serde_json::Value::String(joined_names);
                     }
-                    Err(_) => {
-                        // Handle the error here, e.g., log it or set a default value
-                    }
+                    Err(_) => {}
                 }
             }
         }
@@ -211,6 +486,9 @@ pub(crate) async fn search_game_igdb(
                 serde_json::Value::String(release_date.format("%d/%m/%Y").to_string());
         }
 
+        if let Some(id_val) = games[i].get("id").cloned() {
+            games[i]["igdb_id"] = serde_json::Value::String(id_val.to_string());
+        }
         games[i].as_object_mut().unwrap().remove("id");
         games[i].as_object_mut().unwrap().remove("rating");
         games[i].as_object_mut().unwrap().remove("release_dates");
@@ -369,6 +647,11 @@ pub async fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string();
+    igame.igdb_id = game_json
+        .get("igdb_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default()
+        .to_string();
     igame.id = db_id;
     let conn = establish_connection().unwrap();
     let _ = update_game(&conn, igame.clone());
@@ -379,13 +662,7 @@ pub async fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std
         .iter()
         .filter_map(|v| v.as_str().map(|s| s.to_string()))
         .collect();
-    let videos: Vec<String> = game_json
-        .get("videos")
-        .and_then(|v| v.as_array())
-        .unwrap_or(&Vec::new())
-        .iter()
-        .filter_map(|v| v.as_str().map(|s| s.to_string()))
-        .collect();
+
     let metadata = Metadata {
         jaquette: Some(
             game_json
@@ -416,7 +693,7 @@ pub async fn routine(game_name: String, db_id: String) -> Result<(), Box<dyn std
                 .to_owned(),
         ),
         screenshots: Some(screenshots),
-        videos: Some(videos),
+        videos: None,
         audio: None,
     };
     let _ = task::block_in_place(|| {

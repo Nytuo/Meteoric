@@ -10,7 +10,6 @@ const HLTB_BASE_URL: &str = "https://howlongtobeat.com";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const SCRIPT_DOWNLOAD_TIMEOUT_MS: u64 = 5000;
 
-// Internal HLTB game from API
 #[derive(Debug, Deserialize)]
 struct HltbGame {
     #[serde(default)]
@@ -32,7 +31,6 @@ struct SearchResponse {
     data: Vec<HltbGame>,
 }
 
-// Response format expected by the frontend
 #[derive(Debug, Serialize)]
 pub struct HltbTimeField {
     pub average: i64,
@@ -170,7 +168,10 @@ impl HltbClient {
                 url
             }
             Err(e) => {
-                eprintln!("[HLTB] Failed to discover search URL: {}, falling back to /api/search", e);
+                eprintln!(
+                    "[HLTB] Failed to discover search URL: {}, falling back to /api/search",
+                    e
+                );
                 "/api/search".to_string()
             }
         }
@@ -291,8 +292,13 @@ impl HltbClient {
         }
 
         let body = response.text().await?;
-        let data: HashMap<String, String> = serde_json::from_str(&body)
-            .map_err(|e| anyhow!("Failed to parse auth token response: {} body: {}", e, &body[..body.len().min(200)]))?;
+        let data: HashMap<String, String> = serde_json::from_str(&body).map_err(|e| {
+            anyhow!(
+                "Failed to parse auth token response: {} body: {}",
+                e,
+                &body[..body.len().min(200)]
+            )
+        })?;
 
         let token = data
             .get("token")
@@ -327,7 +333,10 @@ impl HltbClient {
                     platform: String::new(),
                     sort_category: "popular".to_string(),
                     range_category: "main".to_string(),
-                    range_time: RangeTime { min: None, max: None },
+                    range_time: RangeTime {
+                        min: None,
+                        max: None,
+                    },
                     gameplay: Gameplay {
                         perspective: String::new(),
                         flow: String::new(),
@@ -369,9 +378,11 @@ impl HltbClient {
             request = request.header("x-auth-token", t);
         }
 
-        let response = request.json(&payload).send().await.map_err(|e| {
-            anyhow!("HLTB search request failed: {}", e)
-        })?;
+        let response = request
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| anyhow!("HLTB search request failed: {}", e))?;
 
         let status = response.status();
 
@@ -387,23 +398,47 @@ impl HltbClient {
                 *lock = None;
             }
 
-            return Err(anyhow!("HLTB API returned status {}: {}", status, &body[..body.len().min(300)]));
+            return Err(anyhow!(
+                "HLTB API returned status {}: {}",
+                status,
+                &body[..body.len().min(300)]
+            ));
         }
 
         let text = response.text().await?;
-        let search_result: SearchResponse = serde_json::from_str(&text)
-            .map_err(|e| anyhow!("Failed to parse HLTB response: {} body: {}", e, &text[..text.len().min(300)]))?;
+        let search_result: SearchResponse = serde_json::from_str(&text).map_err(|e| {
+            anyhow!(
+                "Failed to parse HLTB response: {} body: {}",
+                e,
+                &text[..text.len().min(300)]
+            )
+        })?;
 
-        let game = search_result.data.into_iter().next()
+        let game = search_result
+            .data
+            .into_iter()
+            .next()
             .ok_or_else(|| anyhow!("No HLTB results for '{}'", game_name))?;
 
         Ok(HltbResponse {
-            main_story: HltbTimeField { average: game.comp_main },
-            main_extra: HltbTimeField { average: game.comp_plus },
-            completionist: HltbTimeField { average: game.comp_100 },
-            all_styles: HltbTimeField { average: game.comp_all },
-            coop: HltbTimeField { average: game.invested_co },
-            vs: HltbTimeField { average: game.invested_mp },
+            main_story: HltbTimeField {
+                average: game.comp_main,
+            },
+            main_extra: HltbTimeField {
+                average: game.comp_plus,
+            },
+            completionist: HltbTimeField {
+                average: game.comp_100,
+            },
+            all_styles: HltbTimeField {
+                average: game.comp_all,
+            },
+            coop: HltbTimeField {
+                average: game.invested_co,
+            },
+            vs: HltbTimeField {
+                average: game.invested_mp,
+            },
         })
     }
 }
