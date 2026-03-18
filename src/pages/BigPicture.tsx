@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, convertFileSrc } from '@tauri-apps/api/core';
+import { appDataDir } from '@tauri-apps/api/path';
+import { platform } from '@tauri-apps/plugin-os';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   Search,
@@ -153,6 +155,11 @@ export function BigPicture() {
     type: 'image' | 'video';
   } | null>(null);
 
+  const [showSplash, setShowSplash] = useState(true);
+  const splashVideoRef = useRef<HTMLVideoElement>(null);
+  const [splashStarted, setSplashStarted] = useState(false);
+  const splashStartedRef = useRef(false);
+
   const recentGames = useMemo(() => {
     const allAvailable = filteredGames.length > 0 ? filteredGames : games;
     const played = allAvailable.filter((g) => g.stats && g.stats.length > 0);
@@ -241,6 +248,71 @@ export function BigPicture() {
     const appWindow = getCurrentWebviewWindow();
     appWindow.setFullscreen(true);
     fetchGames();
+
+    (async () => {
+      try {
+        const appData = await appDataDir();
+        const os = platform();
+        const sep = os === 'windows' ? '\\' : '/';
+        const videoPath = appData + sep + 'meteoric_extra_content' + sep + 'startup.mp4';
+        const src = convertFileSrc(videoPath);
+        console.debug('BigPicture splash video src:', src);
+
+        const waitForRef = async (
+          ref: React.RefObject<HTMLVideoElement>,
+          timeout = 3000
+        ) => {
+          const start = Date.now();
+          while (Date.now() - start < timeout) {
+            if (ref.current) return ref.current;
+            await new Promise((r) => setTimeout(r, 50));
+          }
+          return null;
+        };
+
+        const v = await waitForRef(splashVideoRef, 3000);
+        if (v) {
+          const onPlaying = () => {
+            splashStartedRef.current = true;
+            setSplashStarted(true);
+            try {
+              v.muted = false;
+            } catch (_) {}
+            v.removeEventListener('playing', onPlaying);
+            v.removeEventListener('error', onError);
+          };
+          const onError = (ev: any) => {
+            console.error('splash video error event:', ev);
+            v.removeEventListener('playing', onPlaying);
+            v.removeEventListener('error', onError);
+          };
+          v.addEventListener('playing', onPlaying);
+          v.addEventListener('error', onError);
+
+          try {
+            v.muted = true;
+            v.volume = 1;
+            v.src = src;
+            v.load();
+            await v.play();
+            
+            splashStartedRef.current = true;
+            setSplashStarted(true);
+            setTimeout(() => {
+              try {
+                v.muted = false;
+              } catch (_) {}
+            }, 500);
+          } catch (err) {
+            console.error('splash play() failed after video present', err);
+            
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load splash video:', e);
+        setShowSplash(false);
+      }
+    })();
     const timer = setInterval(() => {
       const now = new Date();
       const h = now.getHours() % 12 || 12;
@@ -680,6 +752,24 @@ export function BigPicture() {
 
   return (
     <div className={`sd-container${showDetail ? ' detail-mode' : ''}`}>
+      {showSplash && (
+        <div
+          className="absolute inset-0 bg-black"
+          style={{ zIndex: 9999 }}
+          onDoubleClick={() => setShowSplash(false)}
+        >
+          <video
+            ref={splashVideoRef}
+            autoPlay
+            playsInline
+            onEnded={() => setShowSplash(false)}
+            onError={() => setShowSplash(false)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          >
+            <source src="" type="video/mp4" />
+          </video>
+        </div>
+      )}
       <div className="sd-global-bg">
         {bgImage && <img src={bgImage} className="sd-bg-img" alt="" />}
         <div className="sd-bg-gradient" />

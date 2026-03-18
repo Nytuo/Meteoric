@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { open } from '@tauri-apps/plugin-dialog';
 import { dirname } from '@tauri-apps/api/path';
 import {
@@ -352,6 +353,12 @@ export function Topbar() {
       <div
         className="flex h-12 items-center justify-between border-b border-border/40 bg-card/30 px-3 backdrop-blur-sm"
         data-tauri-drag-region
+        onMouseDown={(e) => {
+          const target = e.target as HTMLElement;
+          if (!target.closest('button, input, a, [role="button"], [role="combobox"], [role="checkbox"]')) {
+            getCurrentWindow().startDragging();
+          }
+        }}
       >
         <div className="flex items-center gap-1">
           <Tooltip>

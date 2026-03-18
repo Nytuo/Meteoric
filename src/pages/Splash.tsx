@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { platform } from '@tauri-apps/plugin-os';
-import { configDir } from '@tauri-apps/api/path';
+import { appDataDir } from '@tauri-apps/api/path';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { useAppStore } from '@/stores/appStore';
@@ -11,7 +11,7 @@ const appWindow = getCurrentWebviewWindow();
 export function Splash() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const devMode = import.meta.env.DEV;
+  const devMode = false;
 
   const goToHome = async () => {
     navigate('/games');
@@ -28,17 +28,18 @@ export function Splash() {
 
   const loadVideo = async () => {
     try {
-      let configPath = await configDir();
-      const os = await platform();
+      let appDataPath = await appDataDir();
+      const os = platform();
       if (os === 'windows') {
-        configPath =
-          configPath + '\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+        appDataPath =
+          appDataPath + '\\meteoric_extra_content\\';
       } else {
-        configPath = configPath + '/meteoric/meteoric_extra_content/';
+        appDataPath = appDataPath + '/meteoric_extra_content/';
       }
+      console.log('App data path:', appDataPath);
       if (videoRef.current) {
         videoRef.current.volume = 1;
-        videoRef.current.src = convertFileSrc(configPath + 'startup.mp4');
+        videoRef.current.src = convertFileSrc(appDataPath + 'startup.mp4');
       }
     } catch {
       goToHome();
@@ -46,7 +47,7 @@ export function Splash() {
   };
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-black">
+    <div className="flex h-screen w-full -z-40 items-center justify-center bg-black">
       <video
         ref={videoRef}
         autoPlay

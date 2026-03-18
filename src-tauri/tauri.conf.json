@@ -53,7 +53,7 @@
         "width": 1280,
         "height": 720,
         "resizable": true,
-        "fullscreen": true,
+        "fullscreen": false,
         "minWidth": 1280,
         "minHeight": 720,
         "useHttpsScheme": false

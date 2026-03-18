@@ -31,7 +31,7 @@ export default function App() {
           {!isBigPicture && <Topbar />}
           <main className="flex-1 overflow-auto">
             <Routes>
-              <Route path="/" element={<Splash />} />
+              <Route path="/" element={<DisplayManager />} />
               <Route path="/games" element={<DisplayManager />} />
               <Route path="/game/:id" element={<GameDetails />} />
               <Route path="/edit/:id" element={<EditGame />} />
