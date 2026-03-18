@@ -121,7 +121,6 @@ export function SettingsOverlay({
   useEffect(() => {
     if (apiKeys) {
       setLocalApiKeys({ ...apiKeys });
-      setConferoUrl(apiKeys['CONFERO_URL'] ?? '');
       setConferoEmail(apiKeys['CONFERO_EMAIL'] ?? '');
       setConferoPassword(apiKeys['CONFERO_PASSWORD'] ?? '');
     }
@@ -143,10 +142,6 @@ export function SettingsOverlay({
     saveApiKeys();
   };
 
-  const handleConferoUrlChange = (v: string) => {
-    setConferoUrl(v);
-    saveConferoField('CONFERO_URL', v);
-  };
   const handleConferoEmailChange = (v: string) => {
     setConferoEmail(v);
     saveConferoField('CONFERO_EMAIL', v);
@@ -461,16 +456,6 @@ export function SettingsOverlay({
                   </p>
 
                   <div className="max-w-md space-y-4">
-                    <div>
-                      <Label htmlFor="confero-url">Server URL</Label>
-                      <Input
-                        id="confero-url"
-                        placeholder="https://confero.example.com"
-                        value={conferoUrl}
-                        onChange={(e) => handleConferoUrlChange(e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
 
                     <div>
                       <Label htmlFor="confero-email">Email</Label>

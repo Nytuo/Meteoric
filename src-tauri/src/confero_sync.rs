@@ -79,7 +79,7 @@ async fn get_token(client: &Client, base_url: &str) -> Result<String, String> {
 }
 
 fn base_url() -> Result<String, String> {
-    std::env::var("CONFERO_URL").map_err(|_| "CONFERO_URL not set".to_string())
+    Ok("https://confero.nytuo.fr".to_string())
 }
 
 fn build_client() -> Result<Client, String> {

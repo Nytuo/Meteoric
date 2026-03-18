@@ -483,7 +483,7 @@ fn create_basic_env_file() {
     if !env_file.exists() {
         std::fs::write(
             env_file,
-            "STEAM_API_KEY=\nEGS_CLIENT_ID=\nIGDB_CLIENT_SECRET=\nEGS_CLIENT_SECRET=\nIGDB_CLIENT_ID=\nSTEAMGRIDDB_API_KEY=\nSTEAM_USER_ID=\nCONFERO_URL=\nCONFERO_EMAIL=\nCONFERO_PASSWORD=\n",
+            "STEAM_API_KEY=\nEGS_CLIENT_ID=\nIGDB_CLIENT_SECRET=\nEGS_CLIENT_SECRET=\nIGDB_CLIENT_ID=\nSTEAMGRIDDB_API_KEY=\nSTEAM_USER_ID=\nCONFERO_EMAIL=\nCONFERO_PASSWORD=\n",
         )
         .expect("Failed to create env file");
     }
