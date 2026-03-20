@@ -104,20 +104,25 @@
 }
 
 .sd-home-logo {
-  position: absolute;
-  top: 35%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-20%);
-  height: min(25rem, 35vh);
-  max-width: 80vw;
+  position: relative;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  height: auto;
+  max-height: min(25rem, 30vh);
+  width: auto;
+  max-width: min(80vw, 600px);
   object-fit: contain;
   filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8));
   margin-bottom: 16px;
 }
 
 .sd-detail-logo {
-  height: min(15rem, 20vh);
-  max-width: 60vw;
+  display: block;
+  height: auto;
+  max-height: min(15rem, 20vh);
+  width: auto;
+  max-width: min(60vw, 500px);
   object-fit: contain;
   filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8));
   margin-bottom: 16px;
@@ -148,10 +153,10 @@
   gap: clamp(8px, 1.2vw, 16px);
   padding: 0 clamp(16px, 3vw, 40px);
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   scroll-behavior: smooth;
   align-items: flex-end;
-  height: min(32rem, 55vh);
+  height: 41vh;
 }
 
 .sd-carousel::-webkit-scrollbar {
@@ -160,10 +165,10 @@
 
 .sd-card {
   flex-shrink: 0;
-  height: min(30rem, 50vh);
-  width: min(20rem, 25vw);
+  height:25rem;
+  width: auto;
   border-radius: 8px;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 6/9;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -172,13 +177,23 @@
 }
 
 .sd-card.selected {
-  width: min(60rem, 55vw);
-  object-fit: cover;
+  height:  40vh;
+  width: auto;
   aspect-ratio: 11 / 14;
   box-shadow:
     0 0 0 3px #ffffff,
     0 12px 30px rgba(0, 0, 0, 0.8);
   transform: translateY(-8px);
+}
+
+.sd-card.selected.horizontal {
+  width: 58rem;
+    height: 40vh;
+  aspect-ratio: 16 / 9;
+}
+
+.sd-card.selected.horizontal > .sd-card-img {
+  object-fit: contain;
 }
 
 .sd-card-img {
@@ -205,6 +220,86 @@
   padding: 80px 0;
   color: rgba(255, 255, 255, 0.4);
   gap: 12px;
+}
+
+.bp-launch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: clamp(60px, 10vh, 120px);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  animation: bp-launch-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes bp-launch-in {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to   { opacity: 1; backdrop-filter: blur(24px); }
+}
+
+@keyframes bp-launch-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.bp-launch-logo {
+  height: auto;
+  max-height: min(20rem, 28vh);
+  width: auto;
+  max-width: min(70vw, 520px);
+  object-fit: contain;
+  filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.9));
+  margin-bottom: clamp(24px, 4vh, 48px);
+  animation: bp-launch-logo-in 0.5s 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes bp-launch-logo-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bp-launch-title {
+  font-size: clamp(22px, 3vw, 36px);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+  margin-bottom: clamp(20px, 3vh, 40px);
+  animation: bp-launch-logo-in 0.5s 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.bp-launch-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: bp-launch-logo-in 0.5s 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.bp-launch-spinner-ring {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: bp-spin 0.8s linear infinite;
+}
+
+@keyframes bp-spin {
+  to { transform: rotate(360deg); }
+}
+
+.bp-launch-spinner-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .bp-empty-icon {
@@ -328,7 +423,7 @@
   background-color: #84bd5a;
   display: flex;
   align-items: center;
-  padding: clamp(0.5rem, 1vw, 1rem) clamp(2rem, 6vw, 8rem);
+  padding: clamp(0.5rem, 0.5vw, 1rem) clamp(2rem, 6vw, 8rem);
   gap: 15px;
   border-bottom: 4px solid rgba(255, 255, 255, 0.3);
   flex-grow: 1;
@@ -370,7 +465,7 @@
   background-color: #1153cc;
   display: flex;
   align-items: center;
-  padding: clamp(0.5rem, 1vw, 1rem) clamp(2rem, 6vw, 8rem);
+  padding: clamp(0.5rem, 0.5vw, 1rem) clamp(2rem, 6vw, 8rem);
   gap: 15px;
   border-bottom: 4px solid rgba(255, 255, 255, 0.3);
   flex-grow: 1;
@@ -940,7 +1035,21 @@
   text-overflow: ellipsis;
 }
 
-/* Layout-only breakpoints — sizes are handled by min()/clamp() in base rules */
+
+@media (min-width: 1920px) {
+  .sd-home-logo {
+    max-height: min(30rem, 25vh);
+  }
+  .sd-detail-logo {
+    max-height: min(20rem, 18vh);
+  }
+  .sd-card {
+    height: clamp(14rem, 28vh, 28rem);
+  }
+  .sd-card.selected {
+    height: clamp(20rem, 40vh, 38rem);
+  }
+}
 
 @media (max-width: 900px) {
   .sd-stats-panel {

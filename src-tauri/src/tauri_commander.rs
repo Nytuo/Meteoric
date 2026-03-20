@@ -620,6 +620,20 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
             return Err(error_msg);
         }
 
+        
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Ok(meta) = std::fs::metadata(&executable) {
+                let mut perms = meta.permissions();
+                let mode = perms.mode();
+                if mode & 0o111 == 0 {
+                    perms.set_mode(mode | 0o755);
+                    let _ = std::fs::set_permissions(&executable, perms);
+                }
+            }
+        }
+
         let mut cmd = Command::new(&executable)
             .current_dir(&launch_dir)
             .args(&args)

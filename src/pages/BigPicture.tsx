@@ -159,6 +159,7 @@ export function BigPicture() {
   const splashVideoRef = useRef<HTMLVideoElement>(null);
   const [splashStarted, setSplashStarted] = useState(false);
   const splashStartedRef = useRef(false);
+  const [horizontalGames, setHorizontalGames] = useState<Set<string>>(new Set());
 
   const recentGames = useMemo(() => {
     const allAvailable = filteredGames.length > 0 ? filteredGames : games;
@@ -185,6 +186,18 @@ export function BigPicture() {
   }, [localFiltered, searchQuery, menuMode, recentGames, allLibraryGames]);
 
   const allGames = displayGames;
+
+  
+  
+  useEffect(() => {
+    setHorizontalGames((prev) => {
+      const next = new Set(prev);
+      allGames.forEach((g) => {
+        if (g.jaquette_horizontal) next.add(g.id);
+      });
+      return next;
+    });
+  }, [allGames]);
 
   const stateRef = useRef({
     showDetail,
@@ -329,6 +342,15 @@ export function BigPicture() {
   useEffect(() => {
     if (!searchQuery) setLocalFiltered([]);
   }, [searchQuery]);
+
+  
+  
+  useEffect(() => {
+    if (isGameRunning) {
+      const t = setTimeout(() => setLaunchingGame(false), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [isGameRunning]);
 
   useEffect(() => {
     const handleConConnect = () => setGamepadConnected(true);
@@ -558,6 +580,7 @@ export function BigPicture() {
   const launchSelected = async () => {
     if (!selectedGame) return;
     setLaunchingGame(true);
+    stopAllAudio();
     const hasExec =
       (selectedGame.exec_file && selectedGame.game_dir) ||
       (selectedGame.game_importer_id && selectedGame.importer_id);
@@ -770,6 +793,23 @@ export function BigPicture() {
           </video>
         </div>
       )}
+      {launchingGame && (() => {
+        const game = selectedGame || allGames[selectedIndex];
+        return (
+          <div className="bp-launch-overlay">
+            {game?.logo ? (
+              <img src={game.logo} className="bp-launch-logo" alt={game.name} />
+            ) : (
+              <p className="bp-launch-title">{game?.name}</p>
+            )}
+            <div className="bp-launch-spinner">
+              <div className="bp-launch-spinner-ring" />
+              <span className="bp-launch-spinner-label">Launching…</span>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="sd-global-bg">
         {bgImage && <img src={bgImage} className="sd-bg-img" alt="" />}
         <div className="sd-bg-gradient" />
@@ -884,7 +924,7 @@ export function BigPicture() {
               <div
                 key={game.id}
                 id={`sd-card-${i}`}
-                className={`sd-card${i === selectedIndex ? ' selected' : ''}`}
+                className={`sd-card${i === selectedIndex ? ' selected' : ''}${i === selectedIndex && horizontalGames.has(game.id) ? ' horizontal' : ''}`}
                 onClick={() => {
                   setSelectedIndex(i);
                   if (showSearch) {
@@ -908,6 +948,12 @@ export function BigPicture() {
                   className="sd-card-img"
                   alt={game.name}
                   loading="lazy"
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    if (img.naturalWidth > img.naturalHeight * 1.2) {
+                      setHorizontalGames((prev) => new Set(prev).add(game.id));
+                    }
+                  }}
                 />
                 {!game.jaquette && (
                   <div className="sd-card-placeholder">
@@ -935,7 +981,6 @@ export function BigPicture() {
 
           {allGames.length === 0 && (
             <div className="bp-empty">
-              <span className="bp-empty-icon">📭</span>
               <p>
                 {menuMode === 'recent'
                   ? t('bigpicture_no_recent') || 'No recently played games'
