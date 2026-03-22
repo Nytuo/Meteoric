@@ -160,6 +160,7 @@ export function BigPicture() {
   const [splashStarted, setSplashStarted] = useState(false);
   const splashStartedRef = useRef(false);
   const [horizontalGames, setHorizontalGames] = useState<Set<string>>(new Set());
+  const currentMusicSrcRef = useRef<string | null>(null);
 
   const recentGames = useMemo(() => {
     const allAvailable = filteredGames.length > 0 ? filteredGames : games;
@@ -342,6 +343,25 @@ export function BigPicture() {
   useEffect(() => {
     if (!searchQuery) setLocalFiltered([]);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (showDetail) return;
+    const game = allGames[selectedIndex];
+    if (!game) return;
+
+    const timer = setTimeout(() => {
+      loadGameExtras(game.id).then(() => {
+        const updated = games.find((g) => g.id === game.id);
+        const musicSrc = updated?.backgroundMusic ?? null;
+        if (musicSrc === currentMusicSrcRef.current) return;
+        currentMusicSrcRef.current = musicSrc;
+        if (musicSrc) playBGMusic(musicSrc);
+        else stopAllAudio();
+      });
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [selectedIndex, allGames, showDetail]);
 
   
   
@@ -541,12 +561,7 @@ export function BigPicture() {
     setShowDetail(true);
     setDetailTab('details');
 
-    loadGameExtras(game.id).then(() => {
-      const updated = games.find((g) => g.id === game.id);
-      if (updated?.backgroundMusic) {
-        playBGMusic(updated.backgroundMusic);
-      }
-    });
+    loadGameExtras(game.id);
 
     fetchHLTB(game.name);
     fetchAchievements(game.id);
@@ -561,7 +576,6 @@ export function BigPicture() {
     if (stateRef.current.showDetail) {
       setShowDetail(false);
       setSelectedGame(null);
-      stopAllAudio();
       scrollSelectedIntoView(stateRef.current.selectedIndex);
     } else {
       setShowExitConfirm(true);

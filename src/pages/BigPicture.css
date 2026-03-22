@@ -187,13 +187,18 @@
 }
 
 .sd-card.selected.horizontal {
-  width: 58rem;
-    height: 40vh;
+  width: auto;
+  height: 40vh;
   aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sd-card.selected.horizontal > .sd-card-img {
-  object-fit: contain;
+  object-fit: fill;
+  width: 100%;
+  height: 100%;
 }
 
 .sd-card-img {
