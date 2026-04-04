@@ -1,14 +1,17 @@
 use anyhow::{anyhow, Result};
-use regex::Regex;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde_json::Value;
 use std::sync::Mutex;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const HLTB_BASE_URL: &str = "https://howlongtobeat.com";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
-const SCRIPT_DOWNLOAD_TIMEOUT_MS: u64 = 5000;
+const REQUEST_TIMEOUT_MS: u64 = 10000;
+
+
+
+const KNOWN_ENDPOINTS: &[&str] = &["find", "locate", "seek", "search"];
 
 #[derive(Debug, Deserialize)]
 struct HltbGame {
@@ -128,15 +131,17 @@ struct SortCategoryContainer {
     sort_category: String,
 }
 
-struct CachedToken {
+struct CachedAuth {
     token: String,
+    hp_key: String,
+    hp_val: String,
+    endpoint: String,
     expires_at: SystemTime,
 }
 
 pub struct HltbClient {
     client: Client,
-    cached_search_url: Mutex<Option<String>>,
-    cached_auth_token: Mutex<Option<CachedToken>>,
+    cached_auth: Mutex<Option<CachedAuth>>,
 }
 
 impl HltbClient {
@@ -148,172 +153,122 @@ impl HltbClient {
 
         Self {
             client,
-            cached_search_url: Mutex::new(None),
-            cached_auth_token: Mutex::new(None),
+            cached_auth: Mutex::new(None),
         }
     }
 
-    async fn get_search_url(&self) -> String {
-        {
-            let lock = self.cached_search_url.lock().unwrap();
-            if let Some(ref url) = *lock {
-                return url.clone();
-            }
-        }
+    
+    
+    async fn discover_endpoint(&self) -> Result<String> {
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
 
-        match self.discover_search_url().await {
-            Ok(url) => {
-                let mut lock = self.cached_search_url.lock().unwrap();
-                *lock = Some(url.clone());
-                url
-            }
-            Err(e) => {
-                eprintln!(
-                    "[HLTB] Failed to discover search URL: {}, falling back to /api/search",
-                    e
-                );
-                "/api/search".to_string()
-            }
-        }
-    }
-
-    async fn discover_search_url(&self) -> Result<String> {
-        let html = self
-            .client
-            .get(HLTB_BASE_URL)
-            .header("User-Agent", USER_AGENT)
-            .timeout(Duration::from_millis(SCRIPT_DOWNLOAD_TIMEOUT_MS))
-            .send()
-            .await?
-            .text()
-            .await?;
-
-        let script_re = Regex::new(r#"<script[^>]*src=["']([^"']+)["'][^>]*>"#).unwrap();
-        let script_urls: Vec<String> = script_re
-            .captures_iter(&html)
-            .filter_map(|cap| cap.get(1).map(|m| m.as_str().to_string()))
-            .collect();
-
-        if script_urls.is_empty() {
-            return Err(anyhow!("No script tags found in HLTB homepage"));
-        }
-
-        let mut ordered: Vec<String> = Vec::new();
-        for url in &script_urls {
-            if url.contains("_app-") {
-                ordered.push(url.clone());
-            }
-        }
-        for url in &script_urls {
-            if !ordered.contains(url) {
-                ordered.push(url.clone());
-            }
-        }
-
-        let mut seen = std::collections::HashSet::new();
-        ordered.retain(|u| seen.insert(u.clone()));
-
-        let fetch_re = Regex::new(
-            r#"fetch\s*\(\s*["']/api/([a-zA-Z0-9_/]+)[^"']*["']\s*,\s*\{[^}]*method:\s*["']POST["'][^}]*\}"#,
-        )
-        .unwrap();
-
-        for script_url in ordered {
-            let full_url = if script_url.starts_with("http") {
-                script_url
-            } else {
-                format!("{}{}", HLTB_BASE_URL, script_url)
-            };
-
-            let script_content = match self
+        for name in KNOWN_ENDPOINTS {
+            let url = format!("{}/api/{}/init?t={}", HLTB_BASE_URL, name, timestamp);
+            match self
                 .client
-                .get(&full_url)
+                .get(&url)
                 .header("User-Agent", USER_AGENT)
-                .timeout(Duration::from_millis(SCRIPT_DOWNLOAD_TIMEOUT_MS))
+                .header("Referer", HLTB_BASE_URL)
+                .timeout(Duration::from_millis(REQUEST_TIMEOUT_MS))
                 .send()
                 .await
             {
-                Ok(resp) if resp.status().is_success() => match resp.text().await {
-                    Ok(text) => text,
-                    Err(_) => continue,
-                },
-                _ => continue,
-            };
-
-            if let Some(cap) = fetch_re.captures(&script_content) {
-                let mut suffix = cap[1].to_string();
-
-                if let Some(pos) = suffix.find('/') {
-                    suffix.truncate(pos);
+                Ok(resp) if resp.status().is_success() => {
+                    println!("[HLTB] Discovered search endpoint: /api/{}", name);
+                    return Ok(name.to_string());
                 }
-
-                if suffix == "find" {
+                Ok(resp) if resp.status() == reqwest::StatusCode::NOT_FOUND => {
+                    
                     continue;
                 }
-
-                let search_url = format!("/api/{}", suffix);
-                println!("[HLTB] Discovered search endpoint: {}", search_url);
-                return Ok(search_url);
+                _ => continue,
             }
         }
 
-        Ok("/api/search".to_string())
+        Err(anyhow!(
+            "Could not discover HLTB search endpoint (tried: {:?})",
+            KNOWN_ENDPOINTS
+        ))
     }
 
-    async fn get_auth_token(&self) -> Result<String> {
+    
+    
+    async fn get_auth(&self) -> Result<(String, String, String, String)> {
         {
-            let lock = self.cached_auth_token.lock().unwrap();
+            let lock = self.cached_auth.lock().unwrap();
             if let Some(ref cached) = *lock {
                 if SystemTime::now() < cached.expires_at {
-                    return Ok(cached.token.clone());
+                    return Ok((
+                        cached.token.clone(),
+                        cached.hp_key.clone(),
+                        cached.hp_val.clone(),
+                        cached.endpoint.clone(),
+                    ));
                 }
             }
         }
+
+        let endpoint = self.discover_endpoint().await?;
 
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_millis();
 
-        let search_path = self.get_search_url().await;
-        let url = format!("{}{}/init?t={}", HLTB_BASE_URL, search_path, timestamp);
+        let url = format!("{}/api/{}/init?t={}", HLTB_BASE_URL, endpoint, timestamp);
 
         let response = self
             .client
             .get(&url)
             .header("User-Agent", USER_AGENT)
             .header("Referer", HLTB_BASE_URL)
-            .timeout(Duration::from_millis(SCRIPT_DOWNLOAD_TIMEOUT_MS))
+            .timeout(Duration::from_millis(REQUEST_TIMEOUT_MS))
             .send()
             .await?;
 
         if !response.status().is_success() {
-            return Err(anyhow!("Auth token request returned {}", response.status()));
+            return Err(anyhow!("Auth init request returned {}", response.status()));
         }
 
         let body = response.text().await?;
-        let data: HashMap<String, String> = serde_json::from_str(&body).map_err(|e| {
+        let data: Value = serde_json::from_str(&body).map_err(|e| {
             anyhow!(
-                "Failed to parse auth token response: {} body: {}",
+                "Failed to parse auth init response: {} body: {}",
                 e,
                 &body[..body.len().min(200)]
             )
         })?;
 
-        let token = data
-            .get("token")
+        let token = data["token"]
+            .as_str()
             .ok_or_else(|| anyhow!("No 'token' field in auth response"))?
-            .clone();
+            .to_string();
+
+        let hp_key = data["hpKey"]
+            .as_str()
+            .unwrap_or("")
+            .to_string();
+
+        let hp_val = data["hpVal"]
+            .as_str()
+            .unwrap_or("")
+            .to_string();
 
         {
-            let mut lock = self.cached_auth_token.lock().unwrap();
-            *lock = Some(CachedToken {
+            let mut lock = self.cached_auth.lock().unwrap();
+            *lock = Some(CachedAuth {
                 token: token.clone(),
+                hp_key: hp_key.clone(),
+                hp_val: hp_val.clone(),
+                endpoint: endpoint.clone(),
                 expires_at: SystemTime::now() + Duration::from_secs(90),
             });
         }
 
-        Ok(token)
+        Ok((token, hp_key, hp_val, endpoint))
     }
 
     pub async fn search(&self, game_name: &str) -> Result<HltbResponse> {
@@ -362,9 +317,14 @@ impl HltbClient {
             use_cache: true,
         };
 
-        let search_path = self.get_search_url().await;
-        let search_url = format!("{}{}", HLTB_BASE_URL, search_path);
-        let token = self.get_auth_token().await;
+        let (token, hp_key, hp_val, endpoint) = self.get_auth().await?;
+        let search_url = format!("{}/api/{}", HLTB_BASE_URL, endpoint);
+
+        
+        let mut payload_value = serde_json::to_value(&payload)?;
+        if !hp_key.is_empty() {
+            payload_value[&hp_key] = Value::String(hp_val.clone());
+        }
 
         let mut request = self
             .client
@@ -372,14 +332,17 @@ impl HltbClient {
             .header("User-Agent", USER_AGENT)
             .header("Origin", HLTB_BASE_URL)
             .header("Referer", HLTB_BASE_URL)
-            .header("Content-Type", "application/json");
+            .header("Content-Type", "application/json")
+            .header("x-auth-token", &token);
 
-        if let Ok(ref t) = token {
-            request = request.header("x-auth-token", t);
+        if !hp_key.is_empty() {
+            request = request
+                .header("x-hp-key", &hp_key)
+                .header("x-hp-val", &hp_val);
         }
 
         let response = request
-            .json(&payload)
+            .json(&payload_value)
             .send()
             .await
             .map_err(|e| anyhow!("HLTB search request failed: {}", e))?;
@@ -390,14 +353,16 @@ impl HltbClient {
             return Err(anyhow!("HLTB API rate limited (429). Try again later."));
         }
 
+        if status == reqwest::StatusCode::FORBIDDEN
+            || status == reqwest::StatusCode::NOT_FOUND
+        {
+            
+            let mut lock = self.cached_auth.lock().unwrap();
+            *lock = None;
+        }
+
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
-
-            if status == reqwest::StatusCode::NOT_FOUND {
-                let mut lock = self.cached_search_url.lock().unwrap();
-                *lock = None;
-            }
-
             return Err(anyhow!(
                 "HLTB API returned status {}: {}",
                 status,
