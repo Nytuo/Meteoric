@@ -8,7 +8,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "mock-server": "node update-test/mock-update-server.cjs"
   },
   "private": true,
   "dependencies": {

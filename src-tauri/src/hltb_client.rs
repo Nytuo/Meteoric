@@ -9,8 +9,6 @@ const HLTB_BASE_URL: &str = "https://howlongtobeat.com";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const REQUEST_TIMEOUT_MS: u64 = 10000;
 
-
-
 const KNOWN_ENDPOINTS: &[&str] = &["find", "locate", "seek", "search"];
 
 #[derive(Debug, Deserialize)]
@@ -157,8 +155,6 @@ impl HltbClient {
         }
     }
 
-    
-    
     async fn discover_endpoint(&self) -> Result<String> {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -181,7 +177,6 @@ impl HltbClient {
                     return Ok(name.to_string());
                 }
                 Ok(resp) if resp.status() == reqwest::StatusCode::NOT_FOUND => {
-                    
                     continue;
                 }
                 _ => continue,
@@ -194,8 +189,6 @@ impl HltbClient {
         ))
     }
 
-    
-    
     async fn get_auth(&self) -> Result<(String, String, String, String)> {
         {
             let lock = self.cached_auth.lock().unwrap();
@@ -247,15 +240,9 @@ impl HltbClient {
             .ok_or_else(|| anyhow!("No 'token' field in auth response"))?
             .to_string();
 
-        let hp_key = data["hpKey"]
-            .as_str()
-            .unwrap_or("")
-            .to_string();
+        let hp_key = data["hpKey"].as_str().unwrap_or("").to_string();
 
-        let hp_val = data["hpVal"]
-            .as_str()
-            .unwrap_or("")
-            .to_string();
+        let hp_val = data["hpVal"].as_str().unwrap_or("").to_string();
 
         {
             let mut lock = self.cached_auth.lock().unwrap();
@@ -320,7 +307,6 @@ impl HltbClient {
         let (token, hp_key, hp_val, endpoint) = self.get_auth().await?;
         let search_url = format!("{}/api/{}", HLTB_BASE_URL, endpoint);
 
-        
         let mut payload_value = serde_json::to_value(&payload)?;
         if !hp_key.is_empty() {
             payload_value[&hp_key] = Value::String(hp_val.clone());
@@ -353,10 +339,7 @@ impl HltbClient {
             return Err(anyhow!("HLTB API rate limited (429). Try again later."));
         }
 
-        if status == reqwest::StatusCode::FORBIDDEN
-            || status == reqwest::StatusCode::NOT_FOUND
-        {
-            
+        if status == reqwest::StatusCode::FORBIDDEN || status == reqwest::StatusCode::NOT_FOUND {
             let mut lock = self.cached_auth.lock().unwrap();
             *lock = None;
         }

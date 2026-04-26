@@ -23,7 +23,14 @@
   "mainBinaryName": "Meteoric",
   "version": "0.0.0",
   "identifier": "fr.nytuo.meteoric",
-  "plugins": {},
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3NDU1QzExMDMyMUJFOQpSV1RwR3pJUXdWVjBCVldwaWtndjMyN2NRNGkxNHJzV09vemx0LytBL3VKM1JkV29jVjdueHNIYwo=",
+      "endpoints": [
+        "https://github.com/Nytuo/Meteoric/releases/latest/download/latest.json"
+      ]
+    }
+  },
   "app": {
     "security": {
       "assetProtocol": {

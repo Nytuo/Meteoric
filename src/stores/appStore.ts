@@ -67,7 +67,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
     audio = new Audio(src);
     audio.loop = true;
-    audio.volume = 0.4; 
+    audio.volume = 0.4;
     audio.play();
   },
 
@@ -106,7 +106,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   playSFX(src) {
     if (!src) return;
     const sfx = new Audio(src);
-    sfx.volume = 0.8; 
+    sfx.volume = 0.8;
     sfx.play().catch(() => {});
   },
 

@@ -46,6 +46,9 @@ mod file_operations;
 mod hltb_client;
 mod plugins;
 mod tauri_commander;
+mod updater;
+
+use crate::updater::{check_for_update, install_update, open_releases_page, restart_app};
 
 #[derive(Serialize, Deserialize)]
 struct ITrophy {
@@ -503,6 +506,7 @@ async fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             store_app_handle(app.handle().clone());
 
@@ -601,6 +605,10 @@ async fn main() {
             confero_pull_trophies,
             confero_delete_game,
             confero_full_sync,
+            check_for_update,
+            install_update,
+            open_releases_page,
+            restart_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

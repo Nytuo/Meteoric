@@ -620,7 +620,6 @@ pub async fn launch_game(game_id: String) -> Result<u32, String> {
             return Err(error_msg);
         }
 
-        
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;

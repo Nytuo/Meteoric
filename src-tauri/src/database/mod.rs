@@ -269,7 +269,10 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("trophies", "TEXT"),
         ("trophies_unlocked", "INTEGER NOT NULL DEFAULT 0"),
         ("hidden", "TEXT NOT NULL DEFAULT 'false'"),
-            ("updated_at", "TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now'))"),
+        (
+            "updated_at",
+            "TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now'))",
+        ),
         (
             "confero_updated_at",
             "TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now'))",

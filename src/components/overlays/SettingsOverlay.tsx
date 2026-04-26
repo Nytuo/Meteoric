@@ -96,7 +96,7 @@ export function SettingsOverlay({
   const [selectedLanguage, setSelectedLanguage] = useState(
     i18n.language || 'en'
   );
-  const [appVersion, setAppVersion] = useState('1.0.0');
+  const [appVersion, setAppVersion] = useState('2.0.0');
   const [localApiKeys, setLocalApiKeys] = useState<Record<string, string>>({});
 
   const [conferoUrl, setConferoUrl] = useState('');
@@ -182,6 +182,10 @@ export function SettingsOverlay({
 
   const openProgramFolder = () => invoke('open_program_folder');
   const openDataFolder = () => invoke('open_data_folder');
+  const checkForUpdates = () => {
+    const trigger = document.getElementById('check-for-updates-trigger');
+    if (trigger) trigger.click();
+  };
   const openLaunchVideo = async () => {
     const file = await open({ multiple: false, directory: false });
     if (file) await invoke('save_launch_video', { file });
@@ -268,7 +272,7 @@ export function SettingsOverlay({
           <div className="flex w-56 shrink-0 flex-col border-r border-border bg-card/50">
             <DialogHeader className="shrink-0 p-4 pb-3">
               <DialogTitle className="text-base">
-                {t('settings') || 'Settings'}
+                {t('settings.title') || 'Settings'}
               </DialogTitle>
             </DialogHeader>
             <ScrollArea className="min-h-0 flex-1 px-2 pb-2">
@@ -633,6 +637,16 @@ export function SettingsOverlay({
                     <Button variant="outline" onClick={openDataFolder}>
                       <FolderOpen className="mr-2 h-4 w-4" />{' '}
                       {t('open-data-folder')}
+                    </Button>
+                  </div>
+                  <div className="mt-4">
+                    <Button
+                      variant="secondary"
+                      className="w-full max-w-xs gap-2"
+                      onClick={checkForUpdates}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      {t('check-for-updates') || 'Check for updates'}
                     </Button>
                   </div>
                 </div>

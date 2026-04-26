@@ -299,7 +299,6 @@ export function BigPicture() {
         console.debug('BigPicture splash video src:', src);
         setSplashSrc(src);
 
-        
         setSfxSources({
           nav: convertFileSrc(appDataPath + 'nav.mp3'),
           select: convertFileSrc(appDataPath + 'select.mp3'),
@@ -308,7 +307,7 @@ export function BigPicture() {
 
         const fallback = setTimeout(() => {
           if (showSplash) setShowSplash(false);
-        }, 15000); 
+        }, 15000);
 
         return () => clearTimeout(fallback);
       } catch (e) {
@@ -331,16 +330,14 @@ export function BigPicture() {
     };
   }, []);
 
-  
   useEffect(() => {
     if (splashSrc && splashVideoRef.current && showSplash) {
       const v = splashVideoRef.current;
       v.src = splashSrc;
-      v.muted = true; 
+      v.muted = true;
       v.load();
       v.play()
         .then(() => {
-          
           setTimeout(() => {
             if (v) v.muted = false;
           }, 150);
