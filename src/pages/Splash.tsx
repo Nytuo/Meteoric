@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { platform } from '@tauri-apps/plugin-os';
-import { appDataDir } from '@tauri-apps/api/path';
+import { configDir } from '@tauri-apps/api/path';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { useAppStore } from '@/stores/appStore';
@@ -28,14 +28,20 @@ export function Splash() {
 
   const loadVideo = async () => {
     try {
-      let appDataPath = await appDataDir();
+      const configDirPath = await configDir();
       const os = platform();
+      let appDataPath = '';
+
       if (os === 'windows') {
         appDataPath =
-          appDataPath + '\\meteoric_extra_content\\';
+          configDirPath + '\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+      } else if (os === 'macos') {
+        appDataPath =
+          configDirPath + '/fr.Nytuo.Meteoric/meteoric_extra_content/';
       } else {
-        appDataPath = appDataPath + '/meteoric_extra_content/';
+        appDataPath = configDirPath + '/meteoric/meteoric_extra_content/';
       }
+
       console.log('App data path:', appDataPath);
       if (videoRef.current) {
         videoRef.current.volume = 1;

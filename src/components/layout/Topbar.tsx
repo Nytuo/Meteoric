@@ -355,7 +355,11 @@ export function Topbar() {
         data-tauri-drag-region
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;
-          if (!target.closest('button, input, a, [role="button"], [role="combobox"], [role="checkbox"]')) {
+          if (
+            !target.closest(
+              'button, input, a, [role="button"], [role="combobox"], [role="checkbox"]'
+            )
+          ) {
             getCurrentWindow().startDragging();
           }
         }}

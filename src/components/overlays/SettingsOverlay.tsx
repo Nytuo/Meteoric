@@ -456,7 +456,6 @@ export function SettingsOverlay({
                   </p>
 
                   <div className="max-w-md space-y-4">
-
                     <div>
                       <Label htmlFor="confero-email">Email</Label>
                       <Input

@@ -13,8 +13,8 @@ export function FilterOverlay({ onClose }: FilterOverlayProps) {
   const { settings, updateSettings, applySettings } = useSettingsStore();
 
   const view = settings.view || 'card';
-  const zoom = parseInt(settings.zoom || '10');
-  const gap = parseInt(settings.gap || '10');
+  const zoom = parseInt(settings.zoom?.toString() ?? '10');
+  const gap = parseInt(settings.gap?.toString() ?? '10');
   const displayInfo = settings.displayInfo || '';
 
   const setView = (v: 'list' | 'card') => {

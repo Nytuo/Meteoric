@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { GameCard } from '@/components/game/GameCard';
 import type { IGame } from '@/types';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 interface CardViewProps {
   games: IGame[];
@@ -11,6 +12,8 @@ const BATCH_SIZE = 40;
 export function CardView({ games }: CardViewProps) {
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const { settings } = useSettingsStore();
+  const gap = parseInt(settings.gap?.toString() ?? '10');
 
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
@@ -41,7 +44,7 @@ export function CardView({ games }: CardViewProps) {
   );
 
   return (
-    <div className="flex flex-wrap gap-5 p-6">
+    <div className="flex flex-wrap p-6" style={{ gap: `${gap}px` }}>
       {visibleGames.map((game) => (
         <GameCard key={game.id} game={game} />
       ))}

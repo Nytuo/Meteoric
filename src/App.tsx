@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -12,12 +13,18 @@ import { EditGame } from '@/pages/EditGame';
 import { Stats } from '@/pages/Stats';
 import { BigPicture } from '@/pages/BigPicture';
 import { useAppStore } from '@/stores/appStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 export default function App() {
   const location = useLocation();
   const isBigPicture = location.pathname === '/bigpicture';
+  const { fetchSettings } = useSettingsStore();
 
   useTauriListener();
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   return (
     <TooltipProvider>

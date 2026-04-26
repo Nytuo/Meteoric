@@ -14,7 +14,7 @@ export function GameCard({ game }: GameCardProps) {
   const navigate = useNavigate();
   const { settings } = useSettingsStore();
   const displayInfo = settings.displayInfo || 'name';
-  const zoom = settings.zoom || 14;
+  const zoom = settings.zoom ?? 14;
   const [imgError, setImgError] = useState(false);
 
   const parsedTags = game.tags

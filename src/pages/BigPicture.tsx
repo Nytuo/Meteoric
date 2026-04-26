@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
-import { appDataDir } from '@tauri-apps/api/path';
+import { configDir } from '@tauri-apps/api/path';
 import { platform } from '@tauri-apps/plugin-os';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
@@ -108,8 +108,17 @@ export function BigPicture() {
     killGame,
     loadGameExtras,
   } = useGameStore();
-  const { playBGMusic, stopAllAudio } = useAppStore();
+  const { playBGMusic, stopAllAudio, playSFX } = useAppStore();
   const { gamePID, isGameRunning } = useTauriEventStore();
+
+  const [sfxSources, setSfxSources] = useState<Record<string, string>>({});
+  const playSfxHelper = useCallback(
+    (type: 'nav' | 'select' | 'back') => {
+      const src = sfxSources[type];
+      if (src) playSFX(src);
+    },
+    [sfxSources, playSFX]
+  );
 
   const [gamepadConnected, setGamepadConnected] = useState(false);
   const gamepadRAF = useRef<number | null>(null);
@@ -159,7 +168,9 @@ export function BigPicture() {
   const splashVideoRef = useRef<HTMLVideoElement>(null);
   const [splashStarted, setSplashStarted] = useState(false);
   const splashStartedRef = useRef(false);
-  const [horizontalGames, setHorizontalGames] = useState<Set<string>>(new Set());
+  const [horizontalGames, setHorizontalGames] = useState<Set<string>>(
+    new Set()
+  );
   const currentMusicSrcRef = useRef<string | null>(null);
 
   const recentGames = useMemo(() => {
@@ -188,8 +199,6 @@ export function BigPicture() {
 
   const allGames = displayGames;
 
-  
-  
   useEffect(() => {
     setHorizontalGames((prev) => {
       const next = new Set(prev);
@@ -208,6 +217,7 @@ export function BigPicture() {
     selectedIndex,
     allGames,
     menuMode,
+    showSplash,
   });
   stateRef.current = {
     showDetail,
@@ -217,6 +227,7 @@ export function BigPicture() {
     selectedIndex,
     allGames,
     menuMode,
+    showSplash,
   };
 
   const scrollSelectedIntoView = useCallback((idx: number) => {
@@ -245,11 +256,12 @@ export function BigPicture() {
           dir === 'left'
             ? Math.max(0, prev - 1)
             : Math.min(ag.length - 1, prev + 1);
+        if (next !== prev) playSfxHelper('nav');
         scrollSelectedIntoView(next);
         return next;
       });
     },
-    [scrollSelectedIntoView]
+    [scrollSelectedIntoView, playSfxHelper]
   );
 
   const selectCurrentRef = useRef<() => void>(() => {});
@@ -258,6 +270,8 @@ export function BigPicture() {
   const detailViewRef = useRef<HTMLDivElement>(null);
   const handleGamepadButtonRef = useRef<(button: string) => void>(() => {});
 
+  const [splashSrc, setSplashSrc] = useState<string>('');
+
   useEffect(() => {
     const appWindow = getCurrentWebviewWindow();
     appWindow.setFullscreen(true);
@@ -265,68 +279,44 @@ export function BigPicture() {
 
     (async () => {
       try {
-        const appData = await appDataDir();
+        const configDirPath = await configDir();
         const os = platform();
-        const sep = os === 'windows' ? '\\' : '/';
-        const videoPath = appData + sep + 'meteoric_extra_content' + sep + 'startup.mp4';
+        let appDataPath = '';
+
+        if (os === 'windows') {
+          appDataPath =
+            configDirPath +
+            '\\Nytuo\\Meteoric\\config\\meteoric_extra_content\\';
+        } else if (os === 'macos') {
+          appDataPath =
+            configDirPath + '/fr.Nytuo.Meteoric/meteoric_extra_content/';
+        } else {
+          appDataPath = configDirPath + '/meteoric/meteoric_extra_content/';
+        }
+
+        const videoPath = appDataPath + 'startup.mp4';
         const src = convertFileSrc(videoPath);
         console.debug('BigPicture splash video src:', src);
+        setSplashSrc(src);
 
-        const waitForRef = async (
-          ref: React.RefObject<HTMLVideoElement>,
-          timeout = 3000
-        ) => {
-          const start = Date.now();
-          while (Date.now() - start < timeout) {
-            if (ref.current) return ref.current;
-            await new Promise((r) => setTimeout(r, 50));
-          }
-          return null;
-        };
+        
+        setSfxSources({
+          nav: convertFileSrc(appDataPath + 'nav.mp3'),
+          select: convertFileSrc(appDataPath + 'select.mp3'),
+          back: convertFileSrc(appDataPath + 'back.mp3'),
+        });
 
-        const v = await waitForRef(splashVideoRef, 3000);
-        if (v) {
-          const onPlaying = () => {
-            splashStartedRef.current = true;
-            setSplashStarted(true);
-            try {
-              v.muted = false;
-            } catch (_) {}
-            v.removeEventListener('playing', onPlaying);
-            v.removeEventListener('error', onError);
-          };
-          const onError = (ev: any) => {
-            console.error('splash video error event:', ev);
-            v.removeEventListener('playing', onPlaying);
-            v.removeEventListener('error', onError);
-          };
-          v.addEventListener('playing', onPlaying);
-          v.addEventListener('error', onError);
+        const fallback = setTimeout(() => {
+          if (showSplash) setShowSplash(false);
+        }, 15000); 
 
-          try {
-            v.muted = true;
-            v.volume = 1;
-            v.src = src;
-            v.load();
-            await v.play();
-            
-            splashStartedRef.current = true;
-            setSplashStarted(true);
-            setTimeout(() => {
-              try {
-                v.muted = false;
-              } catch (_) {}
-            }, 500);
-          } catch (err) {
-            console.error('splash play() failed after video present', err);
-            
-          }
-        }
+        return () => clearTimeout(fallback);
       } catch (e) {
-        console.error('Failed to load splash video:', e);
+        console.error('Failed to resolve splash video path:', e);
         setShowSplash(false);
       }
     })();
+
     const timer = setInterval(() => {
       const now = new Date();
       const h = now.getHours() % 12 || 12;
@@ -334,18 +324,40 @@ export function BigPicture() {
       const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
       setCurrentTime(`${h}:${m} ${ampm}`);
     }, 1000);
+
     return () => {
       clearInterval(timer);
       stopAllAudio();
     };
   }, []);
 
+  
+  useEffect(() => {
+    if (splashSrc && splashVideoRef.current && showSplash) {
+      const v = splashVideoRef.current;
+      v.src = splashSrc;
+      v.muted = true; 
+      v.load();
+      v.play()
+        .then(() => {
+          
+          setTimeout(() => {
+            if (v) v.muted = false;
+          }, 150);
+        })
+        .catch((err) => {
+          console.error('Error playing splash video:', err);
+          setShowSplash(false);
+        });
+    }
+  }, [splashSrc, showSplash]);
+
   useEffect(() => {
     if (!searchQuery) setLocalFiltered([]);
   }, [searchQuery]);
 
   useEffect(() => {
-    if (showDetail) return;
+    if (showDetail || showSplash) return;
     const game = allGames[selectedIndex];
     if (!game) return;
 
@@ -361,10 +373,8 @@ export function BigPicture() {
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [selectedIndex, allGames, showDetail]);
+  }, [selectedIndex, allGames, showDetail, showSplash]);
 
-  
-  
   useEffect(() => {
     if (isGameRunning) {
       const t = setTimeout(() => setLaunchingGame(false), 1200);
@@ -561,6 +571,8 @@ export function BigPicture() {
     setShowDetail(true);
     setDetailTab('details');
 
+    playSfxHelper('select');
+
     loadGameExtras(game.id);
 
     fetchHLTB(game.name);
@@ -571,14 +583,17 @@ export function BigPicture() {
   const goBack = () => {
     if (stateRef.current.mediaOverlay) {
       setMediaOverlay(null);
+      playSfxHelper('back');
       return;
     }
     if (stateRef.current.showDetail) {
       setShowDetail(false);
       setSelectedGame(null);
+      playSfxHelper('back');
       scrollSelectedIntoView(stateRef.current.selectedIndex);
     } else {
       setShowExitConfirm(true);
+      playSfxHelper('nav');
     }
   };
   goBackRef.current = goBack;
@@ -653,6 +668,7 @@ export function BigPicture() {
 
   const openSearch = () => {
     setShowSearch(true);
+    playSfxHelper('select');
     setTimeout(() => {
       const input = document.getElementById(
         'bp-search-input'
@@ -663,6 +679,7 @@ export function BigPicture() {
 
   const closeSearch = () => {
     setShowSearch(false);
+    playSfxHelper('back');
     setSearchQuery('');
     setLocalFiltered([]);
     setSelectedIndex(0);
@@ -676,7 +693,14 @@ export function BigPicture() {
         showSearch: ss,
         showExitConfirm: sec,
         mediaOverlay: mo,
+        showSplash: spl,
       } = stateRef.current;
+
+      if (spl) {
+        setShowSplash(false);
+        return;
+      }
+
       if (mo) {
         if (e.key === 'Escape') setMediaOverlay(null);
         return;
@@ -793,36 +817,40 @@ export function BigPicture() {
         <div
           className="absolute inset-0 bg-black"
           style={{ zIndex: 9999 }}
-          onDoubleClick={() => setShowSplash(false)}
+          onClick={() => setShowSplash(false)}
         >
           <video
             ref={splashVideoRef}
+            src={splashSrc}
             autoPlay
             playsInline
             onEnded={() => setShowSplash(false)}
             onError={() => setShowSplash(false)}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          >
-            <source src="" type="video/mp4" />
-          </video>
+          />
         </div>
       )}
-      {launchingGame && (() => {
-        const game = selectedGame || allGames[selectedIndex];
-        return (
-          <div className="bp-launch-overlay">
-            {game?.logo ? (
-              <img src={game.logo} className="bp-launch-logo" alt={game.name} />
-            ) : (
-              <p className="bp-launch-title">{game?.name}</p>
-            )}
-            <div className="bp-launch-spinner">
-              <div className="bp-launch-spinner-ring" />
-              <span className="bp-launch-spinner-label">Launching…</span>
+      {launchingGame &&
+        (() => {
+          const game = selectedGame || allGames[selectedIndex];
+          return (
+            <div className="bp-launch-overlay">
+              {game?.logo ? (
+                <img
+                  src={game.logo}
+                  className="bp-launch-logo"
+                  alt={game.name}
+                />
+              ) : (
+                <p className="bp-launch-title">{game?.name}</p>
+              )}
+              <div className="bp-launch-spinner">
+                <div className="bp-launch-spinner-ring" />
+                <span className="bp-launch-spinner-label">Launching…</span>
+              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       <div className="sd-global-bg">
         {bgImage && <img src={bgImage} className="sd-bg-img" alt="" />}
@@ -895,6 +923,7 @@ export function BigPicture() {
             <button
               className={`bp-menu-tab${menuMode === 'recent' ? ' active' : ''}`}
               onClick={() => {
+                if (menuMode !== 'recent') playSfxHelper('nav');
                 setMenuMode('recent');
                 setSelectedIndex(0);
                 scrollSelectedIntoView(0);
@@ -905,6 +934,7 @@ export function BigPicture() {
             <button
               className={`bp-menu-tab${menuMode === 'all' ? ' active' : ''}`}
               onClick={() => {
+                if (menuMode !== 'all') playSfxHelper('nav');
                 setMenuMode('all');
                 setSelectedIndex(0);
                 scrollSelectedIntoView(0);
@@ -1006,9 +1036,12 @@ export function BigPicture() {
       )}
 
       {showDetail && selectedGame && (
-        <div ref={detailViewRef} className="pb-20 sd-detail-view">
+        <div ref={detailViewRef} className="sd-detail-view">
           <div className="sd-detail-hero">
             <div className="sd-stats-panel">
+              <span className="sd-stat-label">
+                {t('howlongtobeat') || 'HowLongToBeat'}
+              </span>
               {loadingHltb ? (
                 <div className="sd-stat-row">
                   <span className="sd-stat-hours">
@@ -1141,13 +1174,19 @@ export function BigPicture() {
             <div className="bp-detail-tabs">
               <button
                 className={`bp-detail-tab${detailTab === 'details' ? ' active' : ''}`}
-                onClick={() => setDetailTab('details')}
+                onClick={() => {
+                  if (detailTab !== 'details') playSfxHelper('nav');
+                  setDetailTab('details');
+                }}
               >
                 {t('game-information') || 'Details'}
               </button>
               <button
                 className={`bp-detail-tab${detailTab === 'achievements' ? ' active' : ''}`}
-                onClick={() => setDetailTab('achievements')}
+                onClick={() => {
+                  if (detailTab !== 'achievements') playSfxHelper('nav');
+                  setDetailTab('achievements');
+                }}
               >
                 <Trophy size={14} /> {t('achievements') || 'Achievements'}
                 {achievements.length > 0 && (

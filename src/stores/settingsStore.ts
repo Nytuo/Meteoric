@@ -49,8 +49,12 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   async fetchSettings() {
     try {
       const settings = await db.getSettings();
-      if (settings.gap && isNaN(Number(settings.gap))) settings.gap = '1';
-      if (settings.zoom && isNaN(Number(settings.zoom))) settings.zoom = '10';
+      if (settings.gap !== undefined) settings.gap = settings.gap.toString();
+      else settings.gap = '10';
+
+      if (settings.zoom !== undefined) settings.zoom = settings.zoom.toString();
+      else settings.zoom = '10';
+
       set({ settings });
 
       i18n.changeLanguage(settings.language || 'en');
