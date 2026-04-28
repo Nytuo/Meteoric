@@ -1,10 +1,12 @@
 use anyhow::Context;
-use clap::Parser;
 use std::collections::HashMap;
 use std::fs;
 use std::io::prelude::*;
+use std::io::Cursor;
 
 use directories::ProjectDirs;
+use image::codecs::gif::GifDecoder;
+use image::ImageReader;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
@@ -16,6 +18,59 @@ use crate::IGame;
 use crate::Metadata;
 
 mod test;
+
+fn is_animated_image(bytes: &[u8]) -> bool {
+    if bytes.len() > 6 && &bytes[0..6] == b"GIF89a"
+        || (bytes.len() > 6 && &bytes[0..6] == b"GIF87a")
+    {
+        if GifDecoder::new(Cursor::new(bytes)).is_ok() {
+            return true;
+        }
+    }
+    false
+}
+
+fn convert_to_webp(bytes: &[u8]) -> Result<Vec<u8>, String> {
+    if bytes.len() > 4 && &bytes[0..4] == b"RIFF" && bytes.len() > 12 && &bytes[8..12] == b"WEBP" {
+        return Ok(bytes.to_vec());
+    }
+
+    let img = ImageReader::new(Cursor::new(bytes))
+        .with_guessed_format()
+        .map_err(|e| format!("Failed to guess image format: {}", e))?
+        .decode()
+        .map_err(|e| format!("Failed to decode image: {}", e))?;
+
+    let mut webp_bytes = Vec::new();
+    let encoder = image::codecs::webp::WebPEncoder::new_lossless(&mut webp_bytes);
+    encoder
+        .encode(
+            img.as_bytes(),
+            img.width(),
+            img.height(),
+            img.color().into(),
+        )
+        .map_err(|e| format!("Failed to encode as WebP: {}", e))?;
+
+    Ok(webp_bytes)
+}
+
+async fn save_image_optimized(file_path: &PathBuf, bytes: &[u8]) -> Result<(), String> {
+    let is_animated = is_animated_image(bytes);
+
+    if is_animated {
+        let file_path_gif = file_path.with_extension("gif");
+        fs::write(&file_path_gif, bytes)
+            .map_err(|e| format!("Error writing animated image: {}", e))?;
+    } else {
+        let webp_bytes = convert_to_webp(bytes)?;
+        let file_path_webp = file_path.with_extension("webp");
+        fs::write(&file_path_webp, webp_bytes)
+            .map_err(|e| format!("Error writing WebP image: {}", e))?;
+    }
+
+    Ok(())
+}
 
 pub fn create_extra_dirs(id: &str) -> Result<(), Box<dyn std::error::Error>> {
     let id = id;
@@ -186,11 +241,10 @@ async fn download_screenshots(
         get_nb_of_screenshots = get_nb_of_screenshots + 1;
         let file_path = game_dir
             .join("screenshots")
-            .join("screenshot-".to_string() + &get_nb_of_screenshots.to_string() + ".jpg");
+            .join("screenshot-".to_string() + &get_nb_of_screenshots.to_string());
         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
-        if let Err(e) = fs::write(&file_path, &file_content) {
-            return Err(format!("Error writing file: {:?}", e));
-        }
+
+        save_image_optimized(&file_path, &file_content).await?;
     }
 
     Ok(())
@@ -242,24 +296,36 @@ async fn download_single_file(
 ) -> Result<(), String> {
     let url = value.as_str().unwrap();
 
-    if key == "audio" || key == "background" || key == "jaquette" || key == "logo" || key == "icon"
+    if key == "audio"
+        || key == "background"
+        || key == "jaquette"
+        || key == "jaquette_horizontal"
+        || key == "logo"
+        || key == "icon"
     {
         println!("Downloading: {}", url);
         if url.is_empty() {
-            return Err("Url is empty".to_string());
+            println!("Skipping {} - URL is empty", key);
+            return Ok(());
         }
         let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
         let game_dir_clone = game_dir.clone();
-        let file_path = match key {
-            "audio" => game_dir_clone.join("musics").join("theme.mp3"),
-            "background" => game_dir_clone.join("background.jpg"),
-            "jaquette" => game_dir_clone.join("jaquette.jpg"),
-            "logo" => game_dir_clone.join("logo.png"),
-            "icon" => game_dir_clone.join("icon.png"),
-            _ => game_dir_clone,
-        };
-        if let Err(e) = fs::write(&file_path, &file_content) {
-            return Err(format!("Error writing file: {:?}", e));
+
+        if key == "audio" {
+            let file_path = game_dir_clone.join("musics").join("theme.mp3");
+            if let Err(e) = fs::write(&file_path, &file_content) {
+                return Err(format!("Error writing file: {:?}", e));
+            }
+        } else {
+            let file_path = match key {
+                "background" => game_dir_clone.join("background"),
+                "jaquette" => game_dir_clone.join("jaquette"),
+                "jaquette_horizontal" => game_dir_clone.join("jaquette_horizontal"),
+                "logo" => game_dir_clone.join("logo"),
+                "icon" => game_dir_clone.join("icon"),
+                _ => game_dir_clone,
+            };
+            save_image_optimized(&file_path, &file_content).await?;
         }
     }
     Ok(())

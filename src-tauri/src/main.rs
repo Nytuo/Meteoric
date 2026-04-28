@@ -1,4 +1,3 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 extern crate directories;
@@ -17,22 +16,39 @@ use file_operations::have_no_metadata;
 use plugins::{epic_importer, gog_importer, igdb, steam_importer};
 
 use crate::plugins::steam_grid::{
-    steamgrid_get_grid, steamgrid_get_hero, steamgrid_get_icon, steamgrid_get_logo,
+    steamgrid_get_grid, steamgrid_get_grid_animated, steamgrid_get_grid_horizontal,
+    steamgrid_get_grid_horizontal_animated, steamgrid_get_hero, steamgrid_get_hero_animated,
+    steamgrid_get_icon, steamgrid_get_logo, steamgrid_get_logo_animated,
 };
 use crate::tauri_commander::{
-    add_game_to_category, create_category, delete_element, delete_game, download_yt_audio,
-    export_game_database_to_archive, export_game_database_to_csv, get_achievements_for_game,
-    get_all_categories, get_all_fields_from_db, get_all_games, get_all_images_location,
-    get_all_videos_location, get_app_version, get_env_map, get_games_by_category, get_settings,
-    import_library, kill_game, launch_game, open_data_folder, open_program_folder, post_game,
-    remove_game_from_category, save_launch_video, save_media_to_external_storage, search_hltb,
-    search_metadata, set_env_map, set_settings, startup_routine, upload_csv_to_db, upload_file,
+    add_game_to_category, check_ytdlp_updates, confero_delete_game, confero_full_sync,
+    confero_pull_games, confero_pull_stats, confero_pull_trophies, confero_push_games,
+    confero_push_stats, confero_push_trophies, confero_test_connection, create_category,
+    delete_element, delete_game, download_yt_audio, epic_cloud_save_status, epic_debug_cache_info,
+    epic_delete_cloud_saves, epic_download_game, epic_download_saves, epic_get_display_name,
+    epic_get_downloadable_games, epic_get_installed_games, epic_is_logged_in, epic_launch_game,
+    epic_reload_cache, epic_sync_achievements, epic_uninstall_game, epic_update_game,
+    epic_upload_saves, export_game_database_to_archive, export_game_database_to_csv,
+    get_achievements_for_game, get_all_categories, get_all_fields_from_db, get_all_games,
+    get_all_images_location, get_all_videos_location, get_app_version, get_env_map,
+    get_game_image_paths, get_games_by_category, get_settings, gog_cloud_save_status,
+    gog_download_game, gog_download_saves, gog_get_display_name, gog_get_downloadable_games,
+    gog_get_installed_games, gog_is_logged_in, gog_launch_game, gog_sync_achievements,
+    gog_uninstall_game, gog_upload_saves, import_library, kill_game, launch_game, open_data_folder,
+    open_program_folder, post_game, remove_game_from_category, save_launch_video,
+    save_media_to_external_storage, search_hltb, search_metadata, set_env_map, set_settings,
+    startup_routine, steam_sync_achievements, upload_csv_to_db, upload_file,
 };
 
+mod confero_sync;
 mod database;
 mod file_operations;
+mod hltb_client;
 mod plugins;
 mod tauri_commander;
+mod updater;
+
+use crate::updater::{check_for_update, install_update, open_releases_page, restart_app};
 
 #[derive(Serialize, Deserialize)]
 struct ITrophy {
@@ -138,6 +154,8 @@ struct IGame {
     id: String,
     game_importer_id: String,
     importer_id: String,
+    #[serde(default)]
+    igdb_id: String,
     name: String,
     sort_name: String,
     rating: String,
@@ -165,6 +183,7 @@ impl IGame {
             "id",
             "game_importer_id",
             "importer_id",
+            "igdb_id",
             "name",
             "sort_name",
             "rating",
@@ -192,6 +211,7 @@ impl IGame {
             id: String::new(),
             game_importer_id: String::new(),
             importer_id: String::new(),
+            igdb_id: String::new(),
             name: String::new(),
             sort_name: String::new(),
             rating: String::new(),
@@ -219,6 +239,7 @@ impl IGame {
             "id" => self.id == "",
             "game_importer_id" => self.game_importer_id == "",
             "importer_id" => self.importer_id == "",
+            "igdb_id" => self.igdb_id == "",
             "name" => self.name == "",
             "sort_name" => self.sort_name == "",
             "rating" => self.rating == "",
@@ -247,6 +268,7 @@ impl IGame {
             id: hashmap["id"].clone(),
             game_importer_id: hashmap["game_importer_id"].clone(),
             importer_id: hashmap["importer_id"].clone(),
+            igdb_id: hashmap.get("igdb_id").cloned().unwrap_or_default(),
             name: hashmap["name"].clone(),
             sort_name: hashmap["sort_name"].clone(),
             rating: hashmap["rating"].clone(),
@@ -274,6 +296,7 @@ impl IGame {
             "id" => Some(self.id.clone()),
             "game_importer_id" => Some(self.game_importer_id.clone()),
             "importer_id" => Some(self.importer_id.clone()),
+            "igdb_id" => Some(self.igdb_id.clone()),
             "name" => Some(self.name.clone()),
             "sort_name" => Some(self.sort_name.clone()),
             "rating" => Some(self.rating.clone()),
@@ -302,6 +325,7 @@ impl IGame {
             "name".to_string(),
             "description".to_string(),
             "release_date".to_string(),
+            "igdb_id".to_string(),
         ];
         for field in &minimum_fields {
             if self.is_empty(field) {
@@ -374,9 +398,14 @@ pub async fn routine() {
     steam_importer::get_games_from_user()
         .await
         .expect("[ROUTINE ERROR] Steam Importer failed");
-    epic_importer::get_games_from_user()
-        .await
-        .expect("[ROUTINE ERROR] Epic Importer failed");
+
+    println!("[ROUTINE] Loading Epic installed games cache...");
+    epic_importer::load_installed_games().await;
+    match epic_importer::get_games_from_user().await {
+        Ok(_) => println!("[ROUTINE] Epic Games import completed"),
+        Err(e) => eprintln!("[ROUTINE WARNING] Epic Games import failed: {}", e),
+    }
+
     gog_importer::get_games_from_user()
         .await
         .expect("[ROUTINE ERROR] GOG Importer failed");
@@ -457,7 +486,7 @@ fn create_basic_env_file() {
     if !env_file.exists() {
         std::fs::write(
             env_file,
-            "STEAM_API_KEY=\nEGS_CLIENT_ID=\nIGDB_CLIENT_SECRET=\nEGS_CLIENT_SECRET=\nIGDB_CLIENT_ID=\nSTEAMGRIDDB_API_KEY=\nSTEAM_USER_ID=\n",
+            "STEAM_API_KEY=\nEGS_CLIENT_ID=\nIGDB_CLIENT_SECRET=\nEGS_CLIENT_SECRET=\nIGDB_CLIENT_ID=\nSTEAMGRIDDB_API_KEY=\nSTEAM_USER_ID=\nCONFERO_EMAIL=\nCONFERO_PASSWORD=\n",
         )
         .expect("Failed to create env file");
     }
@@ -477,8 +506,22 @@ async fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             store_app_handle(app.handle().clone());
+
+            tauri::async_runtime::spawn(async {
+                println!("[STARTUP] Loading Epic installed games cache...");
+                epic_importer::load_installed_games().await;
+                println!("[STARTUP] Epic cache load completed");
+            });
+
+            tauri::async_runtime::spawn(async {
+                println!("[STARTUP] Loading GOG installed games cache...");
+                gog_importer::load_installed_games().await;
+                println!("[STARTUP] GOG cache load completed");
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -487,6 +530,7 @@ async fn main() {
             get_all_categories,
             get_games_by_category,
             get_all_images_location,
+            get_game_image_paths,
             upload_file,
             delete_element,
             post_game,
@@ -497,6 +541,11 @@ async fn main() {
             steamgrid_get_hero,
             steamgrid_get_logo,
             steamgrid_get_icon,
+            steamgrid_get_grid_horizontal,
+            steamgrid_get_grid_horizontal_animated,
+            steamgrid_get_hero_animated,
+            steamgrid_get_logo_animated,
+            steamgrid_get_grid_animated,
             get_all_fields_from_db,
             upload_csv_to_db,
             import_library,
@@ -518,7 +567,48 @@ async fn main() {
             open_program_folder,
             open_data_folder,
             save_launch_video,
-            get_achievements_for_game
+            get_achievements_for_game,
+            check_ytdlp_updates,
+            epic_get_downloadable_games,
+            epic_get_installed_games,
+            epic_download_game,
+            epic_update_game,
+            epic_uninstall_game,
+            epic_launch_game,
+            epic_cloud_save_status,
+            epic_upload_saves,
+            epic_download_saves,
+            epic_delete_cloud_saves,
+            epic_sync_achievements,
+            epic_is_logged_in,
+            epic_get_display_name,
+            epic_debug_cache_info,
+            epic_reload_cache,
+            gog_get_downloadable_games,
+            gog_get_installed_games,
+            gog_download_game,
+            gog_uninstall_game,
+            gog_launch_game,
+            gog_cloud_save_status,
+            gog_upload_saves,
+            gog_download_saves,
+            gog_sync_achievements,
+            gog_is_logged_in,
+            gog_get_display_name,
+            steam_sync_achievements,
+            confero_test_connection,
+            confero_push_games,
+            confero_pull_games,
+            confero_push_stats,
+            confero_pull_stats,
+            confero_push_trophies,
+            confero_pull_trophies,
+            confero_delete_game,
+            confero_full_sync,
+            check_for_update,
+            install_update,
+            open_releases_page,
+            restart_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

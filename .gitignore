@@ -133,3 +133,5 @@ dist
 qodana.yaml
 /.idea/
 /.vscode/
+
+.DS_Store
