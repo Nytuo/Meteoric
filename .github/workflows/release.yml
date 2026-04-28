@@ -59,15 +59,27 @@ jobs:
         if: startsWith(matrix.runs_on, 'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils protobuf-compiler
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils protobuf-compiler libssl-dev pkg-config
 
       - name: install protoc (macOS)
         if: matrix.runs_on == 'macos-latest'
         run: brew install protobuf
 
+      - name: install OpenSSL (macOS)
+        if: matrix.runs_on == 'macos-latest'
+        run: |
+          brew install openssl@3
+          echo "OPENSSL_DIR=$(brew --prefix openssl@3)" >> "$GITHUB_ENV"
+          echo "PKG_CONFIG_ALLOW_CROSS=1" >> "$GITHUB_ENV"
+          echo "PKG_CONFIG_PATH=$(brew --prefix openssl@3)/lib/pkgconfig" >> "$GITHUB_ENV"
+
       - name: install protoc (Windows)
         if: startsWith(matrix.runs_on, 'windows')
         run: choco install protoc -y
+
+      - name: install OpenSSL (Windows)
+        if: startsWith(matrix.runs_on, 'windows')
+        run: choco install openssl -y
 
       - name: setup node
         uses: actions/setup-node@v4
@@ -89,7 +101,7 @@ jobs:
         run: npm ci
 
       - name: Build Vite frontend
-        run: npm run build:vite
+        run: npm run build
 
       - uses: tauri-apps/tauri-action@v0
         env:
