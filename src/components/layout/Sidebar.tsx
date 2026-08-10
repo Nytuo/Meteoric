@@ -12,6 +12,13 @@ import {
   Clock,
   Download,
   Home,
+  Circle,
+  PlayCircle,
+  PauseCircle,
+  XCircle,
+  CheckCircle2,
+  Award,
+  type LucideIcon,
 } from 'lucide-react';
 import logoUrl from '@/assets/logo.png';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,10 +30,29 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { useCategoryStore } from '@/stores/categoryStore';
+import { useCategoryStore, STATUS_CATEGORY_PREFIX } from '@/stores/categoryStore';
 import { useAppStore } from '@/stores/appStore';
 import { SettingsOverlay } from '@/components/overlays/SettingsOverlay';
 import { cn } from '@/lib/utils';
+import type { ICategory } from '@/types';
+
+const STATUS_ICONS: Record<string, LucideIcon> = {
+  'Not started': Circle,
+  'In progress': PlayCircle,
+  'On hold': PauseCircle,
+  Dropped: XCircle,
+  Completed: CheckCircle2,
+  Platinum: Award,
+};
+
+function getCategoryIcon(cat: ICategory): LucideIcon {
+  if (cat.id === '0') return Home;
+  if (cat.id === '-5') return Clock;
+  if (cat.id === '-6') return Download;
+  if (cat.id.startsWith(STATUS_CATEGORY_PREFIX))
+    return STATUS_ICONS[cat.name] ?? Circle;
+  return Gamepad2;
+}
 
 const appWindow = getCurrentWebviewWindow();
 
@@ -54,6 +80,36 @@ export function Sidebar() {
   const handleCategoryClick = (id: string) => {
     setCurrentCategory(id);
     navigate('/games');
+  };
+
+  const regularCategories = categories.filter(
+    (cat) => !cat.id.startsWith(STATUS_CATEGORY_PREFIX)
+  );
+  const statusCategories = categories.filter((cat) =>
+    cat.id.startsWith(STATUS_CATEGORY_PREFIX)
+  );
+
+  const renderCategoryButton = (cat: ICategory) => {
+    const IconComp = getCategoryIcon(cat);
+    return (
+      <button
+        key={cat.id}
+        onClick={() => handleCategoryClick(cat.id)}
+        className={cn(
+          'group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent/50',
+          currentCategoryId === cat.id && 'bg-accent text-accent-foreground'
+        )}
+      >
+        {currentCategoryId === cat.id && (
+          <div className="h-4 w-1 rounded-full bg-primary" />
+        )}
+        <IconComp className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+        <span className="flex-1 truncate text-left">{cat.name}</span>
+        <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+          {cat.count ?? 0}
+        </Badge>
+      </button>
+    );
   };
 
   const toggleFullscreen = async () => {
@@ -142,38 +198,20 @@ export function Sidebar() {
           </p>
         </div>
         <ScrollArea className="flex-1 px-3">
-          <div className="space-y-0.5 pb-4">
-            {categories.map((cat) => {
-              const IconComp =
-                cat.id === '0'
-                  ? Home
-                  : cat.id === '-5'
-                    ? Clock
-                    : cat.id === '-6'
-                      ? Download
-                      : Gamepad2;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => handleCategoryClick(cat.id)}
-                  className={cn(
-                    'group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent/50',
-                    currentCategoryId === cat.id &&
-                      'bg-accent text-accent-foreground'
-                  )}
-                >
-                  {currentCategoryId === cat.id && (
-                    <div className="h-4 w-1 rounded-full bg-primary" />
-                  )}
-                  <IconComp className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
-                  <span className="flex-1 truncate text-left">{cat.name}</span>
-                  <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
-                    {cat.count ?? 0}
-                  </Badge>
-                </button>
-              );
-            })}
+          <div className="space-y-0.5 pb-2">
+            {regularCategories.map(renderCategoryButton)}
           </div>
+
+          {statusCategories.length > 0 && (
+            <>
+              <p className="mb-2 mt-3 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t('status')}
+              </p>
+              <div className="space-y-0.5 pb-4">
+                {statusCategories.map(renderCategoryButton)}
+              </div>
+            </>
+          )}
         </ScrollArea>
       </aside>
 

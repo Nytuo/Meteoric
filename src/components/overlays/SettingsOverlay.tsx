@@ -23,6 +23,9 @@ import {
   CheckCircle2,
   XCircle,
   RefreshCw,
+  FolderArchive,
+  Link2,
+  ListChecks,
 } from 'lucide-react';
 import {
   Dialog,
@@ -40,15 +43,18 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppStore } from '@/stores/appStore';
+import { GAME_STATUSES, GAME_STATUS_I18N_KEYS } from '@/types';
 import { db } from '@/lib/db';
 import { CsvImporter } from '@/components/plugins/CsvImporter';
 import { SteamImporter } from '@/components/plugins/SteamImporter';
 import { EpicImporter } from '@/components/plugins/EpicImporter';
 import { GogImporter } from '@/components/plugins/GogImporter';
+import { PlayniteImporter } from '@/components/plugins/PlayniteImporter';
 import logoSvg from '@/assets/logo.svg';
 
 const languages = [
@@ -89,6 +95,8 @@ export function SettingsOverlay({
     changeLanguage,
     changeTheme,
     changeAccent,
+    changePreferStoreMetadataOnLink,
+    toggleStatusCategory,
   } = useSettingsStore();
   const { getAppVersion } = useAppStore();
 
@@ -212,6 +220,16 @@ export function SettingsOverlay({
       icon: <Cloud className="h-4 w-4" />,
       label: 'Confero Sync',
     },
+    {
+      key: 'linking',
+      icon: <Link2 className="h-4 w-4" />,
+      label: t('library-linking') || 'Library Linking',
+    },
+    {
+      key: 'status-categories',
+      icon: <ListChecks className="h-4 w-4" />,
+      label: t('status-categories') || 'Status Categories',
+    },
     'divider',
     { key: 'divider-label', label: t('game-importers'), type: 'label' },
     {
@@ -236,6 +254,12 @@ export function SettingsOverlay({
       key: 'import-gog',
       icon: <Server className="h-4 w-4" />,
       label: 'GOG',
+      sub: true,
+    },
+    {
+      key: 'import-playnite',
+      icon: <FolderArchive className="h-4 w-4" />,
+      label: t('playnite-importer') || 'Playnite',
       sub: true,
     },
     'divider',
@@ -556,10 +580,91 @@ export function SettingsOverlay({
                 </div>
               )}
 
+              {activeItem === 'linking' && (
+                <div>
+                  <h2 className="mb-1 flex items-center gap-2 text-xl font-semibold">
+                    <Link2 className="h-5 w-5" /> {t('library-linking') || 'Library Linking'}
+                  </h2>
+                  <p className="mb-5 text-sm text-muted-foreground">
+                    When a Playnite import recognizes a game as one Playnite
+                    itself added via its Steam or GOG plugin, Meteoric links
+                    it to that store automatically instead of creating a
+                    duplicate entry - giving it achievements, playtime
+                    tracking and install/uninstall just like a native import.
+                    This controls which side wins for the game's name,
+                    description and release date when both Playnite and the
+                    store have their own copy.
+                  </p>
+
+                  <label className="flex max-w-xl cursor-pointer items-start gap-3 rounded-lg border border-border p-4 hover:bg-accent/50">
+                    <Checkbox
+                      className="mt-0.5"
+                      checked={settings.preferStoreMetadataOnLink === 'true'}
+                      onCheckedChange={(checked) =>
+                        changePreferStoreMetadataOnLink(checked === true)
+                      }
+                    />
+                    <span>
+                      <span className="block text-sm font-medium">
+                        Prefer Steam/GOG metadata over Playnite for linked
+                        games
+                      </span>
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        Off by default: Playnite's bulk-imported title,
+                        description and release date are kept as-is. Turn
+                        this on to let the store's own data overwrite
+                        Playnite's the next time that importer runs.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              )}
+
+              {activeItem === 'status-categories' && (
+                <div>
+                  <h2 className="mb-1 flex items-center gap-2 text-xl font-semibold">
+                    <ListChecks className="h-5 w-5" />{' '}
+                    {t('status-categories') || 'Status Categories'}
+                  </h2>
+                  <p className="mb-5 text-sm text-muted-foreground">
+                    {t('status-categories-desc') ||
+                      'Choose which play-status categories show up in the sidebar.'}
+                  </p>
+
+                  <div className="max-w-md space-y-2">
+                    {GAME_STATUSES.map((status) => {
+                      const hidden = (
+                        settings.hiddenStatusCategories || ''
+                      )
+                        .split(',')
+                        .filter(Boolean);
+                      const checked = !hidden.includes(status);
+                      return (
+                        <label
+                          key={status}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent/50"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(c) =>
+                              toggleStatusCategory(status, c === true)
+                            }
+                          />
+                          <span className="text-sm font-medium">
+                            {t(GAME_STATUS_I18N_KEYS[status]) || status}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {activeItem === 'import-csv' && <CsvImporter />}
               {activeItem === 'import-steam' && <SteamImporter />}
               {activeItem === 'import-epic' && <EpicImporter />}
               {activeItem === 'import-gog' && <GogImporter />}
+              {activeItem === 'import-playnite' && <PlayniteImporter />}
 
               {activeItem === 'export-csv' && (
                 <div>

@@ -20,6 +20,7 @@ import {
   AlertCircle,
   HardDrive,
   FolderOpen,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,9 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useGameStore } from '@/stores/gameStore';
 import { useEpicStore, type EpicGameEntry } from '@/stores/epicStore';
+import { useConfirmStore } from '@/stores/confirmStore';
+import { useImportProgressStore } from '@/stores/importProgressStore';
+import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +42,7 @@ type Tab = 'auth' | 'library' | 'installed';
 
 export function EpicImporter() {
   const { t } = useTranslation();
-  const { fetchGames, games } = useGameStore();
+  const { fetchGames, games, enrichMissingMetadataFromIGDB } = useGameStore();
   const {
     loggedIn,
     displayName,
@@ -58,6 +62,9 @@ export function EpicImporter() {
     downloadSaves,
     syncAchievements,
   } = useEpicStore();
+  const { confirm } = useConfirmStore();
+  const progress = useImportProgressStore((s) => s.progress.epic);
+  const clearProgress = useImportProgressStore((s) => s.clear);
 
   const [tab, setTab] = useState<Tab>('auth');
   const [authStep, setAuthStep] = useState(0);
@@ -75,6 +82,17 @@ export function EpicImporter() {
 
   const openLoginPage = () => openUrl(EPIC_LOGIN_URL);
 
+  const handleUninstall = async (appName: string) => {
+    const ok = await confirm({
+      title: t('confirm-uninstall') || 'Uninstall this game?',
+      description:
+        t('confirm-uninstall-desc') ||
+        'This will remove the installed game files from your disk. This cannot be undone.',
+      confirmLabel: t('uninstall') || 'Uninstall',
+    });
+    if (ok) uninstallGame(appName);
+  };
+
   const loginAndSync = async () => {
     setLoading(true);
     try {
@@ -87,11 +105,13 @@ export function EpicImporter() {
       await fetchDownloadableGames();
       await fetchInstalledGames();
       toast.success('Epic Games import OK');
+      await enrichMissingMetadataFromIGDB('epic');
       setTab('library');
     } catch (e: any) {
       toast.error(String(e));
     } finally {
       setLoading(false);
+      clearProgress('epic');
     }
   };
 
@@ -107,11 +127,13 @@ export function EpicImporter() {
       await fetchDownloadableGames();
       await fetchInstalledGames();
       toast.success('Epic Games sync OK');
+      await enrichMissingMetadataFromIGDB('epic');
       setTab('library');
     } catch (e: any) {
       toast.error(String(e));
     } finally {
       setLoading(false);
+      clearProgress('epic');
     }
   };
 
@@ -136,6 +158,15 @@ export function EpicImporter() {
           </Badge>
         )}
       </h2>
+      <p className="mb-3 max-w-2xl text-sm text-muted-foreground">
+        {t('epic-importer.description') ||
+          'Sign in with your Epic Games account to import your library, and enable installs, achievements sync, and cloud saves.'}
+      </p>
+      <p className="mb-4 flex max-w-2xl items-start gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+        {t('epic-importer.safety-note') ||
+          "Epic's API doesn't provide descriptions or cover art. Meteoric automatically looks those up on IGDB right after import."}
+      </p>
 
       <div className="mb-4 flex gap-1">
         {[
@@ -162,6 +193,16 @@ export function EpicImporter() {
 
       {tab === 'auth' && (
         <div>
+          {loading && (
+            <div className="mb-4 space-y-2 rounded-lg border border-border bg-card/50 p-4">
+              <Progress value={progress?.percent ?? 0} className="h-1.5" />
+              <p className="truncate text-xs text-muted-foreground">
+                {progress
+                  ? `${progress.current}/${progress.total} · ${progress.label}`
+                  : t('please-wait') || 'Please wait…'}
+              </p>
+            </div>
+          )}
           {loggedIn ? (
             <div className="space-y-3">
               <p className="text-sm text-green-600 dark:text-green-400">
@@ -335,7 +376,7 @@ export function EpicImporter() {
                       downloadGame(game.app_name, installPath || 'C:\\Games')
                     }
                     onUpdate={() => updateGame(game.app_name)}
-                    onUninstall={() => uninstallGame(game.app_name)}
+                    onUninstall={() => handleUninstall(game.app_name)}
                     onLaunch={() => launchGame(game.app_name)}
                     onSyncAchievements={() =>
                       syncAchievements('', game.app_name, game.namespace)

@@ -37,6 +37,8 @@ interface SettingsStore {
   changeLanguage: (lang: string) => void;
   changeTheme: (theme: string) => void;
   changeAccent: (accent: string) => void;
+  changePreferStoreMetadataOnLink: (prefer: boolean) => void;
+  toggleStatusCategory: (status: string, visible: boolean) => void;
   fetchApiKeys: () => Promise<void>;
   setApiKey: (key: string, value: string) => void;
   saveApiKeys: () => Promise<void>;
@@ -95,6 +97,29 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set({ settings: s });
     db.setSettings(s);
     applyThemeClasses(s.theme || 'dark', accent);
+  },
+
+  changePreferStoreMetadataOnLink(prefer) {
+    const s = { ...get().settings, preferStoreMetadataOnLink: prefer ? 'true' : 'false' };
+    set({ settings: s });
+    db.setSettings(s);
+  },
+
+  toggleStatusCategory(status, visible) {
+    const hidden = new Set(
+      (get().settings.hiddenStatusCategories || '').split(',').filter(Boolean)
+    );
+    if (visible) hidden.delete(status);
+    else hidden.add(status);
+    const s = {
+      ...get().settings,
+      hiddenStatusCategories: [...hidden].join(','),
+    };
+    set({ settings: s });
+    db.setSettings(s);
+    import('./categoryStore').then(({ useCategoryStore }) =>
+      useCategoryStore.getState().fetchCategories()
+    );
   },
 
   async fetchApiKeys() {

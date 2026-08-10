@@ -76,6 +76,16 @@ function getLastPlayed(game: IGame): string {
   return months[d.getMonth()] + ' ' + d.getDate();
 }
 
+function lastPlayedTimestamp(game: IGame): number {
+  if (!game.stats || game.stats.length === 0) return 0;
+  let max = 0;
+  for (const s of game.stats) {
+    const t = new Date(s.date_of_play).getTime();
+    if (!Number.isNaN(t) && t > max) max = t;
+  }
+  return max;
+}
+
 function getTrophyCount(game: IGame) {
   const total = parseInt(game.trophies || '0') || 0;
   const unlocked = parseInt(game.trophies_unlocked || '0') || 0;
@@ -172,19 +182,13 @@ export function BigPicture() {
     new Set()
   );
   const currentMusicSrcRef = useRef<string | null>(null);
+  const pendingMusicGameIdRef = useRef<string | null>(null);
+  const hltbRequestIdRef = useRef<string | null>(null);
 
   const recentGames = useMemo(() => {
     const allAvailable = filteredGames.length > 0 ? filteredGames : games;
     const played = allAvailable.filter((g) => g.stats && g.stats.length > 0);
-    played.sort((a, b) => {
-      const lastA = Math.max(
-        ...a.stats.map((s) => new Date(s.date_of_play).getTime())
-      );
-      const lastB = Math.max(
-        ...b.stats.map((s) => new Date(s.date_of_play).getTime())
-      );
-      return lastB - lastA;
-    });
+    played.sort((a, b) => lastPlayedTimestamp(b) - lastPlayedTimestamp(a));
     return played.slice(0, 10);
   }, [games, filteredGames]);
 
@@ -277,6 +281,8 @@ export function BigPicture() {
     appWindow.setFullscreen(true);
     fetchGames();
 
+    const fallback = setTimeout(() => setShowSplash(false), 15000);
+
     (async () => {
       try {
         const configDirPath = await configDir();
@@ -304,12 +310,6 @@ export function BigPicture() {
           select: convertFileSrc(appDataPath + 'select.mp3'),
           back: convertFileSrc(appDataPath + 'back.mp3'),
         });
-
-        const fallback = setTimeout(() => {
-          if (showSplash) setShowSplash(false);
-        }, 15000);
-
-        return () => clearTimeout(fallback);
       } catch (e) {
         console.error('Failed to resolve splash video path:', e);
         setShowSplash(false);
@@ -326,6 +326,7 @@ export function BigPicture() {
 
     return () => {
       clearInterval(timer);
+      clearTimeout(fallback);
       stopAllAudio();
     };
   }, []);
@@ -359,7 +360,10 @@ export function BigPicture() {
     if (!game) return;
 
     const timer = setTimeout(() => {
+      const requestedGameId = game.id;
+      pendingMusicGameIdRef.current = requestedGameId;
       loadGameExtras(game.id).then(() => {
+        if (pendingMusicGameIdRef.current !== requestedGameId) return;
         const updated = games.find((g) => g.id === game.id);
         const musicSrc = updated?.backgroundMusic ?? null;
         if (musicSrc === currentMusicSrcRef.current) return;
@@ -572,7 +576,7 @@ export function BigPicture() {
 
     loadGameExtras(game.id);
 
-    fetchHLTB(game.name);
+    fetchHLTB(game.name, game.id);
     fetchAchievements(game.id);
   };
   selectCurrentRef.current = selectCurrent;
@@ -627,11 +631,13 @@ export function BigPicture() {
     setLaunchingGame(false);
   };
 
-  const fetchHLTB = async (name: string) => {
+  const fetchHLTB = async (name: string, gameId: string) => {
+    hltbRequestIdRef.current = gameId;
     setLoadingHltb(true);
     setHltbData(emptyHltb);
     try {
       const res = await invoke<string>('search_hltb', { gameName: name });
+      if (hltbRequestIdRef.current !== gameId) return; // superseded - abandon silently
       const d = JSON.parse(res);
       const fmt = (s?: number) => (s ? transformHltbTime(s) : 'N/A');
       setHltbData({
@@ -643,9 +649,10 @@ export function BigPicture() {
         versus: fmt(d.vs?.average),
       });
     } catch {
+      if (hltbRequestIdRef.current !== gameId) return; // superseded - abandon silently
       setHltbData(emptyHltb);
     }
-    setLoadingHltb(false);
+    if (hltbRequestIdRef.current === gameId) setLoadingHltb(false);
   };
 
   const onSearchInput = (q: string) => {

@@ -7,6 +7,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { BlockingOverlay } from '@/components/layout/BlockingOverlay';
 import UpdaterModal from '@/components/common/UpdaterModal';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { Splash } from '@/pages/Splash';
 import { DisplayManager } from '@/pages/DisplayManager';
 import { GameDetails } from '@/pages/GameDetails';
@@ -30,6 +31,7 @@ export default function App() {
   return (
     <TooltipProvider>
       <UpdaterModal />
+      <ConfirmDialog />
       <div
         className={`flex h-screen overflow-hidden ${isBigPicture ? '' : ''}`}
       >

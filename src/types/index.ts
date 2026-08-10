@@ -50,9 +50,30 @@ export interface IGame {
   trophies: string;
   trophies_unlocked: string;
   hidden: string;
+  metadata_source: string;
   stats: IStat[];
   [key: string]: any;
 }
+
+export const GAME_STATUSES = [
+  'Not started',
+  'In progress',
+  'On hold',
+  'Dropped',
+  'Completed',
+  'Platinum',
+] as const;
+
+export type GameStatus = (typeof GAME_STATUSES)[number];
+
+export const GAME_STATUS_I18N_KEYS: Record<GameStatus, string> = {
+  'Not started': 'not-started',
+  'In progress': 'in-progress',
+  'On hold': 'on-hold',
+  Dropped: 'dropped',
+  Completed: 'completed',
+  Platinum: 'platinum',
+};
 
 export interface ICategory {
   id: string;
@@ -76,6 +97,8 @@ export interface ISettings {
   theme?: string;
   accent?: string;
   apiKeys?: string[];
+  preferStoreMetadataOnLink?: string;
+  hiddenStatusCategories?: string;
 }
 
 export interface IGameLaunchedMessage {
@@ -107,6 +130,7 @@ export function createEmptyGame(): IGame {
     status: '',
     trophies_unlocked: '',
     hidden: 'false',
+    metadata_source: '',
     jaquette: '',
     jaquette_horizontal: '',
     background: '',

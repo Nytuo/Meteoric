@@ -269,6 +269,7 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("trophies", "TEXT"),
         ("trophies_unlocked", "INTEGER NOT NULL DEFAULT 0"),
         ("hidden", "TEXT NOT NULL DEFAULT 'false'"),
+        ("metadata_source", "TEXT NOT NULL DEFAULT ''"),
         (
             "updated_at",
             "TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now'))",
@@ -382,6 +383,7 @@ fn parse_fields(game: &IGame) -> IGame {
         trophies: game.trophies.replace("'", "''"),
         trophies_unlocked: game.trophies_unlocked.replace("'", "''"),
         hidden: game.hidden.replace("'", "''"),
+        metadata_source: game.metadata_source.replace("'", "''"),
     };
     game_copy
 }
@@ -393,8 +395,8 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
     let game_name = game.name.clone();
     if id_exist {
         let sql_update = format!(
-            "UPDATE games SET name = '{}', game_importer_id = '{}', importer_id = '{}', igdb_id = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', trophies_unlocked = '{}', hidden = '{}', updated_at = STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = '{}';",
-            game.name, game.game_importer_id, game.importer_id, game.igdb_id, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.trophies_unlocked, game.hidden, game.id
+            "UPDATE games SET name = '{}', game_importer_id = '{}', importer_id = '{}', igdb_id = '{}', sort_name = '{}', rating = '{}', platforms = '{}', description = '{}', critic_score = '{}', genres = '{}', styles = '{}', release_date = '{}', developers = '{}', editors = '{}', game_dir = '{}', exec_file = '{}', exec_args = '{}', tags = '{}', status = '{}', trophies_unlocked = '{}', hidden = '{}', metadata_source = '{}', updated_at = STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = '{}';",
+            game.name, game.game_importer_id, game.importer_id, game.igdb_id, game.sort_name, game.rating, game.platforms, game.description, game.critic_score, game.genres, game.styles, game.release_date, game.developers, game.editors, game.game_dir, game.exec_file, game.exec_args, game.tags, game.status, game.trophies_unlocked, game.hidden, game.metadata_source, game.id
         );
         println!(
             "[update_game] Executing local update for game id {}: {}",
@@ -425,13 +427,14 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             game.status,
             game.trophies_unlocked,
             game.hidden,
+            game.metadata_source,
         ];
         let all_fields = all_fields
             .iter()
             .map(|field| field.to_string())
             .collect::<Vec<String>>()
             .join("', '");
-        let sql_insert = format!("INSERT INTO games (name, game_importer_id, importer_id, igdb_id, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden) VALUES ('{}')", all_fields);
+        let sql_insert = format!("INSERT INTO games (name, game_importer_id, importer_id, igdb_id, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden, metadata_source) VALUES ('{}')", all_fields);
         match conn.execute(&sql_insert, []).map_err(|e| e.to_string()) {
             Ok(_) => {
                 println!("Game inserted");
@@ -653,6 +656,60 @@ pub fn update_game_nodup(conn: &Connection, game: IGame) -> Result<String, Strin
     }
 }
 
+pub fn apply_incoming_metadata_if_preferred(
+    conn: &Connection,
+    existing_id: &str,
+    name: &str,
+    description: &str,
+    release_date: &str,
+) -> Result<(), String> {
+    let prefer = get_setting_db(conn, "preferStoreMetadataOnLink").unwrap_or_default() == "true";
+    if !prefer {
+        return Ok(());
+    }
+
+    let escaped_id = existing_id.replace('\'', "''");
+    let metadata_source: Option<String> = conn
+        .query_row(
+            &format!(
+                "SELECT metadata_source FROM games WHERE id = '{}'",
+                escaped_id
+            ),
+            [],
+            |row| row.get(0),
+        )
+        .ok();
+    if metadata_source.as_deref() != Some("playnite") {
+        return Ok(());
+    }
+
+    let mut sets = Vec::new();
+    if !name.trim().is_empty() {
+        sets.push(format!("name = '{}'", name.replace('\'', "''")));
+    }
+    if !description.trim().is_empty() {
+        sets.push(format!("description = '{}'", description.replace('\'', "''")));
+    }
+    if !release_date.trim().is_empty() {
+        sets.push(format!(
+            "release_date = '{}'",
+            release_date.replace('\'', "''")
+        ));
+    }
+    if sets.is_empty() {
+        return Ok(());
+    }
+    sets.push("metadata_source = ''".to_string());
+
+    let sql = format!(
+        "UPDATE games SET {} WHERE id = '{}'",
+        sets.join(", "),
+        escaped_id
+    );
+    conn.execute(&sql, []).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub fn first_time_stat(
     conn: &Connection,
     game_id: String,
@@ -775,13 +832,60 @@ pub fn find_game_by_name(conn: &Connection, name: &str) -> Option<String> {
     .map(|id| id.to_string())
 }
 
+pub fn find_game_linked_to(
+    conn: &Connection,
+    importer_id: &str,
+    game_importer_id: &str,
+) -> Option<String> {
+    conn.query_row(
+        &format!(
+            "SELECT id FROM games WHERE importer_id = '{}' AND game_importer_id = '{}'",
+            importer_id.replace('\'', "''"),
+            game_importer_id.replace('\'', "''")
+        ),
+        [],
+        |row| row.get::<_, i64>(0),
+    )
+    .ok()
+    .map(|id| id.to_string())
+}
+
+pub fn link_game_to_native_db(
+    conn: &Connection,
+    game_id: &str,
+    importer_id: &str,
+    game_importer_id: &str,
+    exec_args: &str,
+    previous_importer_id: &str,
+    previous_metadata_source: &str,
+) -> Result<(), String> {
+    let metadata_source = if !previous_metadata_source.trim().is_empty() {
+        previous_metadata_source.to_string()
+    } else if !previous_importer_id.trim().is_empty() && previous_importer_id != importer_id {
+        previous_importer_id.to_string()
+    } else {
+        "manual".to_string()
+    };
+
+    let sql = format!(
+        "UPDATE games SET importer_id = '{}', game_importer_id = '{}', exec_args = '{}', metadata_source = '{}' WHERE id = '{}'",
+        importer_id.replace('\'', "''"),
+        game_importer_id.replace('\'', "''"),
+        exec_args.replace('\'', "''"),
+        metadata_source.replace('\'', "''"),
+        game_id.replace('\'', "''")
+    );
+    conn.execute(&sql, []).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub fn get_game_by_id(conn: &Connection, id: &str) -> Result<IGame, String> {
-    let game = query_data(&conn, vec!["games"], vec!["*"], vec![("id", &id)], false)
-        .unwrap()
-        .iter()
-        .map(|row| format!("{:?}", row))
-        .collect::<Vec<String>>()
-        .join(",");
-    let game = serde_json::from_str(&game).unwrap();
-    Ok(game)
+    let rows = query_data(&conn, vec!["games"], vec!["*"], vec![("id", &id)], false)
+        .map_err(|e| e.to_string())?;
+    let row = rows
+        .into_iter()
+        .next()
+        .ok_or_else(|| format!("No game found with id {}", id))?;
+    let value = serde_json::to_value(&row).map_err(|e| e.to_string())?;
+    serde_json::from_value(value).map_err(|e| e.to_string())
 }

@@ -31,13 +31,16 @@ use crate::tauri_commander::{
     epic_upload_saves, export_game_database_to_archive, export_game_database_to_csv,
     get_achievements_for_game, get_all_categories, get_all_fields_from_db, get_all_games,
     get_all_images_location, get_all_videos_location, get_app_version, get_env_map,
-    get_game_image_paths, get_games_by_category, get_settings, gog_cloud_save_status,
+    get_all_games_image_paths, get_game_image_paths, get_games_by_category, get_games_by_id,
+    get_settings, gog_cloud_save_status,
     gog_download_game, gog_download_saves, gog_get_display_name, gog_get_downloadable_games,
     gog_get_installed_games, gog_is_logged_in, gog_launch_game, gog_sync_achievements,
-    gog_uninstall_game, gog_upload_saves, import_library, kill_game, launch_game, open_data_folder,
-    open_program_folder, post_game, remove_game_from_category, save_launch_video,
-    save_media_to_external_storage, search_hltb, search_metadata, set_env_map, set_settings,
-    startup_routine, steam_sync_achievements, upload_csv_to_db, upload_file,
+    gog_uninstall_game, gog_upload_saves, import_library, kill_game, launch_game,
+    link_game_to_native, open_data_folder, open_program_folder,
+    playnite_list_completion_statuses, post_game,
+    remove_game_from_category, save_launch_video, save_media_to_external_storage, search_hltb,
+    search_metadata, set_env_map, set_settings, startup_routine, steam_sync_achievements,
+    upload_csv_to_db, upload_file,
 };
 
 mod confero_sync;
@@ -175,6 +178,8 @@ struct IGame {
     trophies: String,
     trophies_unlocked: String,
     hidden: String,
+    #[serde(default)]
+    metadata_source: String,
 }
 
 impl IGame {
@@ -203,6 +208,7 @@ impl IGame {
             "trophies",
             "trophies_unlocked",
             "hidden",
+            "metadata_source",
         ]
     }
 
@@ -231,6 +237,7 @@ impl IGame {
             trophies: String::new(),
             trophies_unlocked: String::new(),
             hidden: String::new(),
+            metadata_source: String::new(),
         }
     }
 
@@ -259,6 +266,7 @@ impl IGame {
             "trophies" => self.trophies == "",
             "trophies_unlocked" => self.trophies_unlocked == "",
             "hidden" => self.hidden == "",
+            "metadata_source" => self.metadata_source == "",
             _ => false,
         }
     }
@@ -288,6 +296,7 @@ impl IGame {
             trophies: hashmap["trophies"].clone(),
             trophies_unlocked: hashmap["trophies_unlocked"].clone(),
             hidden: hashmap["hidden"].clone(),
+            metadata_source: hashmap.get("metadata_source").cloned().unwrap_or_default(),
         }
     }
 
@@ -316,6 +325,7 @@ impl IGame {
             "trophies" => Some(self.trophies.clone()),
             "trophies_unlocked" => Some(self.trophies_unlocked.clone()),
             "hidden" => Some(self.hidden.clone()),
+            "metadata_source" => Some(self.metadata_source.clone()),
             _ => None,
         }
     }
@@ -465,6 +475,22 @@ pub fn send_message_to_frontend(message: &str) {
     }
 }
 
+pub fn send_import_progress(importer_id: &str, current: usize, total: usize, label: &str) {
+    let percent = if total > 0 {
+        ((current as f64 / total as f64) * 100.0).round() as u32
+    } else {
+        0
+    };
+    send_message_to_frontend(&format!(
+        "[IMPORT-PROGRESS]{}|{}|{}|{}|{}",
+        importer_id,
+        percent,
+        current,
+        total,
+        label.replace('|', " ")
+    ));
+}
+
 static APP_HANDLE: once_cell::sync::Lazy<Arc<Mutex<Option<tauri::AppHandle>>>> =
     once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(None)));
 
@@ -529,8 +555,11 @@ async fn main() {
             get_all_games,
             get_all_categories,
             get_games_by_category,
+            get_games_by_id,
+            link_game_to_native,
             get_all_images_location,
             get_game_image_paths,
+            get_all_games_image_paths,
             upload_file,
             delete_element,
             post_game,
@@ -566,6 +595,7 @@ async fn main() {
             get_app_version,
             open_program_folder,
             open_data_folder,
+            playnite_list_completion_statuses,
             save_launch_video,
             get_achievements_for_game,
             check_ytdlp_updates,

@@ -1,8 +1,23 @@
 import { create } from 'zustand';
-import type { ICategory } from '@/types';
+import { GAME_STATUSES, type ICategory } from '@/types';
 import { db } from '@/lib/db';
 import { useGameStore } from './gameStore';
+import { useSettingsStore } from './settingsStore';
 import { toast } from 'sonner';
+
+export const STATUS_CATEGORY_PREFIX = 'status:';
+
+function buildStatusCategories(): ICategory[] {
+  return GAME_STATUSES.map((status) => ({
+    id: STATUS_CATEGORY_PREFIX + status,
+    name: status,
+    icon: 'status',
+    games: '*',
+    filters: [],
+    views: [],
+    background: '',
+  }));
+}
 
 const STATIC_CATEGORIES: ICategory[] = [
   {
@@ -100,7 +115,16 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         'custom categories'
       );
 
-      let all = [...STATIC_CATEGORIES, ...dbCats];
+      const hiddenStatuses = new Set(
+        (useSettingsStore.getState().settings.hiddenStatusCategories || '')
+          .split(',')
+          .filter(Boolean)
+      );
+      const statusCats = buildStatusCategories().filter(
+        (c) => !hiddenStatuses.has(c.name)
+      );
+
+      let all = [...STATIC_CATEGORIES, ...statusCats, ...dbCats];
       all.sort((a, b) =>
         a.name === 'Favorites' ? -1 : b.name === 'Favorites' ? 1 : 0
       );
@@ -150,6 +174,9 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         'GOG',
         allGames.filter((g) => g.platforms?.includes('GOG')).length
       );
+      for (const status of GAME_STATUSES) {
+        countMap.set(status, allGames.filter((g) => g.status === status).length);
+      }
 
       const customCats = all.filter((c) => !countMap.has(c.name));
       const customCounts = await Promise.all(
@@ -177,6 +204,10 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
     const cat = categories.find((c) => c.id === id);
     set({ currentCategoryId: id, currentCategory: cat });
     const gameStore = useGameStore.getState();
+    if (id.startsWith(STATUS_CATEGORY_PREFIX)) {
+      gameStore.loadStatus(id.slice(STATUS_CATEGORY_PREFIX.length));
+      return;
+    }
     switch (id) {
       case '0':
       case '-1':
