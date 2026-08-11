@@ -55,7 +55,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useGameStore } from '@/stores/gameStore';
-import { useCategoryStore } from '@/stores/categoryStore';
+import { useCategoryStore, STATUS_CATEGORY_PREFIX } from '@/stores/categoryStore';
 import { useAppStore } from '@/stores/appStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTauriEventStore } from '@/stores/tauriEvents';
@@ -72,6 +72,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { useEpicStore } from '@/stores/epicStore';
 import { useGogStore } from '@/stores/gogStore';
+import { useConfirmStore } from '@/stores/confirmStore';
 import { toast } from 'sonner';
 import type { IGameLaunchedMessage } from '@/types';
 
@@ -92,7 +93,7 @@ export function Topbar() {
   const [loading, setLoading] = useState(false);
   const [gameOverlayOpen, setGameOverlayOpen] = useState(false);
   const [filterOverlayOpen, setFilterOverlayOpen] = useState(false);
-  const [selectedSort, setSelectedSort] = useState<string>('');
+  const [selectedSort, setSelectedSort] = useState<string>('sort_name');
 
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -146,6 +147,7 @@ export function Topbar() {
     uploadSaves: gogUploadSaves,
     downloadSaves: gogDownloadSaves,
   } = useGogStore();
+  const { confirm } = useConfirmStore();
 
   const [playLabel, setPlayLabel] = useState(t('link'));
   const [gamePID, setGamePID] = useState(0);
@@ -206,6 +208,7 @@ export function Topbar() {
   const gameCategories = onGamePage ? getCategoriesForGame(gameID) : [];
   const userCategories = categories.filter(
     (c) =>
+      !c.id.startsWith(STATUS_CATEGORY_PREFIX) &&
       ![
         t('all'),
         t('installed'),
@@ -278,6 +281,23 @@ export function Topbar() {
       await launchGame(launchId, game.importer_id);
       setTimeout(() => setLoading(false), 10000);
     }
+  };
+
+  const confirmUninstall = async (): Promise<boolean> =>
+    confirm({
+      title: t('confirm-uninstall') || 'Uninstall this game?',
+      description:
+        t('confirm-uninstall-desc') ||
+        'This will remove the installed game files from your disk. This cannot be undone.',
+      confirmLabel: t('uninstall') || 'Uninstall',
+    });
+
+  const handleUninstallEpic = async () => {
+    if (await confirmUninstall()) uninstallGame(epicAppName);
+  };
+
+  const handleUninstallGog = async () => {
+    if (await confirmUninstall()) gogUninstallGame(gogGameId);
   };
 
   const isFavorite = gameCategories.some((c) => c.name === 'Favorites');
@@ -658,7 +678,7 @@ export function Topbar() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => uninstallGame(epicAppName)}
+                    onClick={handleUninstallEpic}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -695,7 +715,7 @@ export function Topbar() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => gogUninstallGame(gogGameId)}
+                    onClick={handleUninstallGog}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

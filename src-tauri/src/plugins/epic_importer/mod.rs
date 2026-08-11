@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
 use crate::database::{establish_connection, update_game_nodup};
-use crate::{send_message_to_frontend, IGame};
+use crate::{send_import_progress, send_message_to_frontend, IGame};
 
 pub mod achievements;
 pub mod cloud_saves;
@@ -242,6 +242,20 @@ pub async fn get_cached_asset(app_name: &str) -> Option<EpicAsset> {
     cache.get(app_name).cloned()
 }
 
+pub async fn find_owned_game_by_app_name(app_name: &str) -> Result<Option<(String, String)>, String> {
+    ensure_logged_in().await?;
+    let mut client = EPIC.lock().await;
+    let lib_items = client.library_items(true).await;
+    let records = match lib_items {
+        Some(lib) => lib.records,
+        None => return Ok(None),
+    };
+    Ok(records
+        .into_iter()
+        .find(|r| r.app_name == app_name)
+        .map(|r| (r.product_id, r.sandbox_name)))
+}
+
 pub async fn get_games() -> Result<(), String> {
     load_installed_games().await;
 
@@ -288,7 +302,13 @@ pub async fn get_games() -> Result<(), String> {
 
     drop(client);
 
+    let total_games = parsed_games.len();
+    let mut processed = 0usize;
+
     for (product_id, (game_name, app_name)) in &parsed_games {
+        processed += 1;
+        send_import_progress("epic", processed, total_games, game_name);
+
         let mut igame = IGame::new();
         igame.id = "-1".to_string();
         igame.name = game_name.clone();
@@ -303,17 +323,11 @@ pub async fn get_games() -> Result<(), String> {
             );
         }
 
-        let new_id = update_game_nodup(&conn, igame).expect("[EPIC] Failed to update game");
-
-        let _ = crate::database::first_time_stat(
-            &conn,
-            new_id,
-            "0".to_string(),
-            chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
-        );
+        let _new_id = update_game_nodup(&conn, igame).expect("[EPIC] Failed to update game");
     }
 
     send_message_to_frontend("[EPIC-INFO] Library import complete");
+    send_message_to_frontend("[IMPORT-DONE]epic");
     Ok(())
 }
 

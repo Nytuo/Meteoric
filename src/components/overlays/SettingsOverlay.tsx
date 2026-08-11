@@ -23,6 +23,9 @@ import {
   CheckCircle2,
   XCircle,
   RefreshCw,
+  FolderArchive,
+  Link2,
+  ListChecks,
 } from 'lucide-react';
 import {
   Dialog,
@@ -40,15 +43,20 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppStore } from '@/stores/appStore';
+import { useIgdbLookupStore } from '@/stores/igdbLookupStore';
+import { GAME_STATUSES, GAME_STATUS_I18N_KEYS } from '@/types';
 import { db } from '@/lib/db';
 import { CsvImporter } from '@/components/plugins/CsvImporter';
 import { SteamImporter } from '@/components/plugins/SteamImporter';
 import { EpicImporter } from '@/components/plugins/EpicImporter';
 import { GogImporter } from '@/components/plugins/GogImporter';
+import { PlayniteImporter } from '@/components/plugins/PlayniteImporter';
 import logoSvg from '@/assets/logo.svg';
 
 const languages = [
@@ -89,8 +97,12 @@ export function SettingsOverlay({
     changeLanguage,
     changeTheme,
     changeAccent,
+    changePreferStoreMetadataOnLink,
+    toggleStatusCategory,
   } = useSettingsStore();
   const { getAppVersion } = useAppStore();
+  const { progress: igdbProgress, setProgress: setIgdbProgress } =
+    useIgdbLookupStore();
 
   const [activeItem, setActiveItem] = useState('appearance');
   const [selectedLanguage, setSelectedLanguage] = useState(
@@ -104,9 +116,18 @@ export function SettingsOverlay({
   const [conferoPassword, setConferoPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [conferoStatus, setConferoStatus] = useState<
-    'idle' | 'testing' | 'syncing' | 'ok' | 'error'
+    'idle' | 'testing' | 'syncing' | 'linking' | 'ok' | 'error'
   >('idle');
   const [conferoMsg, setConferoMsg] = useState('');
+  const [isConferoLinked, setIsConferoLinked] = useState(false);
+  const [conferoConflicts, setConferoConflicts] = useState<
+    Record<string, string>[]
+  >([]);
+  const [resolvingConflictId, setResolvingConflictId] = useState<
+    string | null
+  >(null);
+  const [isResolvingAllConflicts, setIsResolvingAllConflicts] =
+    useState(false);
 
   const currentTheme = settings.theme || 'dark';
   const currentAccent = settings.accent || 'default';
@@ -115,14 +136,60 @@ export function SettingsOverlay({
     if (isOpen) {
       fetchApiKeys();
       getAppVersion().then(setAppVersion);
+      invoke<boolean>('confero_is_linked')
+        .then(setIsConferoLinked)
+        .catch(() => setIsConferoLinked(false));
+      fetchConferoConflicts();
     }
   }, [isOpen]);
+
+  const fetchConferoConflicts = async () => {
+    try {
+      const conflicts = await invoke<Record<string, string>[]>(
+        'confero_list_conflicts'
+      );
+      setConferoConflicts(conflicts);
+    } catch {
+      setConferoConflicts([]);
+    }
+  };
+
+  const resolveConferoConflict = async (id: string, keepLocal: boolean) => {
+    setResolvingConflictId(id);
+    try {
+      await invoke('confero_resolve_conflict', { id, keepLocal });
+      await fetchConferoConflicts();
+    } catch (err) {
+      setConferoStatus('error');
+      setConferoMsg(String(err));
+    } finally {
+      setResolvingConflictId(null);
+    }
+  };
+
+  const resolveAllConferoConflicts = async (keepLocal: boolean) => {
+    setIsResolvingAllConflicts(true);
+    try {
+      await invoke('confero_resolve_all_conflicts', { keepLocal });
+      await fetchConferoConflicts();
+    } catch (err) {
+      setConferoStatus('error');
+      setConferoMsg(String(err));
+    } finally {
+      setIsResolvingAllConflicts(false);
+    }
+  };
 
   useEffect(() => {
     if (apiKeys) {
       setLocalApiKeys({ ...apiKeys });
       setConferoEmail(apiKeys['CONFERO_EMAIL'] ?? '');
-      setConferoPassword(apiKeys['CONFERO_PASSWORD'] ?? '');
+      setConferoUrl(apiKeys['CONFERO_URL'] ?? '');
+
+      if (apiKeys['CONFERO_PASSWORD']) {
+        setApiKey('CONFERO_PASSWORD', '');
+        saveApiKeys();
+      }
     }
   }, [apiKeys]);
 
@@ -146,9 +213,41 @@ export function SettingsOverlay({
     setConferoEmail(v);
     saveConferoField('CONFERO_EMAIL', v);
   };
-  const handleConferoPasswordChange = (v: string) => {
-    setConferoPassword(v);
-    saveConferoField('CONFERO_PASSWORD', v);
+  const handleConferoUrlChange = (v: string) => {
+    setConferoUrl(v);
+    saveConferoField('CONFERO_URL', v);
+  };
+
+  const linkConferoAccount = async () => {
+    setConferoStatus('linking');
+    setConferoMsg('');
+    try {
+      await invoke('confero_link_account', {
+        email: conferoEmail,
+        password: conferoPassword,
+      });
+      setConferoPassword('');
+      setIsConferoLinked(true);
+      setConferoStatus('ok');
+      setConferoMsg('Linked successfully');
+    } catch (err) {
+      setConferoStatus('error');
+      setConferoMsg(String(err));
+    }
+  };
+
+  const unlinkConferoAccount = async () => {
+    setConferoStatus('linking');
+    setConferoMsg('');
+    try {
+      await invoke('confero_unlink_account');
+      setIsConferoLinked(false);
+      setConferoStatus('idle');
+      setConferoMsg('');
+    } catch (err) {
+      setConferoStatus('error');
+      setConferoMsg(String(err));
+    }
   };
 
   const testConferoConnection = async () => {
@@ -164,19 +263,46 @@ export function SettingsOverlay({
     }
   };
 
+  type ConferoSyncResult = {
+    pushed_games: number;
+    pushed_stats: number;
+    pushed_trophies: number;
+    pulled_updated: number;
+    pulled_inserted: number;
+    conflicts: number;
+    skipped_non_api: number;
+    errors: string[];
+  };
+
   const runConferoSync = async () => {
     setConferoStatus('syncing');
     setConferoMsg('');
+    setIgdbProgress(null);
     try {
       const result = await invoke<string>('confero_full_sync');
-      const parsed = JSON.parse(result) as Record<string, number>;
-      setConferoStatus('ok');
-      setConferoMsg(
-        `Pushed ${parsed.pushed_games ?? 0} games, ${parsed.pushed_stats ?? 0} stats, ${parsed.pushed_trophies ?? 0} trophies — pulled ${parsed.pulled_games ?? 0} remote games`
-      );
+      const parsed = JSON.parse(result) as ConferoSyncResult;
+      await fetchConferoConflicts();
+      const conflictNote =
+        parsed.conflicts > 0
+          ? ` — ${parsed.conflicts} conflict(s) need your review below`
+          : '';
+      const skippedNote =
+        parsed.skipped_non_api > 0
+          ? ` (${parsed.skipped_non_api} skipped: no IGDB or store match yet)`
+          : '';
+      const summary = `Pushed ${parsed.pushed_games} games, ${parsed.pushed_stats} stats, ${parsed.pushed_trophies} trophies${skippedNote} — pulled ${parsed.pulled_updated} updates, ${parsed.pulled_inserted} new games${conflictNote}`;
+      if (parsed.errors.length > 0) {
+        setConferoStatus('error');
+        setConferoMsg(`${summary}. Some steps failed: ${parsed.errors.join('; ')}`);
+      } else {
+        setConferoStatus('ok');
+        setConferoMsg(summary);
+      }
     } catch (err) {
       setConferoStatus('error');
       setConferoMsg(String(err));
+    } finally {
+      setIgdbProgress(null);
     }
   };
 
@@ -212,6 +338,16 @@ export function SettingsOverlay({
       icon: <Cloud className="h-4 w-4" />,
       label: 'Confero Sync',
     },
+    {
+      key: 'linking',
+      icon: <Link2 className="h-4 w-4" />,
+      label: t('library-linking') || 'Library Linking',
+    },
+    {
+      key: 'status-categories',
+      icon: <ListChecks className="h-4 w-4" />,
+      label: t('status-categories') || 'Status Categories',
+    },
     'divider',
     { key: 'divider-label', label: t('game-importers'), type: 'label' },
     {
@@ -236,6 +372,12 @@ export function SettingsOverlay({
       key: 'import-gog',
       icon: <Server className="h-4 w-4" />,
       label: 'GOG',
+      sub: true,
+    },
+    {
+      key: 'import-playnite',
+      icon: <FolderArchive className="h-4 w-4" />,
+      label: t('playnite-importer') || 'Playnite',
       sub: true,
     },
     'divider',
@@ -461,84 +603,155 @@ export function SettingsOverlay({
 
                   <div className="max-w-md space-y-4">
                     <div>
-                      <Label htmlFor="confero-email">Email</Label>
+                      <Label htmlFor="confero-url">Server URL (advanced)</Label>
                       <Input
-                        id="confero-email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={conferoEmail}
-                        onChange={(e) =>
-                          handleConferoEmailChange(e.target.value)
-                        }
+                        id="confero-url"
+                        type="text"
+                        placeholder="https://confero.nytuo.fr"
+                        value={conferoUrl}
+                        onChange={(e) => handleConferoUrlChange(e.target.value)}
                         className="mt-1"
+                        disabled={isConferoLinked}
                       />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Leave blank to use the default Confero server. Only
+                        change this if you self-host Confero.
+                      </p>
                     </div>
 
-                    <div>
-                      <Label htmlFor="confero-password">Password</Label>
-                      <div className="relative mt-1">
-                        <Input
-                          id="confero-password"
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="••••••••"
-                          value={conferoPassword}
-                          onChange={(e) =>
-                            handleConferoPasswordChange(e.target.value)
-                          }
-                          className="pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((p) => !p)}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          tabIndex={-1}
+                    {isConferoLinked ? (
+                      <div className="rounded-lg border border-border p-4">
+                        <div className="flex items-center gap-2 text-sm">
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          Linked{conferoEmail ? ` as ${conferoEmail}` : ''}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-3"
+                          onClick={unlinkConferoAccount}
+                          disabled={conferoStatus === 'linking'}
                         >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
+                          {conferoStatus === 'linking' ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : null}
+                          Unlink Account
+                        </Button>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div>
+                          <Label htmlFor="confero-email">Email</Label>
+                          <Input
+                            id="confero-email"
+                            type="email"
+                            placeholder="you@example.com"
+                            value={conferoEmail}
+                            onChange={(e) =>
+                              handleConferoEmailChange(e.target.value)
+                            }
+                            className="mt-1"
+                          />
+                        </div>
 
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        variant="outline"
-                        onClick={testConferoConnection}
-                        disabled={
-                          !conferoUrl ||
-                          !conferoEmail ||
-                          !conferoPassword ||
-                          conferoStatus === 'testing' ||
-                          conferoStatus === 'syncing'
-                        }
-                      >
-                        {conferoStatus === 'testing' ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Cloud className="mr-2 h-4 w-4" />
-                        )}
-                        Test Connection
-                      </Button>
-                      <Button
-                        onClick={runConferoSync}
-                        disabled={
-                          !conferoUrl ||
-                          !conferoEmail ||
-                          !conferoPassword ||
-                          conferoStatus === 'testing' ||
-                          conferoStatus === 'syncing'
-                        }
-                      >
-                        {conferoStatus === 'syncing' ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                        )}
-                        Sync Now
-                      </Button>
-                    </div>
+                        <div>
+                          <Label htmlFor="confero-password">Password</Label>
+                          <div className="relative mt-1">
+                            <Input
+                              id="confero-password"
+                              type={showPassword ? 'text' : 'password'}
+                              placeholder="••••••••"
+                              value={conferoPassword}
+                              onChange={(e) =>
+                                setConferoPassword(e.target.value)
+                              }
+                              className="pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword((p) => !p)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              tabIndex={-1}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Your password is only used once to link this
+                            device — it is never stored.
+                          </p>
+                        </div>
+
+                        <Button
+                          onClick={linkConferoAccount}
+                          disabled={
+                            !conferoEmail ||
+                            !conferoPassword ||
+                            conferoStatus === 'linking'
+                          }
+                        >
+                          {conferoStatus === 'linking' ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Link2 className="mr-2 h-4 w-4" />
+                          )}
+                          Link Account
+                        </Button>
+                      </>
+                    )}
+
+                    {isConferoLinked && (
+                      <div className="flex gap-2 pt-1">
+                        <Button
+                          variant="outline"
+                          onClick={testConferoConnection}
+                          disabled={
+                            conferoStatus === 'testing' ||
+                            conferoStatus === 'syncing'
+                          }
+                        >
+                          {conferoStatus === 'testing' ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Cloud className="mr-2 h-4 w-4" />
+                          )}
+                          Test Connection
+                        </Button>
+                        <Button
+                          onClick={runConferoSync}
+                          disabled={
+                            conferoStatus === 'testing' ||
+                            conferoStatus === 'syncing'
+                          }
+                        >
+                          {conferoStatus === 'syncing' ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                          )}
+                          Sync Now
+                        </Button>
+                      </div>
+                    )}
+
+                    {conferoStatus === 'syncing' && igdbProgress && (
+                      <div className="max-w-md space-y-1.5 pt-1">
+                        <p className="text-xs text-muted-foreground">
+                          Looking up IGDB data: {igdbProgress.current}/
+                          {igdbProgress.total}
+                        </p>
+                        <Progress
+                          value={
+                            (igdbProgress.current / igdbProgress.total) * 100
+                          }
+                          className="h-1.5"
+                        />
+                      </div>
+                    )}
 
                     {conferoStatus === 'ok' && (
                       <div className="flex items-center gap-2 text-sm text-green-500">
@@ -552,6 +765,181 @@ export function SettingsOverlay({
                         {conferoMsg}
                       </div>
                     )}
+
+                    {conferoConflicts.length > 0 && (
+                      <div className="pt-2">
+                        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                          <h3 className="text-sm font-semibold">
+                            Sync Conflicts ({conferoConflicts.length})
+                          </h3>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isResolvingAllConflicts}
+                              onClick={() => resolveAllConferoConflicts(true)}
+                            >
+                              {isResolvingAllConflicts ? (
+                                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                              ) : null}
+                              Keep Local for All
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isResolvingAllConflicts}
+                              onClick={() => resolveAllConferoConflicts(false)}
+                            >
+                              {isResolvingAllConflicts ? (
+                                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                              ) : null}
+                              Keep Confero for All
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="mb-3 text-xs text-muted-foreground">
+                          These games changed both locally and on Confero
+                          since the last sync. Pick which version to keep —
+                          nothing was overwritten automatically.
+                        </p>
+                        <div className="space-y-3">
+                          {conferoConflicts.map((c) => (
+                            <div
+                              key={c.id}
+                              className="rounded-lg border border-border p-3"
+                            >
+                              <p className="mb-2 text-sm font-medium">
+                                {c.game_name}
+                              </p>
+                              <div className="mb-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                                <div>
+                                  Local: {c.local_status}, rating{' '}
+                                  {c.local_rating}
+                                </div>
+                                <div>
+                                  Confero: {c.remote_status}, rating{' '}
+                                  {c.remote_rating}
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={
+                                    resolvingConflictId === c.id ||
+                                    isResolvingAllConflicts
+                                  }
+                                  onClick={() =>
+                                    resolveConferoConflict(c.id, true)
+                                  }
+                                >
+                                  {resolvingConflictId === c.id ? (
+                                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                  ) : null}
+                                  Keep Local
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={
+                                    resolvingConflictId === c.id ||
+                                    isResolvingAllConflicts
+                                  }
+                                  onClick={() =>
+                                    resolveConferoConflict(c.id, false)
+                                  }
+                                >
+                                  {resolvingConflictId === c.id ? (
+                                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                  ) : null}
+                                  Keep Confero
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeItem === 'linking' && (
+                <div>
+                  <h2 className="mb-1 flex items-center gap-2 text-xl font-semibold">
+                    <Link2 className="h-5 w-5" /> {t('library-linking') || 'Library Linking'}
+                  </h2>
+                  <p className="mb-5 text-sm text-muted-foreground">
+                    When a Playnite import recognizes a game as one Playnite
+                    itself added via its Steam or GOG plugin, Meteoric links
+                    it to that store automatically instead of creating a
+                    duplicate entry - giving it achievements, playtime
+                    tracking and install/uninstall just like a native import.
+                    This controls which side wins for the game's name,
+                    description and release date when both Playnite and the
+                    store have their own copy.
+                  </p>
+
+                  <label className="flex max-w-xl cursor-pointer items-start gap-3 rounded-lg border border-border p-4 hover:bg-accent/50">
+                    <Checkbox
+                      className="mt-0.5"
+                      checked={settings.preferStoreMetadataOnLink === 'true'}
+                      onCheckedChange={(checked) =>
+                        changePreferStoreMetadataOnLink(checked === true)
+                      }
+                    />
+                    <span>
+                      <span className="block text-sm font-medium">
+                        Prefer Steam/GOG metadata over Playnite for linked
+                        games
+                      </span>
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        Off by default: Playnite's bulk-imported title,
+                        description and release date are kept as-is. Turn
+                        this on to let the store's own data overwrite
+                        Playnite's the next time that importer runs.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              )}
+
+              {activeItem === 'status-categories' && (
+                <div>
+                  <h2 className="mb-1 flex items-center gap-2 text-xl font-semibold">
+                    <ListChecks className="h-5 w-5" />{' '}
+                    {t('status-categories') || 'Status Categories'}
+                  </h2>
+                  <p className="mb-5 text-sm text-muted-foreground">
+                    {t('status-categories-desc') ||
+                      'Choose which play-status categories show up in the sidebar.'}
+                  </p>
+
+                  <div className="max-w-md space-y-2">
+                    {GAME_STATUSES.map((status) => {
+                      const hidden = (
+                        settings.hiddenStatusCategories || ''
+                      )
+                        .split(',')
+                        .filter(Boolean);
+                      const checked = !hidden.includes(status);
+                      return (
+                        <label
+                          key={status}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent/50"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(c) =>
+                              toggleStatusCategory(status, c === true)
+                            }
+                          />
+                          <span className="text-sm font-medium">
+                            {t(GAME_STATUS_I18N_KEYS[status]) || status}
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -560,6 +948,7 @@ export function SettingsOverlay({
               {activeItem === 'import-steam' && <SteamImporter />}
               {activeItem === 'import-epic' && <EpicImporter />}
               {activeItem === 'import-gog' && <GogImporter />}
+              {activeItem === 'import-playnite' && <PlayniteImporter />}
 
               {activeItem === 'export-csv' && (
                 <div>

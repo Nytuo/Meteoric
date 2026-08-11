@@ -5,6 +5,12 @@ import type { IGameLaunchedMessage } from '@/types';
 import { toast } from 'sonner';
 import { useEpicStore } from '@/stores/epicStore';
 import { useGameStore } from '@/stores/gameStore';
+import { usePlayniteStore } from '@/stores/playniteStore';
+import {
+  useImportProgressStore,
+  type ImporterId,
+} from '@/stores/importProgressStore';
+import { useIgdbLookupStore } from '@/stores/igdbLookupStore';
 
 interface TauriEventStore {
   gameLaunchMessage: IGameLaunchedMessage;
@@ -82,6 +88,74 @@ export function useTauriListener() {
       }
 
       if (payload.startsWith('[GOG-V2-')) {
+        return;
+      }
+
+      if (payload.startsWith('[IMPORT-PROGRESS]')) {
+        const raw = payload.slice('[IMPORT-PROGRESS]'.length);
+        const [importer, percent, current, total, label] = raw.split('|');
+        useImportProgressStore.getState().setProgress(importer as ImporterId, {
+          percent: parseFloat(percent) || 0,
+          current: parseInt(current, 10) || 0,
+          total: parseInt(total, 10) || 0,
+          label: label ?? '',
+        });
+        return;
+      }
+
+      if (payload.startsWith('[IMPORT-DONE]')) {
+        const importer = payload.slice('[IMPORT-DONE]'.length) as ImporterId;
+        useImportProgressStore.getState().clear(importer);
+        return;
+      }
+
+      if (payload.startsWith('[PLAYNITE-IMPORT-PROGRESS]')) {
+        const raw = payload.slice('[PLAYNITE-IMPORT-PROGRESS]'.length);
+        const [percent, current, total, label] = raw.split('|');
+        usePlayniteStore.getState().setProgress({
+          percent: parseFloat(percent) || 0,
+          current: parseInt(current, 10) || 0,
+          total: parseInt(total, 10) || 0,
+          label: label ?? '',
+        });
+        return;
+      }
+
+      if (payload.startsWith('[PLAYNITE-IMPORT-DONE]')) {
+        const raw = payload.slice('[PLAYNITE-IMPORT-DONE]'.length);
+        const [imported, alreadyPresent, needsRelink, total] = raw.split('|');
+        usePlayniteStore.getState().setSummary({
+          imported: parseInt(imported, 10) || 0,
+          alreadyPresent: parseInt(alreadyPresent, 10) || 0,
+          needsRelink: parseInt(needsRelink, 10) || 0,
+          total: parseInt(total, 10) || 0,
+        });
+        usePlayniteStore.getState().setImporting(false);
+        useGameStore.getState().fetchGames();
+        return;
+      }
+
+      if (payload.startsWith('[PLAYNITE-IMPORT-WARN]')) {
+        usePlayniteStore
+          .getState()
+          .addWarning(payload.slice('[PLAYNITE-IMPORT-WARN]'.length));
+        return;
+      }
+
+      if (payload.startsWith('[PLAYNITE-IMPORT-INFO]')) {
+        usePlayniteStore
+          .getState()
+          .setIgdbStatus(payload.slice('[PLAYNITE-IMPORT-INFO]'.length));
+        return;
+      }
+
+      if (payload.startsWith('[IGDB-LOOKUP-PROGRESS]')) {
+        const raw = payload.slice('[IGDB-LOOKUP-PROGRESS]'.length);
+        const [current, total] = raw.split('|');
+        useIgdbLookupStore.getState().setProgress({
+          current: parseInt(current, 10) || 0,
+          total: parseInt(total, 10) || 0,
+        });
         return;
       }
 

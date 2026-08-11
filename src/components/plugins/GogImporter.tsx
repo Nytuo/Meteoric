@@ -19,6 +19,7 @@ import {
   CheckCircle,
   AlertCircle,
   HardDrive,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,9 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useGameStore } from '@/stores/gameStore';
 import { useGogStore, type GogGameEntry } from '@/stores/gogStore';
+import { useConfirmStore } from '@/stores/confirmStore';
+import { useImportProgressStore } from '@/stores/importProgressStore';
+import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +60,9 @@ export function GogImporter() {
     downloadSaves,
     syncAchievements,
   } = useGogStore();
+  const { confirm } = useConfirmStore();
+  const progress = useImportProgressStore((s) => s.progress.gog);
+  const clearProgress = useImportProgressStore((s) => s.clear);
 
   const [tab, setTab] = useState<Tab>('auth');
   const [authStep, setAuthStep] = useState(0);
@@ -72,6 +79,17 @@ export function GogImporter() {
   }, [loggedIn]);
 
   const openLoginPage = () => openUrl(GOG_LOGIN_URL);
+
+  const handleUninstall = async (gameId: string) => {
+    const ok = await confirm({
+      title: t('confirm-uninstall') || 'Uninstall this game?',
+      description:
+        t('confirm-uninstall-desc') ||
+        'This will remove the installed game files from your disk. This cannot be undone.',
+      confirmLabel: t('uninstall') || 'Uninstall',
+    });
+    if (ok) uninstallGame(gameId);
+  };
 
   const loginAndSync = async () => {
     setLoading(true);
@@ -90,6 +108,7 @@ export function GogImporter() {
       toast.error(String(e));
     } finally {
       setLoading(false);
+      clearProgress('gog');
     }
   };
 
@@ -110,6 +129,7 @@ export function GogImporter() {
       toast.error(String(e));
     } finally {
       setLoading(false);
+      clearProgress('gog');
     }
   };
 
@@ -134,6 +154,15 @@ export function GogImporter() {
           </Badge>
         )}
       </h2>
+      <p className="mb-3 max-w-2xl text-sm text-muted-foreground">
+        {t('gog-importer.description') ||
+          'Sign in with your GOG account to import your library, and enable installs, achievements sync, and cloud saves.'}
+      </p>
+      <p className="mb-4 flex max-w-2xl items-start gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+        {t('gog-importer.safety-note') ||
+          "GOG's own store data already includes each game's description and cover art, so those are imported directly - no separate lookup needed."}
+      </p>
 
       <div className="mb-4 flex gap-1">
         {[
@@ -160,6 +189,16 @@ export function GogImporter() {
 
       {tab === 'auth' && (
         <div>
+          {loading && (
+            <div className="mb-4 space-y-2 rounded-lg border border-border bg-card/50 p-4">
+              <Progress value={progress?.percent ?? 0} className="h-1.5" />
+              <p className="truncate text-xs text-muted-foreground">
+                {progress
+                  ? `${progress.current}/${progress.total} · ${progress.label}`
+                  : t('please-wait') || 'Please wait…'}
+              </p>
+            </div>
+          )}
           {loggedIn ? (
             <div className="space-y-3">
               <p className="text-sm text-green-600 dark:text-green-400">
@@ -336,7 +375,7 @@ export function GogImporter() {
                     onDownload={() =>
                       downloadGame(game.game_id, installPath || 'C:\\Games')
                     }
-                    onUninstall={() => uninstallGame(game.game_id)}
+                    onUninstall={() => handleUninstall(game.game_id)}
                     onLaunch={() => launchGame(game.game_id)}
                     onSyncAchievements={() =>
                       syncAchievements('', game.game_id)

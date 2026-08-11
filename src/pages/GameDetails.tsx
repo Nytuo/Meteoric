@@ -28,8 +28,10 @@ import {
   CloudDownload,
   RefreshCw,
   Loader2,
+  Link2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -123,7 +125,32 @@ export function GameDetails() {
   const [gamePID, setGamePID] = useState(0);
   const [cloudInfo, setCloudInfo] = useState<any>(null);
   const [cloudLoading, setCloudLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<
+    null | 'upload' | 'download' | 'sync'
+  >(null);
+
+  const runAction = async (kind: 'upload' | 'download' | 'sync', fn: () => Promise<any>) => {
+    setActionLoading(kind);
+    try {
+      await fn();
+    } catch (e) {
+      console.error(`Failed to ${kind}:`, e);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const refreshAchievementsAndGame = async (gameId: string) => {
+    await fetchAchievements(gameId);
+    try {
+      const [refreshed] = await db.getGame(gameId);
+      if (refreshed) setGame(gameId, refreshed);
+    } catch (e) {
+      console.error('Failed to refresh game after achievement sync:', e);
+    }
+  };
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hltbRequestIdRef = useRef<string | null>(null);
   const { gameLaunchMessage } = useTauriEventStore();
 
   const game = id ? getGame(id) : undefined;
@@ -148,6 +175,14 @@ export function GameDetails() {
   const steamAppId =
     isSteam && game?.game_importer_id ? game.game_importer_id : '';
 
+  const linkedStoreLabel = isSteam
+    ? 'Steam'
+    : isGog
+      ? 'GOG'
+      : isEpic
+        ? 'Epic'
+        : '';
+
   const statuses = [
     t('not-started'),
     t('in-progress'),
@@ -171,11 +206,13 @@ export function GameDetails() {
     setGame(id, updated);
   };
 
-  const fetchHLTB = useCallback(async (name: string) => {
+  const fetchHLTB = useCallback(async (name: string, gameId: string) => {
+    hltbRequestIdRef.current = gameId;
     setLoadingHltb(true);
     setHltbData(emptyHltb);
     try {
       const res = await invoke<string>('search_hltb', { gameName: name });
+      if (hltbRequestIdRef.current !== gameId) return;
       const d = JSON.parse(res);
       const fmt = (s?: number) => (s ? transformHltbTime(s) : 'N/A');
       setHltbData({
@@ -187,9 +224,10 @@ export function GameDetails() {
         versus: fmt(d.vs?.average),
       });
     } catch {
+      if (hltbRequestIdRef.current !== gameId) return;
       setHltbData(emptyHltb);
     }
-    setLoadingHltb(false);
+    if (hltbRequestIdRef.current === gameId) setLoadingHltb(false);
   }, []);
 
   useEffect(() => {
@@ -213,7 +251,7 @@ export function GameDetails() {
       }
     });
 
-    fetchHLTB(game.name);
+    fetchHLTB(game.name, id);
     if (isEpic) {
       fetchInstalledGames();
       fetchDownloadableGames();
@@ -362,6 +400,17 @@ export function GameDetails() {
           <div className="mb-6 flex flex-wrap items-center gap-4">
             <h1 className="text-3xl font-bold tracking-tight">{game.name}</h1>
             <div className="flex flex-wrap items-center gap-3">
+              {game.metadata_source && (
+                <Badge
+                  variant="secondary"
+                  className="gap-1 text-xs font-normal capitalize"
+                  title={`Name, description and release date are still from ${game.metadata_source}${linkedStoreLabel ? `; achievements and playtime sync via ${linkedStoreLabel}` : ''}.`}
+                >
+                  <Link2 className="h-3 w-3" />
+                  Metadata from {game.metadata_source}
+                  {linkedStoreLabel ? ` · linked to ${linkedStoreLabel}` : ''}
+                </Badge>
+              )}
               <div className="flex items-center gap-1.5 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1">
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -523,37 +572,54 @@ export function GameDetails() {
                     variant="outline"
                     size="sm"
                     className="h-7 gap-1.5 text-xs"
+                    disabled={actionLoading !== null}
                     onClick={() =>
-                      isEpic
-                        ? uploadSaves(epicAppName)
-                        : gogUploadSaves(
-                            gogGameId,
-                            cloudInfo?.local_save_path ?? ''
-                          )
+                      runAction('upload', () =>
+                        isEpic
+                          ? uploadSaves(epicAppName)
+                          : gogUploadSaves(
+                              gogGameId,
+                              cloudInfo?.local_save_path ?? ''
+                            )
+                      )
                     }
                   >
-                    <CloudUpload className="h-3.5 w-3.5" /> Upload
+                    {actionLoading === 'upload' ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <CloudUpload className="h-3.5 w-3.5" />
+                    )}{' '}
+                    Upload
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-7 gap-1.5 text-xs"
+                    disabled={actionLoading !== null}
                     onClick={() =>
-                      isEpic
-                        ? downloadSaves(epicAppName)
-                        : gogDownloadSaves(
-                            gogGameId,
-                            cloudInfo?.local_save_path ?? ''
-                          )
+                      runAction('download', () =>
+                        isEpic
+                          ? downloadSaves(epicAppName)
+                          : gogDownloadSaves(
+                              gogGameId,
+                              cloudInfo?.local_save_path ?? ''
+                            )
+                      )
                     }
                   >
-                    <CloudDownload className="h-3.5 w-3.5" /> Download
+                    {actionLoading === 'download' ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <CloudDownload className="h-3.5 w-3.5" />
+                    )}{' '}
+                    Download
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
                     title="Refresh"
+                    disabled={cloudLoading}
                     onClick={() => {
                       if (!game) return;
                       setCloudLoading(true);
@@ -570,7 +636,9 @@ export function GameDetails() {
                       }
                     }}
                   >
-                    <RefreshCw className="h-3.5 w-3.5" />
+                    <RefreshCw
+                      className={`h-3.5 w-3.5 ${cloudLoading ? 'animate-spin' : ''}`}
+                    />
                   </Button>
                 </div>
               </h3>
@@ -618,15 +686,24 @@ export function GameDetails() {
                     variant="ghost"
                     size="sm"
                     className="ml-auto h-7 gap-1.5 text-xs"
+                    disabled={actionLoading !== null}
                     onClick={() =>
-                      syncAchievements(
-                        id ?? '',
-                        epicAppName,
-                        epicEntry?.namespace ?? epicNamespace
-                      )
+                      runAction('sync', async () => {
+                        await syncAchievements(
+                          id ?? '',
+                          epicAppName,
+                          epicEntry?.namespace ?? epicNamespace
+                        );
+                        await refreshAchievementsAndGame(id ?? '');
+                      })
                     }
                   >
-                    <RefreshCw className="h-3.5 w-3.5" /> Sync
+                    {actionLoading === 'sync' ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}{' '}
+                    Sync
                   </Button>
                 )}
                 {isEpic && !epicEntry && (
@@ -644,9 +721,20 @@ export function GameDetails() {
                     variant="ghost"
                     size="sm"
                     className="ml-auto h-7 gap-1.5 text-xs"
-                    onClick={() => gogSyncAchievements(id ?? '', gogGameId)}
+                    disabled={actionLoading !== null}
+                    onClick={() =>
+                      runAction('sync', async () => {
+                        await gogSyncAchievements(id ?? '', gogGameId);
+                        await refreshAchievementsAndGame(id ?? '');
+                      })
+                    }
                   >
-                    <RefreshCw className="h-3.5 w-3.5" /> Sync
+                    {actionLoading === 'sync' ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}{' '}
+                    Sync
                   </Button>
                 )}
                 {isSteam && steamAppId && (
@@ -654,9 +742,20 @@ export function GameDetails() {
                     variant="ghost"
                     size="sm"
                     className="ml-auto h-7 gap-1.5 text-xs"
-                    onClick={() => steamSyncAchievements(id ?? '', steamAppId)}
+                    disabled={actionLoading !== null}
+                    onClick={() =>
+                      runAction('sync', async () => {
+                        await steamSyncAchievements(id ?? '', steamAppId);
+                        await refreshAchievementsAndGame(id ?? '');
+                      })
+                    }
                   >
-                    <RefreshCw className="h-3.5 w-3.5" /> Sync
+                    {actionLoading === 'sync' ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}{' '}
+                    Sync
                   </Button>
                 )}
               </h3>

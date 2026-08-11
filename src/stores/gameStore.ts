@@ -12,6 +12,7 @@ interface GameStore {
   filteredGames: IGame[];
   currentGame: IGame | null;
   achievements: ITrophy[];
+  loading: boolean;
 
   fetchGames: () => Promise<void>;
   getGame: (id: string) => IGame | undefined;
@@ -22,6 +23,7 @@ interface GameStore {
   filterGames: (on?: string, value?: string, or_?: string) => void;
   loadCategory: (category: string) => void;
   loadPlatform: (platform: string) => void;
+  loadStatus: (status: string) => Promise<void>;
   loadRecentPlayed: () => Promise<void>;
   loadInstalled: () => Promise<void>;
   loadGameExtras: (id: string) => Promise<void>;
@@ -39,11 +41,25 @@ interface GameStore {
   autoIGDB: (name: string) => Promise<IGame | string>;
   autoDownloadBGMusic: (game: IGame) => Promise<void>;
   getHiddenGames: () => Promise<IGame[]>;
+  enrichMissingMetadataFromIGDB: (importerId: string) => Promise<void>;
+  linkGameToNative: (
+    gameId: string,
+    targetImporter: 'steam' | 'gog' | 'epic',
+    nativeId: string
+  ) => Promise<void>;
 }
 
 export interface FilterGroup {
   name: string;
   values: { cname: string; value: string; code: string }[];
+}
+
+function sortByName(games: IGame[]): IGame[] {
+  return [...games].sort((a, b) =>
+    (a.sort_name || a.name || '').toLowerCase().localeCompare(
+      (b.sort_name || b.name || '').toLowerCase()
+    )
+  );
 }
 
 function createNewGame(api: any): IGame {
@@ -81,6 +97,7 @@ function createNewGame(api: any): IGame {
     screenshots: api.screenshots ?? [],
     videos: api.videos ?? [],
     hidden: api.hidden ?? 'false',
+    metadata_source: api.metadata_source ?? '',
     stats: api.stats ?? [],
   };
 }
@@ -90,11 +107,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   filteredGames: [],
   currentGame: null,
   achievements: [],
+  loading: true,
 
   async fetchGames() {
+    set({ loading: true });
     try {
       console.time('[PERF] fetchGames');
-      const games = await db.getGames();
+      const games = sortByName(await db.getGames());
       console.log('[PERF] fetchGames - Loaded', games.length, 'games');
       set({ games });
 
@@ -105,6 +124,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     } catch (e) {
       console.error('[ERROR] fetchGames:', e);
       toast.error('Failed to load games');
+    } finally {
+      set({ loading: false });
     }
   },
 
@@ -181,25 +202,45 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   async loadCategory(category) {
+    set({ loading: true });
     try {
-      const games = await db.getGamesByCategory(category);
+      const games = sortByName(await db.getGamesByCategory(category));
       set({ games, filteredGames: games });
     } catch {
       toast.error('Failed to load category');
+    } finally {
+      set({ loading: false });
     }
   },
 
   async loadPlatform(platform) {
+    set({ loading: true });
     try {
-      const allGames = await db.getGames();
+      const allGames = sortByName(await db.getGames());
       const filtered = allGames.filter((g) => g.platforms?.includes(platform));
       set({ games: allGames, filteredGames: filtered });
     } catch {
       toast.error('Failed to load games');
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  async loadStatus(status) {
+    set({ loading: true });
+    try {
+      const allGames = sortByName(await db.getGames());
+      const filtered = allGames.filter((g) => g.status === status);
+      set({ games: allGames, filteredGames: filtered });
+    } catch {
+      toast.error('Failed to load games');
+    } finally {
+      set({ loading: false });
     }
   },
 
   async loadRecentPlayed() {
+    set({ loading: true });
     try {
       console.time('[PERF] loadRecentPlayed');
       const allGames = await db.getGames();
@@ -229,13 +270,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
     } catch (e) {
       console.error('[ERROR] loadRecentPlayed:', e);
       toast.error('Failed to load recent games');
+    } finally {
+      set({ loading: false });
     }
   },
 
   async loadInstalled() {
+    set({ loading: true });
     try {
       console.time('[PERF] loadInstalled');
-      const allGames = await db.getGames();
+      const allGames = sortByName(await db.getGames());
 
       const epicStore = useEpicStore.getState();
       const gogStore = useGogStore.getState();
@@ -285,6 +329,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     } catch (e) {
       console.error('[ERROR] loadInstalled:', e);
       toast.error('Failed to load installed games');
+    } finally {
+      set({ loading: false });
     }
   },
 
@@ -385,7 +431,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { useAppStore } = await import('@/stores/appStore');
     useAppStore.getState().stopBGMusic();
 
-    if (launcherId) {
+    // Only these importer ids have a dedicated native-launcher/protocol-link
+    // path below. Every other game must fall through to the generic local
+    // exec_file/game_dir launch
+    const knownStoreLaunchers = ['epic', 'gog', 'steam'];
+
+    if (launcherId && knownStoreLaunchers.includes(launcherId)) {
       if (launcherId === 'epic') {
         const game = get().games.find(
           (g) => g.game_importer_id === gameId || g.id === gameId
@@ -398,7 +449,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
               const { useEpicStore } = await import('@/stores/epicStore');
               const pid = await useEpicStore.getState().launchGame(appName);
               if (pid > 0) return;
-            } catch {}
+            } catch (e) {
+              console.error(
+                'Failed to launch via Epic client, falling back to protocol link:',
+                e
+              );
+            }
           }
         }
       }
@@ -425,9 +481,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (link) {
         await openUrl(link);
+        return;
       }
-    } else {
+    }
+
+    try {
       await invoke('launch_game', { gameId });
+    } catch (e) {
+      console.error('Failed to launch game:', e);
+      toast.error('Failed to launch game: ' + String(e));
     }
   },
 
@@ -464,7 +526,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     return parsed.map((p: string) => {
       let game = JSON.parse(p);
-      game = eval(game);
       if (currentGame) {
         const old = { ...currentGame } as any;
         delete old.jaquette;
@@ -490,6 +551,90 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
+  /// Some importers (Steam, Epic) don't provide a description or cover art of
+  /// their own - this backfills those specific games from IGDB, one at a
+  /// time, without touching anything the importer itself is the source of
+  /// truth
+  async enrichMissingMetadataFromIGDB(importerId) {
+    const { useImportProgressStore } = await import(
+      '@/stores/importProgressStore'
+    );
+    const progressStore = useImportProgressStore.getState();
+
+    const all = await db.getGames();
+    const targets = all.filter(
+      (g) => g.importer_id === importerId && !g.description && !g.jaquette
+    );
+    const total = targets.length;
+    if (total === 0) return;
+
+    for (let i = 0; i < targets.length; i++) {
+      const target = targets[i];
+      progressStore.setProgress(importerId as any, {
+        percent: Math.round(((i + 1) / total) * 100),
+        current: i + 1,
+        total,
+        label: `Fetching metadata: ${target.name}`,
+      });
+
+      const result = await get().autoIGDB(target.name);
+      if (typeof result === 'string') {
+        console.error(
+          `IGDB metadata lookup failed for "${target.name}": ${result}`
+        );
+        if (i === 0) {
+          toast.error(
+            'Could not fetch metadata from IGDB: ' + result
+          );
+          break;
+        }
+        continue;
+      }
+
+      const merged: IGame = {
+        ...target,
+        description: result.description || target.description,
+        genres: result.genres || target.genres,
+        styles: result.styles || target.styles,
+        critic_score: result.critic_score || target.critic_score,
+        release_date: result.release_date || target.release_date,
+        developers: result.developers || target.developers,
+        editors: result.editors || target.editors,
+        igdb_id: result.igdb_id || target.igdb_id,
+      };
+
+      try {
+        await db.postGame(merged);
+        await db.saveMediaToExternalStorage({
+          ...merged,
+          jaquette: result.jaquette,
+          jaquette_horizontal: result.jaquette_horizontal,
+          background: result.background,
+          logo: result.logo,
+          icon: result.icon,
+        });
+      } catch (e) {
+        console.error(`Failed to save IGDB metadata for "${target.name}":`, e);
+      }
+    }
+
+    progressStore.clear(importerId as any);
+    await get().fetchGames();
+  },
+
+  async linkGameToNative(gameId, targetImporter, nativeId) {
+    await invoke('link_game_to_native', {
+      gameId,
+      targetImporter,
+      nativeId,
+    });
+    const [refreshed] = await db.getGame(gameId);
+    if (refreshed) {
+      get().setGame(gameId, refreshed);
+    }
+    await get().fetchGames();
+  },
+
   async autoDownloadBGMusic(game) {
     if (game.backgroundMusic) return;
     try {
@@ -506,6 +651,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   async getHiddenGames() {
-    return db.getGames();
+    const all = await db.getGames();
+    return all.filter((g) => g.hidden === 'true');
   },
 }));

@@ -8,59 +8,73 @@ use tokio::time::Instant;
 
 use crate::confero_sync;
 use crate::database::{
-    add_category, add_game_to_category_db, apply_confero_update, bulk_update_stats, delete_game_db,
-    establish_connection, find_game_by_igdb_id, find_game_by_name, get_all_fields, get_game_by_id,
-    get_setting_db, get_stats_for_game, insert_stat_db, query_all_data, query_data,
-    remove_game_from_category_db, set_confero_updated_at, set_settings_db, update_game,
+    add_category, add_game_to_category_db, add_sync_conflict, apply_confero_update,
+    bulk_update_stats, delete_game_db, delete_sync_conflict, establish_connection,
+    find_game_by_igdb_id, find_game_by_name, find_game_linked_to, get_all_fields, get_game_by_id,
+    get_setting_db, get_stats_for_game, insert_stat_db, link_game_to_native_db,
+    list_sync_conflicts, query_all_data, query_data, remove_game_from_category_db,
+    set_confero_updated_at, set_settings_db, update_game,
 };
 
 use crate::file_operations::{
     archive_db_and_extra_content, create_extra_dirs, get_all_files_in_dir_for,
     get_all_files_in_dir_for_parsed, get_base_extra_dir, get_extra_dirs, read_env_file,
-    remove_file, write_env_file,
+    remove_file, save_image_optimized, save_image_optimized_sync, scan_named_images,
+    write_env_file, IMAGE_EXTENSIONS,
 };
 use crate::plugins::{
-    epic_importer, gog_importer, igdb, steam_grid, steam_importer, ytdl, ytdl_manager,
+    epic_importer, gog_importer, igdb, playnite_importer, steam_grid, steam_importer, ytdl,
+    ytdl_manager,
 };
 use crate::{routine, send_message_to_frontend, IGame, IStats, ITrophy};
+
+fn rows_to_json(rows: &[HashMap<String, String>]) -> String {
+    serde_json::to_string(rows).unwrap_or_else(|_| "[]".to_string())
+}
+
+fn games_with_stats_json(
+    games: &[HashMap<String, String>],
+    stats: &[HashMap<String, String>],
+) -> String {
+    let mut stats_by_game: HashMap<&str, Vec<&HashMap<String, String>>> = HashMap::new();
+    for s in stats {
+        if let Some(gid) = s.get("game_id") {
+            stats_by_game.entry(gid.as_str()).or_default().push(s);
+        }
+    }
+
+    let result: Vec<serde_json::Value> = games
+        .iter()
+        .map(|row| {
+            let id = row.get("id").map(|s| s.as_str()).unwrap_or("");
+            let game_stats = stats_by_game.get(id).cloned().unwrap_or_default();
+            let stats_json = serde_json::to_string(&game_stats).unwrap_or_else(|_| "[]".to_string());
+
+            let mut obj = serde_json::to_value(row)
+                .unwrap_or_else(|_| serde_json::Value::Object(Default::default()));
+            if let serde_json::Value::Object(ref mut map) = obj {
+                map.insert("stats".to_string(), serde_json::Value::String(stats_json));
+            }
+            obj
+        })
+        .collect();
+
+    serde_json::to_string(&result).unwrap_or_else(|_| "[]".to_string())
+}
 
 #[tauri::command]
 pub fn get_all_games() -> String {
     let conn = establish_connection().unwrap();
-    let games = query_all_data(&conn, "games");
-    let stats = query_all_data(&conn, "stats");
-    let games = games
-        .unwrap()
-        .iter()
-        .map(|row| {
-            let mut row = row.clone();
-            let id = row.get("id").unwrap().to_string();
-            let stats = stats
-                .as_ref()
-                .unwrap()
-                .iter()
-                .filter(|s| s.get("game_id").unwrap().to_string() == id)
-                .map(|s| format!("{:?}", s))
-                .collect::<Vec<String>>()
-                .join(",");
-            row.insert("stats".to_string(), format!("[{}]", stats));
-            format!("{:?}", row)
-        })
-        .collect::<Vec<String>>()
-        .join(",");
-    format!("[{}]", games)
+    let games = query_all_data(&conn, "games").unwrap_or_default();
+    let stats = query_all_data(&conn, "stats").unwrap_or_default();
+    games_with_stats_json(&games, &stats)
 }
 
 #[tauri::command]
 pub fn get_all_categories() -> String {
     let conn = establish_connection().unwrap();
-    let category = query_all_data(&conn, "category")
-        .unwrap()
-        .iter()
-        .map(|row| format!("{:?}", row))
-        .collect::<Vec<String>>()
-        .join(",");
-    format!("[{}]", category)
+    let category = query_all_data(&conn, "category").unwrap_or_default();
+    rows_to_json(&category)
 }
 
 #[tauri::command]
@@ -103,12 +117,8 @@ pub async fn remove_game_from_category(game_id: String, category_id: String) -> 
 #[tauri::command]
 pub fn get_all_fields_from_db() -> String {
     let conn = establish_connection().unwrap();
-    let fields = get_all_fields(&conn)
-        .iter()
-        .map(|row| format!("{:?}", row))
-        .collect::<Vec<String>>()
-        .join(",");
-    format!("[{}]", fields)
+    let fields = get_all_fields(&conn).unwrap_or_default();
+    serde_json::to_string(&vec![fields]).unwrap_or_else(|_| "[[]]".to_string())
 }
 
 #[tauri::command]
@@ -129,55 +139,58 @@ pub fn get_all_videos_location(id: String) -> String {
 
 #[tauri::command]
 pub fn get_game_image_paths(id: String) -> String {
-    use std::fs;
     let game_dir = match get_extra_dirs(&id) {
         Ok(dir) => dir,
         Err(_) => return "{}".to_string(),
     };
 
-    let mut paths: HashMap<String, String> = HashMap::new();
-
-    let find_image = |name: &str| -> Option<String> {
-        let extensions = vec!["webp", "gif", "jpg", "jpeg", "png"];
-        for ext in extensions {
-            let path = game_dir.join(format!("{}.{}", name, ext));
-            if fs::metadata(&path).is_ok() {
-                let relative_path = format!("{}/{}.{}", id, name, ext);
-                return Some(relative_path);
-            }
-        }
-        None
-    };
-
-    if let Some(path) = find_image("background") {
-        paths.insert("background".to_string(), path);
-    }
-    if let Some(path) = find_image("jaquette") {
-        paths.insert("jaquette".to_string(), path);
-    }
-    if let Some(path) = find_image("jaquette_horizontal") {
-        paths.insert("jaquette_horizontal".to_string(), path);
-    }
-    if let Some(path) = find_image("logo") {
-        paths.insert("logo".to_string(), path);
-    }
-    if let Some(path) = find_image("icon") {
-        paths.insert("icon".to_string(), path);
-    }
+    let paths: HashMap<String, String> = scan_named_images(&game_dir)
+        .into_iter()
+        .map(|(slot, ext)| (slot.clone(), format!("{}/{}.{}", id, slot, ext)))
+        .collect();
 
     serde_json::to_string(&paths).unwrap_or_else(|_| "{}".to_string())
 }
 
 #[tauri::command]
+pub fn get_all_games_image_paths() -> String {
+    let base = match get_base_extra_dir() {
+        Ok(dir) => dir,
+        Err(_) => return "{}".to_string(),
+    };
+
+    let entries = match std::fs::read_dir(&base) {
+        Ok(e) => e,
+        Err(_) => return "{}".to_string(),
+    };
+
+    let mut result: HashMap<String, HashMap<String, String>> = HashMap::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+        let id = match path.file_name().and_then(|n| n.to_str()) {
+            Some(n) => n.to_string(),
+            None => continue,
+        };
+        let paths: HashMap<String, String> = scan_named_images(&path)
+            .into_iter()
+            .map(|(slot, ext)| (slot.clone(), format!("{}/{}.{}", id, slot, ext)))
+            .collect();
+        if !paths.is_empty() {
+            result.insert(id, paths);
+        }
+    }
+
+    serde_json::to_string(&result).unwrap_or_else(|_| "{}".to_string())
+}
+
+#[tauri::command]
 pub fn get_settings() -> String {
     let conn = establish_connection().unwrap();
-    let settings = query_all_data(&conn, "settings")
-        .unwrap()
-        .iter()
-        .map(|row| format!("{:?}", row))
-        .collect::<Vec<String>>()
-        .join(",");
-    format!("[{}]", settings)
+    let settings = query_all_data(&conn, "settings").unwrap_or_default();
+    rows_to_json(&settings)
 }
 
 #[tauri::command]
@@ -196,7 +209,8 @@ pub fn set_settings(settings: String) -> Result<(), String> {
 #[tauri::command]
 pub async fn upload_csv_to_db(data: Vec<HashMap<String, String>>) -> Result<(), String> {
     let conn = establish_connection().unwrap();
-    for row in data {
+    let total = data.len();
+    for (i, row) in data.into_iter().enumerate() {
         let json_map: serde_json::Map<String, serde_json::Value> = row
             .into_iter()
             .map(|(k, v)| (k, serde_json::Value::String(v)))
@@ -212,8 +226,10 @@ pub async fn upload_csv_to_db(data: Vec<HashMap<String, String>>) -> Result<(), 
                 serde_json::from_value(serde_json::Value::Object(default_map)).unwrap()
             });
         game.id = "-1".to_string();
+        crate::send_import_progress("csv", i + 1, total, &game.name);
         update_game(&conn, game).expect("Error updating game");
     }
+    crate::send_message_to_frontend("[IMPORT-DONE]csv");
     Ok(())
 }
 
@@ -292,6 +308,21 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
         .count()
         + 1;
     let get_nb_of_videos = std::fs::read_dir(&game_dir.join("videos")).unwrap().count() + 1;
+
+    if matches!(
+        type_of.as_str(),
+        "background" | "jaquette" | "jaquette_horizontal" | "logo" | "icon"
+    ) {
+        let base_path = game_dir.join(&type_of);
+        return save_image_optimized_sync(&base_path, &file_content).map_err(|e| {
+            send_message_to_frontend(&format!(
+                "[File Uploader Error-ERROR-3000] Error writing file: {}",
+                e
+            ));
+            e
+        });
+    }
+
     let file_path = match type_of.as_str() {
         "screenshot" => game_dir
             .join("screenshots")
@@ -300,11 +331,6 @@ pub fn upload_file(file_content: Vec<u8>, type_of: String, id: String) -> Result
             .join("videos")
             .join("video-".to_string() + &get_nb_of_videos.to_string() + ".mp4"),
         "audio" => game_dir.join("musics").join("theme.mp3"),
-        "background" => game_dir.join("background.jpg"),
-        "jaquette" => game_dir.join("jaquette.jpg"),
-        "jaquette_horizontal" => game_dir.join("jaquette_horizontal.jpg"),
-        "logo" => game_dir.join("logo.png"),
-        "icon" => game_dir.join("icon.png"),
         _ => game_dir,
     };
 
@@ -426,28 +452,10 @@ pub fn get_games_by_category(category: String) -> String {
         vec!["*"],
         vec![("id", &game_ids_from_cat[0]["games"])],
         true,
-    );
-    let stats = query_all_data(&conn, "stats");
-    let games = games
-        .unwrap()
-        .iter()
-        .map(|row| {
-            let mut row = row.clone();
-            let id = row.get("id").unwrap().to_string();
-            let stats = stats
-                .as_ref()
-                .unwrap()
-                .iter()
-                .filter(|s| s.get("game_id").unwrap().to_string() == id)
-                .map(|s| format!("{:?}", s))
-                .collect::<Vec<String>>()
-                .join(",");
-            row.insert("stats".to_string(), format!("[{}]", stats));
-            format!("{:?}", row)
-        })
-        .collect::<Vec<String>>()
-        .join(",");
-    format!("[{}]", games)
+    )
+    .unwrap_or_default();
+    let stats = query_all_data(&conn, "stats").unwrap_or_default();
+    games_with_stats_json(&games, &stats)
 }
 
 #[tauri::command]
@@ -455,7 +463,7 @@ pub async fn search_metadata(game_name: String, plugin_name: String, strict: boo
     match plugin_name.as_str() {
         "ytdl" => {
             let result = ytdl::search_game(&game_name).unwrap();
-            format!("{:?}", result)
+            serde_json::to_string(&result).unwrap_or_else(|_| "[]".to_string())
         }
         "igdb" => {
             let client_id: String = env::var("IGDB_CLIENT_ID").expect("IGDB_CLIENT_ID not found");
@@ -463,29 +471,29 @@ pub async fn search_metadata(game_name: String, plugin_name: String, strict: boo
                 env::var("IGDB_CLIENT_SECRET").expect("IGDB_CLIENT_SECRET not found");
             igdb::set_credentials(Vec::from([client_id, client_secret]));
             let result = igdb::search_game(&game_name, strict).unwrap();
-            format!("{:?}", result)
+            serde_json::to_string(&result).unwrap_or_else(|_| "[]".to_string())
         }
         "steam_grid" => {
             let api_key = env::var("STEAMGRIDDB_API_KEY").expect("STEAMGRIDDB_API_KEY not found");
             steam_grid::set_credentials(api_key).await;
             let result = steam_grid::search_game(&game_name).unwrap();
-            format!("{:?}", result)
+            serde_json::to_string(&result).unwrap_or_else(|_| "\"\"".to_string())
         }
         _ => "Plugin not found".to_string(),
     }
 }
 
 #[tauri::command]
-pub async fn import_library(plugin_name: String, creds: Vec<String>) {
+pub async fn import_library(plugin_name: String, creds: Vec<String>) -> Result<(), String> {
     match plugin_name.as_str() {
         "epic_importer" => {
             epic_importer::set_credentials(creds).await;
             epic_importer::get_games_from_user()
                 .await
-                .expect("Failed to get games");
+                .map_err(|e| e.to_string())?;
         }
         "steam_importer" => {
-            let api_key = env::var("STEAM_API_KEY").expect("STEAM_API_KEY not found");
+            let api_key = env::var("STEAM_API_KEY").map_err(|_| "STEAM_API_KEY not found".to_string())?;
             let mut creds_temp = Vec::new();
             for i in creds {
                 creds_temp.push(i.clone());
@@ -494,37 +502,42 @@ pub async fn import_library(plugin_name: String, creds: Vec<String>) {
             steam_importer::set_credentials(creds_temp).await;
             steam_importer::get_games_from_user()
                 .await
-                .expect("Failed to get games");
+                .map_err(|e| e.to_string())?;
         }
         "gog_importer" => {
             gog_importer::set_credentials(creds).await;
             gog_importer::get_games_from_user()
                 .await
-                .expect("Failed to get games");
+                .map_err(|e| e.to_string())?;
+        }
+        "playnite_importer" => {
+            let path = creds.get(0).cloned().unwrap_or_default();
+            let overrides: HashMap<String, String> = creds
+                .get(1)
+                .and_then(|s| serde_json::from_str(s).ok())
+                .unwrap_or_default();
+            playnite_importer::import(path, overrides).await?;
         }
         _ => {
-            eprintln!("Unsupported plugin: {}", plugin_name);
+            return Err(format!("Unsupported plugin: {}", plugin_name));
         }
     }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn playnite_list_completion_statuses(export_path: String) -> Result<String, String> {
+    let entries = playnite_importer::list_completion_statuses(export_path)?;
+    Ok(serde_json::to_string(&entries).unwrap_or_else(|_| "[]".to_string()))
 }
 
 #[tauri::command]
 pub fn get_games_by_id(id: String) -> String {
     let conn = establish_connection().unwrap();
-    let game = query_data(&conn, vec!["games"], vec!["*"], vec![("id", &id)], false)
-        .unwrap()
-        .iter()
-        .map(|row| format!("{:?}", row))
-        .collect::<Vec<String>>()
-        .join(",");
-    let stats = get_stats_for_game(&conn, id);
-    let stats = stats
-        .iter()
-        .map(|row| format!("{:?}", row))
-        .collect::<Vec<String>>()
-        .join(",");
-    let game = format!("{},\"stats\":[{}]", game, stats);
-    format!("[{}]", game)
+    let games = query_data(&conn, vec!["games"], vec!["*"], vec![("id", &id)], false)
+        .unwrap_or_default();
+    let stats = get_stats_for_game(&conn, id).unwrap_or_default();
+    games_with_stats_json(&games, &stats)
 }
 
 #[tauri::command]
@@ -872,21 +885,24 @@ pub async fn save_media_to_external_storage(id: String, game: String) -> Result<
                 }
                 let file_content = cl.get(url).send().await.unwrap().bytes().await.unwrap();
                 let game_dir_clone = game_dir.clone();
-                let file_path = match key.as_str() {
-                    "audio" => game_dir_clone.join("musics").join("theme.mp3"),
-                    "background" => game_dir_clone.join("background.jpg"),
-                    "jaquette" => game_dir_clone.join("jaquette.jpg"),
-                    "jaquette_horizontal" => game_dir_clone.join("jaquette_horizontal.jpg"),
-                    "logo" => game_dir_clone.join("logo.png"),
-                    "icon" => game_dir_clone.join("icon.png"),
-                    _ => game_dir_clone,
-                };
-                if let Err(e) = std::fs::write(&file_path, &file_content) {
-                    send_message_to_frontend(&format!(
-                        "[Media Downloader Error-ERROR-3000] Error writing file: {:?}",
-                        e
-                    ));
-                    return Err(format!("Error writing file: {:?}", e));
+
+                if key == "audio" {
+                    let file_path = game_dir_clone.join("musics").join("theme.mp3");
+                    if let Err(e) = std::fs::write(&file_path, &file_content) {
+                        send_message_to_frontend(&format!(
+                            "[Media Downloader Error-ERROR-3000] Error writing file: {:?}",
+                            e
+                        ));
+                        return Err(format!("Error writing file: {:?}", e));
+                    }
+                } else {
+                    let base_path = game_dir_clone.join(key.as_str());
+                    if let Err(e) = save_image_optimized(&base_path, &file_content).await {
+                        send_message_to_frontend(&format!(
+                            "[Media Downloader Error-ERROR-3000] Could not save {}: {}",
+                            key, e
+                        ));
+                    }
                 }
             }
         }
@@ -1215,6 +1231,71 @@ pub async fn steam_sync_achievements(game_id: String, app_id: String) -> Result<
 }
 
 #[tauri::command]
+pub async fn link_game_to_native(
+    game_id: String,
+    target_importer: String,
+    native_id: String,
+) -> Result<(), String> {
+    let native_id = native_id.trim().to_string();
+    if native_id.is_empty() {
+        return Err("Please enter a store id to link to.".to_string());
+    }
+
+    let conn = establish_connection().map_err(|e| e.to_string())?;
+    let existing = get_game_by_id(&conn, &game_id)?;
+
+    let (importer_id, resolved_game_importer_id, exec_args) = match target_importer.as_str() {
+        "steam" => ("steam".to_string(), native_id.clone(), String::new()),
+        "gog" => (
+            "gog".to_string(),
+            native_id.clone(),
+            format!("gog:{}", native_id),
+        ),
+        "epic" => {
+            let found = epic_importer::find_owned_game_by_app_name(&native_id).await?;
+            let (product_id, _sandbox_name) = found.ok_or_else(|| {
+                "Could not find this game in your Epic library. Make sure it's showing in your Epic library (open the Epic panel once to refresh it) and try again.".to_string()
+            })?;
+            let asset = epic_importer::get_cached_asset(&native_id).await.ok_or_else(|| {
+                "Epic game data isn't cached yet - open the Epic importer panel once to refresh your library, then try again.".to_string()
+            })?;
+            (
+                "epic".to_string(),
+                product_id,
+                format!(
+                    "epic:{}:{}:{}",
+                    asset.app_name, asset.namespace, asset.catalog_item_id
+                ),
+            )
+        }
+        other => return Err(format!("Unknown store '{}'", other)),
+    };
+
+    if let Some(conflict_id) = find_game_linked_to(&conn, &importer_id, &resolved_game_importer_id)
+    {
+        if conflict_id != game_id {
+            let conflict_name = get_game_by_id(&conn, &conflict_id)
+                .map(|g| g.name)
+                .unwrap_or_else(|_| "another game".to_string());
+            return Err(format!(
+                "This {} game is already linked to \"{}\" in your library.",
+                target_importer, conflict_name
+            ));
+        }
+    }
+
+    link_game_to_native_db(
+        &conn,
+        &game_id,
+        &importer_id,
+        &resolved_game_importer_id,
+        &exec_args,
+        &existing.importer_id,
+        &existing.metadata_source,
+    )
+}
+
+#[tauri::command]
 pub async fn gog_is_logged_in() -> bool {
     gog_importer::is_logged_in().await
 }
@@ -1229,6 +1310,21 @@ pub async fn gog_get_display_name() -> Result<String, String> {
 #[tauri::command]
 pub async fn confero_test_connection() -> Result<String, String> {
     confero_sync::test_connection().await
+}
+
+#[tauri::command]
+pub async fn confero_link_account(email: String, password: String) -> Result<(), String> {
+    confero_sync::link_account(email, password).await
+}
+
+#[tauri::command]
+pub async fn confero_unlink_account() -> Result<(), String> {
+    confero_sync::unlink_account().await
+}
+
+#[tauri::command]
+pub fn confero_is_linked() -> Result<bool, String> {
+    Ok(confero_sync::is_linked())
 }
 
 #[tauri::command]
@@ -1275,6 +1371,18 @@ pub async fn confero_delete_game(source_id: String) -> Result<(), String> {
     confero_sync::delete_remote_game(source_id).await
 }
 
+fn local_confero_updated_at(conn: &rusqlite::Connection, game_id: &str) -> Option<String> {
+    conn.query_row(
+        &format!(
+            "SELECT confero_updated_at FROM games WHERE id = '{}'",
+            game_id.replace('\'', "''")
+        ),
+        [],
+        |row| row.get(0),
+    )
+    .unwrap_or(None)
+}
+
 #[tauri::command]
 pub async fn confero_full_sync() -> Result<String, String> {
     use chrono::Utc;
@@ -1301,75 +1409,208 @@ pub async fn confero_full_sync() -> Result<String, String> {
         .unwrap_or_default();
 
     let last_pull = get_setting_db(&conn, "confero_last_pull");
+    let push_time = Utc::now().to_rfc3339();
+
+    let pending_conflict_ids: HashSet<String> = list_sync_conflicts(&conn)
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|c| c.get("game_id").cloned())
+        .collect();
+
+    let mut sync_errors: Vec<String> = Vec::new();
+
+    let library_items = confero_sync::pull_library(last_pull)
+        .await
+        .unwrap_or_else(|e| {
+            eprintln!("[confero_sync] pull_library failed: {}", e);
+            sync_errors.push(format!("pull_library: {}", e));
+            vec![]
+        });
+
+    let resolved_items: Vec<(confero_sync::ConferoLibraryItem, Option<String>)> = library_items
+        .into_iter()
+        .map(|item| {
+            if item.title.is_empty() && item.source_id.is_empty() {
+                return (item, None);
+            }
+            let local_id: Option<String> = if !item.source_id.is_empty() {
+                let exists: bool = conn
+                    .query_row(
+                        &format!(
+                            "SELECT COUNT(*) FROM games WHERE id = '{}'",
+                            item.source_id.replace('\'', "''")
+                        ),
+                        [],
+                        |row| row.get(0),
+                    )
+                    .unwrap_or(false);
+                if exists {
+                    Some(item.source_id.clone())
+                } else {
+                    None
+                }
+            } else if !item.igdb_id.is_empty() {
+                find_game_by_igdb_id(&conn, &item.igdb_id)
+            } else {
+                find_game_by_name(&conn, &item.title)
+            };
+            (item, local_id)
+        })
+        .collect();
+    let remote_changed_by_local_id: HashMap<String, &confero_sync::ConferoLibraryItem> =
+        resolved_items
+            .iter()
+            .filter_map(|(item, local_id)| {
+                let id = local_id.as_ref()?;
+                if pending_conflict_ids.contains(id) {
+                    return None;
+                }
+                let local_confero_ts = local_confero_updated_at(&conn, id);
+                let remote_is_newer = confero_sync::should_apply_remote(
+                    &item.updated_at,
+                    local_confero_ts.as_deref(),
+                );
+                if remote_is_newer {
+                    Some((id.clone(), item))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+    let igdb_creds_available = {
+        let id_ok = env::var("IGDB_CLIENT_ID").is_ok();
+        let secret_ok = env::var("IGDB_CLIENT_SECRET").is_ok();
+        if id_ok && secret_ok {
+            crate::plugins::igdb::set_credentials(vec![
+                env::var("IGDB_CLIENT_ID").unwrap(),
+                env::var("IGDB_CLIENT_SECRET").unwrap(),
+            ]);
+            true
+        } else {
+            false
+        }
+    };
+
+    if igdb_creds_available {
+        let pre_check_games = query_all_data(&conn, "games").map_err(|e| e.to_string())?;
+        let unresolved: Vec<(String, String)> = pre_check_games
+            .iter()
+            .filter_map(|g| {
+                let igdb_id = g.get("igdb_id").cloned().unwrap_or_default();
+                if !igdb_id.trim().is_empty() {
+                    return None;
+                }
+                let id = g.get("id").cloned().unwrap_or_default();
+                let name = g.get("name").cloned().unwrap_or_default();
+                if name.trim().is_empty() {
+                    None
+                } else {
+                    Some((id, name))
+                }
+            })
+            .collect();
+
+        if !unresolved.is_empty() {
+            let attempted = unresolved.len();
+            let (matched, _, error) =
+                crate::plugins::igdb::bulk_enrich_missing_igdb_ids(unresolved).await;
+            if let Some(error) = error {
+                eprintln!("[SYNC] IGDB backfill failed: {}", error);
+                sync_errors.push(format!("igdb_backfill: {}", error));
+            } else {
+                println!(
+                    "[SYNC] IGDB backfill: matched {}/{} previously-unresolved games",
+                    matched, attempted
+                );
+            }
+        }
+    }
 
     let raw_games = query_all_data(&conn, "games").map_err(|e| e.to_string())?;
-    let push_time = Utc::now().to_rfc3339();
+    let mut newly_conflicted_ids: HashSet<String> = HashSet::new();
+    let skipped_non_api = std::cell::Cell::new(0usize);
 
     let sync_games: Vec<confero_sync::SyncGameItem> = raw_games
         .iter()
         .filter_map(|g| {
             let game_id = g.get("id").cloned().unwrap_or_default();
+            if pending_conflict_ids.contains(&game_id) {
+                return None;
+            }
+
             let updated_at = g.get("updated_at").cloned().unwrap_or_default();
             let confero_updated_at = g.get("confero_updated_at").cloned();
-            let should_push = match &confero_updated_at {
-                Some(ts) if !ts.is_empty() => {
-                    let updated = chrono::DateTime::parse_from_rfc3339(&updated_at).ok();
-                    let confero = chrono::DateTime::parse_from_rfc3339(ts).ok();
-                    match (updated, confero) {
-                        (Some(u), Some(c)) => {
-                            println!("[SYNC][PUSH] Game {}: updated_at = {:?}, confero_updated_at = {:?} => {}", game_id, u, c, u > c);
-                            u > c
-                        },
-                        (Some(u), None) => {
-                            println!("[SYNC][PUSH] Game {}: updated_at = {:?}, confero_updated_at = None => true", game_id, u);
-                            true
-                        },
-                        _ => {
-                            println!("[SYNC][PUSH] Game {}: Could not parse timestamps, skipping", game_id);
-                            false
-                        },
-                    }
-                }
-                _ => {
-                    println!("[SYNC][PUSH] Game {}: No confero_updated_at, will push", game_id);
-                    true
-                }
-            };
-            if should_push {
-                let is_favorite = favorites_set.contains(&game_id);
-                Some(confero_sync::SyncGameItem {
-                    source_id: game_id,
-                    game_importer_id: g.get("game_importer_id").cloned().unwrap_or_default(),
-                    importer_id: g.get("importer_id").cloned().unwrap_or_default(),
-                    igdb_id: g.get("igdb_id").cloned().unwrap_or_default(),
-                    name: g.get("name").cloned().unwrap_or_default(),
-                    sort_name: g.get("sort_name").cloned().unwrap_or_default(),
-                    rating: g.get("rating").cloned().unwrap_or_default(),
-                    platforms: g.get("platforms").cloned().unwrap_or_default(),
-                    description: g.get("description").cloned().unwrap_or_default(),
-                    critic_score: g.get("critic_score").cloned().unwrap_or_default(),
-                    genres: g.get("genres").cloned().unwrap_or_default(),
-                    styles: g.get("styles").cloned().unwrap_or_default(),
-                    release_date: g.get("release_date").cloned().unwrap_or_default(),
-                    developers: g.get("developers").cloned().unwrap_or_default(),
-                    editors: g.get("editors").cloned().unwrap_or_default(),
-                    tags: g.get("tags").cloned().unwrap_or_default(),
-                    status: g.get("status").cloned().unwrap_or_default(),
-                    trophies: g.get("trophies").cloned().unwrap_or_default(),
-                    trophies_unlocked: g.get("trophies_unlocked").cloned().unwrap_or_default(),
-                    hidden: g.get("hidden").cloned().unwrap_or_default(),
-                    favorite: is_favorite,
-                    updated_at: updated_at.clone(),
-                })
-            } else {
-                None
+            let should_push =
+                confero_sync::should_push_local(&updated_at, confero_updated_at.as_deref());
+            if !should_push {
+                return None;
             }
+
+            let igdb_id = g.get("igdb_id").cloned().unwrap_or_default();
+            let game_importer_id = g.get("game_importer_id").cloned().unwrap_or_default();
+            let importer_id = g.get("importer_id").cloned().unwrap_or_default();
+            if !confero_sync::has_resolvable_identity(&igdb_id, &game_importer_id, &importer_id) {
+                skipped_non_api.set(skipped_non_api.get() + 1);
+                return None;
+            }
+
+            if let Some(remote_item) = remote_changed_by_local_id.get(&game_id) {
+                println!(
+                    "[SYNC][CONFLICT] Game {} changed both locally and on Confero since last sync — recording conflict instead of overwriting either side",
+                    game_id
+                );
+                let _ = add_sync_conflict(
+                    &conn,
+                    &game_id,
+                    &g.get("name").cloned().unwrap_or_default(),
+                    &g.get("status").cloned().unwrap_or_default(),
+                    &g.get("rating").cloned().unwrap_or_default(),
+                    &g.get("hidden").cloned().unwrap_or_default(),
+                    &updated_at,
+                    confero_sync::map_confero_status(&remote_item.status),
+                    &remote_item.rating,
+                    &remote_item.hidden,
+                    &remote_item.updated_at,
+                );
+                newly_conflicted_ids.insert(game_id);
+                return None;
+            }
+
+            let is_favorite = favorites_set.contains(&game_id);
+            Some(confero_sync::SyncGameItem {
+                source_id: game_id,
+                game_importer_id: g.get("game_importer_id").cloned().unwrap_or_default(),
+                importer_id: g.get("importer_id").cloned().unwrap_or_default(),
+                igdb_id: g.get("igdb_id").cloned().unwrap_or_default(),
+                name: g.get("name").cloned().unwrap_or_default(),
+                sort_name: g.get("sort_name").cloned().unwrap_or_default(),
+                rating: g.get("rating").cloned().unwrap_or_default(),
+                platforms: g.get("platforms").cloned().unwrap_or_default(),
+                description: g.get("description").cloned().unwrap_or_default(),
+                critic_score: g.get("critic_score").cloned().unwrap_or_default(),
+                genres: g.get("genres").cloned().unwrap_or_default(),
+                styles: g.get("styles").cloned().unwrap_or_default(),
+                release_date: g.get("release_date").cloned().unwrap_or_default(),
+                developers: g.get("developers").cloned().unwrap_or_default(),
+                editors: g.get("editors").cloned().unwrap_or_default(),
+                tags: g.get("tags").cloned().unwrap_or_default(),
+                status: g.get("status").cloned().unwrap_or_default(),
+                trophies: g.get("trophies").cloned().unwrap_or_default(),
+                trophies_unlocked: g.get("trophies_unlocked").cloned().unwrap_or_default(),
+                hidden: g.get("hidden").cloned().unwrap_or_default(),
+                favorite: is_favorite,
+                updated_at: updated_at.clone(),
+            })
         })
         .collect();
 
     let pushed_games = sync_games.len();
     if !sync_games.is_empty() {
-        confero_sync::push_games(sync_games).await?;
+        if let Err(e) = confero_sync::push_games(sync_games).await {
+            eprintln!("[confero_sync] push_games failed: {}", e);
+            sync_errors.push(format!("push_games: {}", e));
+        }
     }
 
     let raw_stats = query_all_data(&conn, "stats").map_err(|e| e.to_string())?;
@@ -1385,7 +1626,10 @@ pub async fn confero_full_sync() -> Result<String, String> {
 
     let pushed_stats = sync_stats.len();
     if !sync_stats.is_empty() {
-        confero_sync::push_stats(sync_stats).await?;
+        if let Err(e) = confero_sync::push_stats(sync_stats).await {
+            eprintln!("[confero_sync] push_stats failed: {}", e);
+            sync_errors.push(format!("push_stats: {}", e));
+        }
     }
 
     let raw_trophies = query_all_data(&conn, "achievements").map_err(|e| e.to_string())?;
@@ -1407,15 +1651,11 @@ pub async fn confero_full_sync() -> Result<String, String> {
 
     let pushed_trophies = sync_trophies.len();
     if !sync_trophies.is_empty() {
-        confero_sync::push_trophies(sync_trophies).await?;
+        if let Err(e) = confero_sync::push_trophies(sync_trophies).await {
+            eprintln!("[confero_sync] push_trophies failed: {}", e);
+            sync_errors.push(format!("push_trophies: {}", e));
+        }
     }
-
-    let library_items = confero_sync::pull_library(last_pull)
-        .await
-        .unwrap_or_else(|e| {
-            eprintln!("[confero_sync] pull_library failed: {}", e);
-            vec![]
-        });
 
     let igdb_available = {
         let id_ok = env::var("IGDB_CLIENT_ID").is_ok();
@@ -1433,67 +1673,23 @@ pub async fn confero_full_sync() -> Result<String, String> {
     let mut pulled_updated: usize = 0;
     let mut pulled_inserted: usize = 0;
 
-    for item in &library_items {
+    for (item, local_id) in &resolved_items {
         if item.title.is_empty() && item.source_id.is_empty() {
             continue;
         }
 
-        let local_id: Option<String> = if !item.source_id.is_empty() {
-            let exists: bool = conn
-                .query_row(
-                    &format!(
-                        "SELECT COUNT(*) FROM games WHERE id = '{}'",
-                        item.source_id.replace('\'', "''")
-                    ),
-                    [],
-                    |row| row.get(0),
-                )
-                .unwrap_or(false);
-            if exists {
-                Some(item.source_id.clone())
-            } else {
-                None
+        if let Some(local_game_id) = local_id {
+            if pending_conflict_ids.contains(local_game_id)
+                || newly_conflicted_ids.contains(local_game_id)
+            {
+                continue;
             }
-        } else if !item.igdb_id.is_empty() {
-            find_game_by_igdb_id(&conn, &item.igdb_id)
-        } else {
-            find_game_by_name(&conn, &item.title)
-        };
 
-        if let Some(ref local_game_id) = local_id {
-            let local_confero_ts_str: Option<String> = conn
-                .query_row(
-                    &format!(
-                        "SELECT confero_updated_at FROM games WHERE id = '{}'",
-                        local_game_id.replace('\'', "''")
-                    ),
-                    [],
-                    |row| row.get(0),
-                )
-                .unwrap_or(None);
-
-            let confero_ts = chrono::DateTime::parse_from_rfc3339(&item.updated_at).ok();
-            let local_ts = local_confero_ts_str
-                .as_deref()
-                .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok());
-
-            let should_apply = match (confero_ts, local_ts) {
-                (Some(ct), Some(lt)) => {
-                    println!("[SYNC][PULL] Game {}: confero.updated_at = {:?}, local.confero_updated_at = {:?} => {}", local_game_id, ct, lt, ct > lt);
-                    ct > lt
-                }
-                (Some(ct), None) => {
-                    println!("[SYNC][PULL] Game {}: confero.updated_at = {:?}, local.confero_updated_at = None => true", local_game_id, ct);
-                    true
-                }
-                _ => {
-                    println!(
-                        "[SYNC][PULL] Game {}: Could not parse timestamps, skipping",
-                        local_game_id
-                    );
-                    false
-                }
-            };
+            let local_confero_ts_str = local_confero_updated_at(&conn, local_game_id);
+            let should_apply = confero_sync::should_apply_remote(
+                &item.updated_at,
+                local_confero_ts_str.as_deref(),
+            );
 
             if should_apply {
                 let meteoric_status = confero_sync::map_confero_status(&item.status);
@@ -1521,13 +1717,9 @@ pub async fn confero_full_sync() -> Result<String, String> {
                                     use std::path::Path;
 
                                     let has_image = |name: &str| -> bool {
-                                        let exts = ["webp", "gif", "jpg", "jpeg", "png"];
-                                        for ext in exts.iter() {
-                                            if game_dir.join(format!("{}.{}", name, ext)).exists() {
-                                                return true;
-                                            }
-                                        }
-                                        false
+                                        IMAGE_EXTENSIONS.iter().any(|ext| {
+                                            game_dir.join(format!("{}.{}", name, ext)).exists()
+                                        })
                                     };
                                     let jaquette_exists =
                                         has_image("jaquette") || has_image("jaquette_horizontal");
@@ -1651,6 +1843,7 @@ pub async fn confero_full_sync() -> Result<String, String> {
                 trophies: String::new(),
                 trophies_unlocked: String::new(),
                 hidden: item.hidden.clone(),
+                metadata_source: String::new(),
             };
 
             match update_game(&conn, new_game) {
@@ -1680,8 +1873,119 @@ pub async fn confero_full_sync() -> Result<String, String> {
         "pushed_trophies": pushed_trophies,
         "pulled_updated":  pulled_updated,
         "pulled_inserted": pulled_inserted,
+        "conflicts":       newly_conflicted_ids.len(),
+        "skipped_non_api": skipped_non_api.get(),
+        "errors":          sync_errors,
     })
     .to_string())
+}
+
+#[tauri::command]
+pub fn confero_list_conflicts() -> Result<Vec<HashMap<String, String>>, String> {
+    let conn = establish_connection().map_err(|e| e.to_string())?;
+    list_sync_conflicts(&conn)
+}
+
+async fn resolve_conflict_record(
+    conflict: &HashMap<String, String>,
+    keep_local: bool,
+) -> Result<(), String> {
+    let conn = establish_connection().map_err(|e| e.to_string())?;
+    let id = conflict.get("id").cloned().unwrap_or_default();
+    let game_id = conflict.get("game_id").cloned().unwrap_or_default();
+
+    if keep_local {
+        let raw_games = query_data(
+            &conn,
+            vec!["games"],
+            vec!["*"],
+            vec![("id", game_id.as_str())],
+            false,
+        )
+        .map_err(|e| e.to_string())?;
+
+        if let Some(g) = raw_games.first() {
+            let sync_item = confero_sync::SyncGameItem {
+                source_id: game_id.clone(),
+                game_importer_id: g.get("game_importer_id").cloned().unwrap_or_default(),
+                importer_id: g.get("importer_id").cloned().unwrap_or_default(),
+                igdb_id: g.get("igdb_id").cloned().unwrap_or_default(),
+                name: g.get("name").cloned().unwrap_or_default(),
+                sort_name: g.get("sort_name").cloned().unwrap_or_default(),
+                rating: g.get("rating").cloned().unwrap_or_default(),
+                platforms: g.get("platforms").cloned().unwrap_or_default(),
+                description: g.get("description").cloned().unwrap_or_default(),
+                critic_score: g.get("critic_score").cloned().unwrap_or_default(),
+                genres: g.get("genres").cloned().unwrap_or_default(),
+                styles: g.get("styles").cloned().unwrap_or_default(),
+                release_date: g.get("release_date").cloned().unwrap_or_default(),
+                developers: g.get("developers").cloned().unwrap_or_default(),
+                editors: g.get("editors").cloned().unwrap_or_default(),
+                tags: g.get("tags").cloned().unwrap_or_default(),
+                status: g.get("status").cloned().unwrap_or_default(),
+                trophies: g.get("trophies").cloned().unwrap_or_default(),
+                trophies_unlocked: g.get("trophies_unlocked").cloned().unwrap_or_default(),
+                hidden: g.get("hidden").cloned().unwrap_or_default(),
+                favorite: false,
+                updated_at: chrono::Utc::now().to_rfc3339(),
+            };
+            confero_sync::push_games(vec![sync_item]).await?;
+            let _ = set_confero_updated_at(&conn, &game_id, &chrono::Utc::now().to_rfc3339());
+        }
+    } else {
+        let remote_status = conflict.get("remote_status").cloned().unwrap_or_default();
+        let remote_rating = conflict.get("remote_rating").cloned().unwrap_or_default();
+        let remote_hidden = conflict.get("remote_hidden").cloned().unwrap_or_default();
+        let remote_updated_at = conflict
+            .get("remote_updated_at")
+            .cloned()
+            .unwrap_or_default();
+        apply_confero_update(
+            &conn,
+            &game_id,
+            &remote_status,
+            &remote_rating,
+            &remote_hidden,
+            &remote_updated_at,
+        )?;
+    }
+
+    delete_sync_conflict(&conn, &id)
+}
+
+#[tauri::command]
+pub async fn confero_resolve_conflict(id: String, keep_local: bool) -> Result<(), String> {
+    let conflict = {
+        let conn = establish_connection().map_err(|e| e.to_string())?;
+        list_sync_conflicts(&conn)?
+            .into_iter()
+            .find(|c| c.get("id").map(|v| v == &id).unwrap_or(false))
+            .ok_or_else(|| "Conflict not found".to_string())?
+    };
+
+    resolve_conflict_record(&conflict, keep_local).await
+}
+
+#[tauri::command]
+pub async fn confero_resolve_all_conflicts(keep_local: bool) -> Result<usize, String> {
+    let conflicts = {
+        let conn = establish_connection().map_err(|e| e.to_string())?;
+        list_sync_conflicts(&conn)?
+    };
+
+    let mut resolved = 0usize;
+    for conflict in &conflicts {
+        match resolve_conflict_record(conflict, keep_local).await {
+            Ok(()) => resolved += 1,
+            Err(e) => eprintln!(
+                "[SYNC] failed to resolve conflict {}: {}",
+                conflict.get("id").cloned().unwrap_or_default(),
+                e
+            ),
+        }
+    }
+
+    Ok(resolved)
 }
 
 fn sync_favorites(

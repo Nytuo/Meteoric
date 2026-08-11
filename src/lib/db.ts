@@ -54,18 +54,22 @@ async function getAllImgAndVideo(
 
 export async function parseGames(raw: string): Promise<IGame[]> {
   console.time('[PERF] parseGames - JSON parsing');
-  const cleaned = raw.replaceAll(String.raw`\u{a0}`, String.raw`\u00A0`);
   let games: IGame[];
   try {
-    games = JSON.parse(cleaned) as IGame[];
+    games = JSON.parse(raw) as IGame[];
     games.forEach((g) => {
       g.stats = JSON.parse((g.stats as any).toString());
       g.stats.forEach((s: IStat) => {
         s.date_of_play = new Date(s.date_of_play);
       });
     });
-  } catch {
-    console.error('[ERROR] parseGames - Failed to parse games JSON');
+  } catch (e) {
+    console.error(
+      '[ERROR] parseGames - Failed to parse games JSON:',
+      e,
+      '\nFirst 500 chars:',
+      raw.slice(0, 500)
+    );
     return [];
   }
   console.timeEnd('[PERF] parseGames - JSON parsing');
@@ -74,43 +78,33 @@ export async function parseGames(raw: string): Promise<IGame[]> {
   console.time('[PERF] parseGames - Build basic image paths');
   const basePath = await getExtraContentPath();
 
-  // Build image paths dynamically checking for correct extensions
-  await Promise.all(
-    games.map(async (game) => {
-      const id = game.id;
-      try {
-        const imagePaths = await invoke<string>('get_game_image_paths', { id });
-        const paths = JSON.parse(imagePaths) as Record<string, string>;
+  let allPaths: Record<string, Record<string, string>> = {};
+  try {
+    const raw = await invoke<string>('get_all_games_image_paths');
+    allPaths = JSON.parse(raw);
+  } catch (e) {
+    console.error('[ERROR] parseGames - Failed to get image paths:', e);
+  }
 
-        game.jaquette = paths.jaquette
-          ? convertFileSrc(basePath + paths.jaquette)
-          : '';
-        game.jaquette_horizontal = paths.jaquette_horizontal
-          ? convertFileSrc(basePath + paths.jaquette_horizontal)
-          : '';
-        game.background = paths.background
-          ? convertFileSrc(basePath + paths.background)
-          : '';
-        game.logo = paths.logo ? convertFileSrc(basePath + paths.logo) : '';
-        game.icon = paths.icon ? convertFileSrc(basePath + paths.icon) : '';
-      } catch (e) {
-        console.error(
-          `[ERROR] parseGames - Failed to get image paths for game ${id}:`,
-          e
-        );
-        game.jaquette = '';
-        game.jaquette_horizontal = '';
-        game.background = '';
-        game.logo = '';
-        game.icon = '';
-      }
+  for (const game of games) {
+    const paths = allPaths[game.id] || {};
+    game.jaquette = paths.jaquette
+      ? convertFileSrc(basePath + paths.jaquette)
+      : '';
+    game.jaquette_horizontal = paths.jaquette_horizontal
+      ? convertFileSrc(basePath + paths.jaquette_horizontal)
+      : '';
+    game.background = paths.background
+      ? convertFileSrc(basePath + paths.background)
+      : '';
+    game.logo = paths.logo ? convertFileSrc(basePath + paths.logo) : '';
+    game.icon = paths.icon ? convertFileSrc(basePath + paths.icon) : '';
 
-      // Initialize empty arrays - will be loaded on demand
-      game.screenshots = [];
-      game.videos = [];
-      game.backgroundMusic = '';
-    })
-  );
+    // Initialize empty arrays - will be loaded on demand
+    game.screenshots = [];
+    game.videos = [];
+    game.backgroundMusic = '';
+  }
 
   console.timeEnd('[PERF] parseGames - Build basic image paths');
   return games;
@@ -172,7 +166,7 @@ export const db = {
   },
 
   async getGame(id: string): Promise<IGame[]> {
-    const raw = await invoke<string>('get_game', { id });
+    const raw = await invoke<string>('get_games_by_id', { id });
     return parseGames(raw);
   },
 

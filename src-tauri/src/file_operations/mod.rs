@@ -19,6 +19,72 @@ use crate::Metadata;
 
 mod test;
 
+static HTML_TAG_RE: once_cell::sync::Lazy<regex::Regex> =
+    once_cell::sync::Lazy::new(|| regex::Regex::new(r"(?s)<[^>]*>").unwrap());
+
+pub(crate) const IMAGE_EXTENSIONS: [&str; 5] = ["webp", "gif", "jpg", "jpeg", "png"];
+
+pub(crate) const NAMED_IMAGE_SLOTS: [&str; 5] =
+    ["background", "jaquette", "jaquette_horizontal", "logo", "icon"];
+
+
+pub(crate) fn scan_named_images(game_dir: &Path) -> HashMap<String, String> {
+    let entries = match fs::read_dir(game_dir) {
+        Ok(e) => e,
+        Err(_) => return HashMap::new(),
+    };
+
+    let mut by_slot: HashMap<&str, Vec<(PathBuf, std::time::SystemTime, String)>> = HashMap::new();
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let slot = match path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .and_then(|stem| NAMED_IMAGE_SLOTS.iter().find(|s| **s == stem))
+        {
+            Some(s) => *s,
+            None => continue,
+        };
+        let ext = match path.extension().and_then(|e| e.to_str()) {
+            Some(e) if IMAGE_EXTENSIONS.contains(&e) => e.to_string(),
+            _ => continue,
+        };
+        let modified = match entry.metadata().and_then(|m| m.modified()) {
+            Ok(m) => m,
+            Err(_) => continue,
+        };
+        by_slot.entry(slot).or_default().push((path, modified, ext));
+    }
+
+    let mut result = HashMap::new();
+    for (slot, mut variants) in by_slot {
+        variants.sort_by(|a, b| b.1.cmp(&a.1));
+        let (_, _, keep_ext) = variants.remove(0);
+        for (stale, _, _) in variants {
+            let _ = fs::remove_file(&stale);
+        }
+        result.insert(slot.to_string(), keep_ext);
+    }
+    result
+}
+
+pub(crate) fn strip_html(input: &str) -> String {
+    let no_tags = HTML_TAG_RE.replace_all(input, " ");
+    no_tags
+        .replace("&nbsp;", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .trim()
+        .to_string()
+}
+
 fn is_animated_image(bytes: &[u8]) -> bool {
     if bytes.len() > 6 && &bytes[0..6] == b"GIF89a"
         || (bytes.len() > 6 && &bytes[0..6] == b"GIF87a")
@@ -55,21 +121,33 @@ fn convert_to_webp(bytes: &[u8]) -> Result<Vec<u8>, String> {
     Ok(webp_bytes)
 }
 
-async fn save_image_optimized(file_path: &PathBuf, bytes: &[u8]) -> Result<(), String> {
+pub(crate) fn save_image_optimized_sync(file_path: &PathBuf, bytes: &[u8]) -> Result<(), String> {
     let is_animated = is_animated_image(bytes);
 
-    if is_animated {
-        let file_path_gif = file_path.with_extension("gif");
-        fs::write(&file_path_gif, bytes)
-            .map_err(|e| format!("Error writing animated image: {}", e))?;
+    let (target_ext, out_bytes): (&str, Vec<u8>) = if is_animated {
+        ("gif", bytes.to_vec())
     } else {
-        let webp_bytes = convert_to_webp(bytes)?;
-        let file_path_webp = file_path.with_extension("webp");
-        fs::write(&file_path_webp, webp_bytes)
-            .map_err(|e| format!("Error writing WebP image: {}", e))?;
+        ("webp", convert_to_webp(bytes)?)
+    };
+
+    let out_path = file_path.with_extension(target_ext);
+    fs::write(&out_path, &out_bytes).map_err(|e| format!("Error writing image: {}", e))?;
+
+    for ext in IMAGE_EXTENSIONS {
+        if ext == target_ext {
+            continue;
+        }
+        let stale = file_path.with_extension(ext);
+        if stale.exists() {
+            let _ = fs::remove_file(&stale);
+        }
     }
 
     Ok(())
+}
+
+pub(crate) async fn save_image_optimized(file_path: &PathBuf, bytes: &[u8]) -> Result<(), String> {
+    save_image_optimized_sync(file_path, bytes)
 }
 
 pub fn create_extra_dirs(id: &str) -> Result<(), Box<dyn std::error::Error>> {

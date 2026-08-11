@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use crate::database::{establish_connection, get_game_by_id, update_game};
+use crate::database::{establish_connection, get_game_by_id, set_igdb_id, update_game};
 use crate::file_operations::save_media_to_external_storage;
-use crate::Metadata;
+use crate::{send_message_to_frontend, Metadata};
 use chrono::{DateTime, NaiveDateTime, Utc};
 use directories::ProjectDirs;
 use reqwest::header::HeaderMap;
@@ -169,20 +169,16 @@ pub(crate) async fn fetch_game_by_igdb_id(
         if let Some(id_val) = games[i].get("id").cloned() {
             games[i]["igdb_id"] = serde_json::Value::String(id_val.to_string());
         }
-        games[i].as_object_mut().unwrap().remove("id");
-        games[i].as_object_mut().unwrap().remove("rating");
-        games[i].as_object_mut().unwrap().remove("release_dates");
-        games[i].as_object_mut().unwrap().remove("external_games");
-        games[i].as_object_mut().unwrap().remove("category");
-        games[i].as_object_mut().unwrap().remove("dlcs");
-        games[i]
-            .as_object_mut()
-            .unwrap()
-            .remove("involved_companies");
-        games[i]
-            .as_object_mut()
-            .unwrap()
-            .remove("player_perspectives");
+        if let Some(obj) = games[i].as_object_mut() {
+            obj.remove("id");
+            obj.remove("rating");
+            obj.remove("release_dates");
+            obj.remove("external_games");
+            obj.remove("category");
+            obj.remove("dlcs");
+            obj.remove("involved_companies");
+            obj.remove("player_perspectives");
+        }
     }
 
     Ok(games.iter().map(|g| g.to_string()).collect())
@@ -367,12 +363,30 @@ pub(crate) async fn search_game_igdb(
             .headers(headers);
     }
     let response = game_reaquest.send().await?;
+    let status = response.status();
     let text = response.text().await?;
+
+    if !status.is_success() {
+        return Err(format!(
+            "IGDB search returned {} for '{}': {}",
+            status,
+            game_name,
+            &text[..text.len().min(500)]
+        )
+        .into());
+    }
+
     let games: serde_json::Value = serde_json::from_str(&text)?;
-    let mut games = games.as_array().unwrap().clone();
+    let mut games = games.as_array().cloned().ok_or_else(|| {
+        format!(
+            "IGDB search for '{}' returned a non-array response: {}",
+            game_name,
+            &text[..text.len().min(500)]
+        )
+    })?;
     for i in 0..games.len() {
         if games[i]["cover"].is_object() {
-            let cover_id = games[i]["cover"]["image_id"].as_str().unwrap();
+            let cover_id = games[i]["cover"]["image_id"].as_str().unwrap_or("");
             let cover_url = format!(
                 "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/{}.jpg",
                 cover_id
@@ -381,7 +395,9 @@ pub(crate) async fn search_game_igdb(
         }
         if games[i]["screenshots"].is_array() {
             for j in 0..games[i]["screenshots"].as_array().unwrap().len() {
-                let screenshot_id = games[i]["screenshots"][j]["image_id"].as_str().unwrap();
+                let screenshot_id = games[i]["screenshots"][j]["image_id"]
+                    .as_str()
+                    .unwrap_or("");
                 let screenshot_url = format!(
                     "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/{}.jpg",
                     screenshot_id
@@ -391,7 +407,7 @@ pub(crate) async fn search_game_igdb(
         }
         if games[i]["artworks"].is_array() {
             for j in 0..games[i]["artworks"].as_array().unwrap().len() {
-                let artwork_id = games[i]["artworks"][j]["image_id"].as_str().unwrap();
+                let artwork_id = games[i]["artworks"][j]["image_id"].as_str().unwrap_or("");
                 let artwork_url = format!(
                     "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/{}.jpg",
                     artwork_id
@@ -401,7 +417,7 @@ pub(crate) async fn search_game_igdb(
         }
         if games[i]["videos"].is_array() {
             for j in 0..games[i]["videos"].as_array().unwrap().len() {
-                let video_id = games[i]["videos"][j]["video_id"].as_str().unwrap();
+                let video_id = games[i]["videos"][j]["video_id"].as_str().unwrap_or("");
                 let video_url = format!("https://www.youtube.com/watch?v={}", video_id);
                 games[i]["videos"][j] = serde_json::Value::String(video_url);
             }
@@ -459,7 +475,7 @@ pub(crate) async fn search_game_igdb(
                 let mut developers = vec![];
                 let mut publishers = vec![];
                 for company in companies {
-                    let company_name = company["company"]["name"].as_str().unwrap();
+                    let company_name = company["company"]["name"].as_str().unwrap_or("");
                     match company["developer"].as_bool() {
                         Some(true) => developers.push(company_name),
                         Some(false) => match company["publisher"].as_bool() {
@@ -489,20 +505,16 @@ pub(crate) async fn search_game_igdb(
         if let Some(id_val) = games[i].get("id").cloned() {
             games[i]["igdb_id"] = serde_json::Value::String(id_val.to_string());
         }
-        games[i].as_object_mut().unwrap().remove("id");
-        games[i].as_object_mut().unwrap().remove("rating");
-        games[i].as_object_mut().unwrap().remove("release_dates");
-        games[i].as_object_mut().unwrap().remove("external_games");
-        games[i].as_object_mut().unwrap().remove("category");
-        games[i].as_object_mut().unwrap().remove("dlcs");
-        games[i]
-            .as_object_mut()
-            .unwrap()
-            .remove("involved_companies");
-        games[i]
-            .as_object_mut()
-            .unwrap()
-            .remove("player_perspectives");
+        if let Some(obj) = games[i].as_object_mut() {
+            obj.remove("id");
+            obj.remove("rating");
+            obj.remove("release_dates");
+            obj.remove("external_games");
+            obj.remove("category");
+            obj.remove("dlcs");
+            obj.remove("involved_companies");
+            obj.remove("player_perspectives");
+        }
     }
     Ok(games.iter().map(|game| game.to_string()).collect())
 }
@@ -732,4 +744,105 @@ pub fn search_game(
         rt.block_on(search_game_igdb(game_name, strict))
     });
     result
+}
+
+pub async fn bulk_search_igdb(
+    names: Vec<String>,
+) -> Result<HashMap<String, Option<String>>, Box<dyn std::error::Error>> {
+    const REQUEST_DELAY: std::time::Duration = std::time::Duration::from_millis(300);
+
+    let total = names.len();
+    let mut results: HashMap<String, Option<String>> = HashMap::new();
+    for (i, name) in names.iter().enumerate() {
+        if i > 0 {
+            tokio::time::sleep(REQUEST_DELAY).await;
+        }
+
+        send_message_to_frontend(&format!("[IGDB-LOOKUP-PROGRESS]{}|{}", i + 1, total));
+
+        let search_result = task::block_in_place(|| {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(search_game_igdb(name, true))
+        });
+
+        match search_result {
+            Ok(games) => {
+                results.insert(name.clone(), games.into_iter().next());
+            }
+            Err(e) if i == 0 => {
+                return Err(format!("IGDB search failed for '{}': {}", name, e).into());
+            }
+            Err(e) => {
+                eprintln!("[IGDB] search failed for '{}': {}", name, e);
+                results.insert(name.clone(), None);
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+pub async fn bulk_enrich_missing_igdb_ids(
+    games: Vec<(String, String)>,
+) -> (usize, usize, Option<String>) {
+    if games.is_empty() {
+        return (0, 0, None);
+    }
+
+    let exceptions = read_exception_list_for_routine().await;
+    let candidates: Vec<(String, String)> = games
+        .into_iter()
+        .filter_map(|(id, name)| {
+            let cleaned = remove_odds_in_string(&name);
+            if cleaned.is_empty() || exceptions.contains(&cleaned) {
+                None
+            } else {
+                Some((id, cleaned))
+            }
+        })
+        .collect();
+    if candidates.is_empty() {
+        return (0, 0, None);
+    }
+
+    let names: Vec<String> = candidates.iter().map(|(_, name)| name.clone()).collect();
+    let results = match bulk_search_igdb(names).await {
+        Ok(r) => r,
+        Err(e) => {
+            let msg = e.to_string();
+            eprintln!("[IGDB] bulk_enrich_missing_igdb_ids failed: {}", msg);
+            return (0, candidates.len(), Some(msg));
+        }
+    };
+
+    let conn = match establish_connection() {
+        Ok(c) => c,
+        Err(e) => return (0, candidates.len(), Some(e.to_string())),
+    };
+
+    let mut matched = 0usize;
+    for (id, name) in &candidates {
+        let found_igdb_id = results
+            .get(name)
+            .and_then(|v| v.as_ref())
+            .and_then(|game_json| serde_json::from_str::<serde_json::Value>(game_json).ok())
+            .and_then(|parsed| {
+                parsed
+                    .get("igdb_id")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string())
+            })
+            .filter(|s| !s.is_empty());
+
+        match found_igdb_id {
+            Some(igdb_id) if set_igdb_id(&conn, id, &igdb_id).is_ok() => {
+                matched += 1;
+            }
+            _ => {
+                add_to_execption_list_for_routine(name).await;
+            }
+        }
+    }
+
+    (matched, candidates.len(), None)
 }

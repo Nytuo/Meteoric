@@ -27,7 +27,16 @@ export function GameCard({ game }: GameCardProps) {
   return (
     <div
       onClick={() => navigate(`/game/${game.id}`)}
-      className="group relative cursor-pointer overflow-hidden rounded-xl transition-all duration-300 hover:scale-[1.03]"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigate(`/game/${game.id}`);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={game.name}
+      className="group relative cursor-pointer overflow-hidden rounded-xl transition-all duration-300 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       style={{ width: `${zoom}rem` }}
     >
       {/* Image */}

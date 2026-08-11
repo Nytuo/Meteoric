@@ -194,6 +194,8 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   background-color: #1a1c23;
   border: 2px solid transparent;
+  content-visibility: auto;
+  contain-intrinsic-size: 200px 300px;
 }
 
 .sd-card.selected {

@@ -1,6 +1,7 @@
 /// Lenient Steam API client for achievements
 /// Handles missing/null fields in Steam API responses
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AchievementSchemaResponse {
@@ -47,6 +48,52 @@ pub struct PlayerAchievement {
     pub apiname: Option<String>,
     pub achieved: Option<u32>,
     pub unlocktime: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct OwnedGamesResponse {
+    games: Option<Vec<OwnedGameEntry>>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct OwnedGamesWrapper {
+    response: OwnedGamesResponse,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct OwnedGameEntry {
+    appid: u32,
+    #[serde(default)]
+    rtime_last_played: Option<i64>,
+}
+
+pub async fn get_last_played_map(api_key: &str, steam_id: u64) -> Result<HashMap<u32, i64>, String> {
+    let url = format!(
+        "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={}&steamid={}&include_appinfo=false&include_played_free_games=true",
+        api_key, steam_id
+    );
+
+    let response = reqwest::get(&url)
+        .await
+        .map_err(|e| format!("Failed to fetch owned games: {}", e))?;
+
+    let body = response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+
+    let parsed: OwnedGamesWrapper = serde_json::from_str(&body)
+        .map_err(|e| format!("Failed to parse owned games response: {}", e))?;
+
+    let map = parsed
+        .response
+        .games
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|g| g.rtime_last_played.filter(|t| *t > 0).map(|t| (g.appid, t)))
+        .collect();
+
+    Ok(map)
 }
 
 /// Fetch achievement schema with lenient parsing

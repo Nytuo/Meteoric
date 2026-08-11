@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/plugin-dialog';
 import { dirname } from '@tauri-apps/api/path';
 import { toast } from 'sonner';
+import { toParsedTime } from '@/lib/utils';
 import {
   Save,
   Trash2,
@@ -20,6 +21,8 @@ import {
   Youtube,
   Monitor,
   Globe,
+  Link2,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useConfirmStore } from '@/stores/confirmStore';
 import {
   Select,
   SelectTrigger,
@@ -42,6 +46,7 @@ import {
 } from '@/components/ui/accordion';
 import { useGameStore } from '@/stores/gameStore';
 import { useAppStore } from '@/stores/appStore';
+import { useEpicStore } from '@/stores/epicStore';
 import { db, refreshGameLinks } from '@/lib/db';
 import type { IGame } from '@/types';
 import { IGDBResults } from '@/components/plugins/IGDBResults';
@@ -52,10 +57,12 @@ export function EditGame() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { getGame, setGame, fetchGames, searchAPI, loadGameExtras } =
+  const { getGame, setGame, fetchGames, searchAPI, loadGameExtras, linkGameToNative } =
     useGameStore();
   const { changeSidebarOpen, stopAllAudio, changeBlockUI, downloadYTAudio } =
     useAppStore();
+  const { confirm } = useConfirmStore();
+  const { downloadableGames: epicLibrary, fetchDownloadableGames } = useEpicStore();
 
   const [selectedProvider, setSelectedProvider] = useState('general');
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,6 +71,12 @@ export function EditGame() {
   const [strict, setStrict] = useState(false);
   const [ytUrl, setYtUrl] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+
+  const [linkTarget, setLinkTarget] = useState<'steam' | 'gog' | 'epic'>(
+    'steam'
+  );
+  const [nativeIdInput, setNativeIdInput] = useState('');
+  const [linking, setLinking] = useState(false);
 
   const [formData, setFormData] = useState<Record<string, any>>({});
 
@@ -81,7 +94,6 @@ export function EditGame() {
   const generalKeys = [
     'name',
     'sort_name',
-    'rating',
     'platforms',
     'tags',
     'description',
@@ -94,6 +106,51 @@ export function EditGame() {
   ];
   const statKeys = ['status', 'trophies_unlocked'];
   const execKeys = ['exec_file', 'game_dir', 'exec_args'];
+
+  const isDirty =
+    !!game &&
+    [...generalKeys, ...statKeys, ...execKeys].some(
+      (k) => (formData[k] ?? '') !== ((game as any)[k] ?? '')
+    );
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  const fieldLabel = (key: string): string => {
+    const i18nKeyByField: Record<string, string> = {
+      name: 'name',
+      sort_name: 'sort-name',
+      rating: 'rating',
+      platforms: 'platforms',
+      tags: 'tags',
+      description: 'description',
+      critic_score: 'critics-score',
+      genres: 'genres',
+      styles: 'styles',
+      release_date: 'release-date',
+      developers: 'developers',
+      editors: 'editors',
+      exec_file: 'exec-file',
+      game_dir: 'game-dir',
+      exec_args: 'exec-args',
+      trophies_unlocked: 'trophies-unlocked',
+      status: 'status',
+    };
+    const i18nKey = i18nKeyByField[key];
+    const label = i18nKey ? t(i18nKey) : undefined;
+    if (label) return label.replace(/\s*:\s*$/, '');
+    return key
+      .split('_')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
 
   useEffect(() => {
     changeSidebarOpen(false);
@@ -109,8 +166,32 @@ export function EditGame() {
     };
   }, [id]);
 
+  useEffect(() => {
+    if (
+      selectedProvider === 'linking' &&
+      linkTarget === 'epic' &&
+      epicLibrary.length === 0
+    ) {
+      fetchDownloadableGames();
+    }
+  }, [selectedProvider, linkTarget]);
+
   const updateField = (key: string, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleLinkToNative = async () => {
+    if (!id || !nativeIdInput) return;
+    setLinking(true);
+    try {
+      await linkGameToNative(id, linkTarget, nativeIdInput);
+      toast.success(t('game-linked') || 'Game linked successfully');
+      setNativeIdInput('');
+    } catch (e: any) {
+      toast.error(String(e));
+    } finally {
+      setLinking(false);
+    }
   };
 
   const saveGeneral = async () => {
@@ -176,6 +257,14 @@ export function EditGame() {
 
   const deleteGame = async () => {
     if (!id) return;
+    const ok = await confirm({
+      title: t('confirm-delete-game') || 'Delete this game?',
+      description:
+        t('confirm-delete-game-desc') ||
+        "This removes the game and its stats/achievements from Meteoric. It won't delete the game's files on disk.",
+      confirmLabel: t('delete') || 'Delete',
+    });
+    if (!ok) return;
     await db.deleteGame(id);
     await fetchGames();
     navigate('/games');
@@ -216,6 +305,14 @@ export function EditGame() {
 
   const deleteScreenshot = async (path: string) => {
     if (!game || !id) return;
+    const ok = await confirm({
+      title: t('confirm-delete-media') || 'Delete this file?',
+      description:
+        t('confirm-delete-media-desc') ||
+        "This permanently removes the file from Meteoric's storage.",
+      confirmLabel: t('delete') || 'Delete',
+    });
+    if (!ok) return;
     const idx = game.screenshots.indexOf(path);
     const ssId = path.split('screenshot-')[1]?.split('.')[0];
     await db.deleteElement('screenshot', id, ssId);
@@ -227,6 +324,14 @@ export function EditGame() {
 
   const deleteVideo = async (path: string) => {
     if (!game || !id) return;
+    const ok = await confirm({
+      title: t('confirm-delete-media') || 'Delete this file?',
+      description:
+        t('confirm-delete-media-desc') ||
+        "This permanently removes the file from Meteoric's storage.",
+      confirmLabel: t('delete') || 'Delete',
+    });
+    if (!ok) return;
     const idx = game.videos.indexOf(path);
     const vidId = path.split('video-')[1]?.split('.')[0];
     await db.deleteElement('video', id, vidId);
@@ -238,6 +343,14 @@ export function EditGame() {
 
   const deleteBackgroundMusic = async () => {
     if (!game || !id) return;
+    const ok = await confirm({
+      title: t('confirm-delete-media') || 'Delete this file?',
+      description:
+        t('confirm-delete-media-desc') ||
+        "This permanently removes the file from Meteoric's storage.",
+      confirmLabel: t('delete') || 'Delete',
+    });
+    if (!ok) return;
     await db.deleteElement('audio', id);
     toast.success(t('the-audio-has-been-deleted'));
   };
@@ -341,6 +454,11 @@ export function EditGame() {
           icon: <Play className="h-4 w-4" />,
           key: 'exec',
         },
+        {
+          label: t('store-linking') || 'Store Linking',
+          icon: <Link2 className="h-4 w-4" />,
+          key: 'linking',
+        },
       ],
     },
     {
@@ -372,10 +490,18 @@ export function EditGame() {
   return (
     <div className="flex h-full">
       <div className="w-60 shrink-0 border-r border-border bg-card/50 p-4">
-        <p className="mb-3 text-xs text-muted-foreground">
-          {t('editing-currentgame-name')}{' '}
-          <span className="font-medium text-foreground">{game?.name}</span>
-        </p>
+        <div className="mb-3">
+          <p className="text-xs text-muted-foreground">
+            {t('editing-currentgame-name')}{' '}
+            <span className="font-medium text-foreground">{game?.name}</span>
+          </p>
+          {isDirty && (
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              {t('unsaved-changes') || 'Unsaved changes'}
+            </p>
+          )}
+        </div>
         <Accordion type="multiple" defaultValue={['0', '1']}>
           {menuItems.map((section, i) => (
             <AccordionItem key={i} value={i.toString()}>
@@ -412,7 +538,19 @@ export function EditGame() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate(`/game/${id}`)}
+            onClick={async () => {
+              if (isDirty) {
+                const ok = await confirm({
+                  title: t('unsaved-changes') || 'Unsaved changes',
+                  description:
+                    t('unsaved-changes-desc') ||
+                    "You have unsaved edits that haven't been saved yet. Discard them?",
+                  confirmLabel: t('discard') || 'Discard',
+                });
+                if (!ok) return;
+              }
+              navigate(`/game/${id}`);
+            }}
           >
             <X className="mr-1 h-3 w-3" /> {t('close')}
           </Button>
@@ -431,7 +569,7 @@ export function EditGame() {
           ) : (
             <EyeOff className="mr-1 h-3 w-3" />
           )}
-          {formData.hidden === 'true' ? 'Show' : 'Hide'}
+          {formData.hidden === 'true' ? t('show') : t('hide')}
         </Button>
       </div>
 
@@ -502,7 +640,7 @@ export function EditGame() {
               <div className="grid grid-cols-2 gap-4">
                 {generalKeys.map((key) => (
                   <div key={key}>
-                    <Label htmlFor={key}>{key}</Label>
+                    <Label htmlFor={key}>{fieldLabel(key)}</Label>
                     <Input
                       id={key}
                       value={formData[key] || ''}
@@ -530,7 +668,9 @@ export function EditGame() {
               </h2>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="trophies_unlocked">trophies_unlocked</Label>
+                  <Label htmlFor="trophies_unlocked">
+                    {fieldLabel('trophies_unlocked')}
+                  </Label>
                   <Input
                     id="trophies_unlocked"
                     value={formData.trophies_unlocked || ''}
@@ -541,7 +681,7 @@ export function EditGame() {
                   />
                 </div>
                 <div>
-                  <Label>Status</Label>
+                  <Label>{t('status')}</Label>
                   <Select
                     value={formData.status || ''}
                     onValueChange={(v) => updateField('status', v)}
@@ -567,7 +707,12 @@ export function EditGame() {
                       className="mb-3 flex items-center gap-3"
                     >
                       <div>
-                        <Label>{t('time-played')}</Label>
+                        <Label>
+                          {t('time-played')}{' '}
+                          <span className="font-normal text-muted-foreground">
+                            ({t('milliseconds') || 'ms'})
+                          </span>
+                        </Label>
                         <Input
                           value={session.time_played || ''}
                           onChange={(e) => {
@@ -580,6 +725,14 @@ export function EditGame() {
                           }}
                           className="mt-1 w-32"
                         />
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          ≈{' '}
+                          {toParsedTime(
+                            Math.floor(
+                              (parseInt(session.time_played, 10) || 0) / 60000
+                            )
+                          )}
+                        </p>
                       </div>
                       <div>
                         <Label>{t('date-of-play')}</Label>
@@ -709,7 +862,7 @@ export function EditGame() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            className="absolute -right-2 -top-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
+                            className="absolute -right-2 -top-2 h-6 w-6 rounded-full opacity-70 transition-opacity hover:opacity-100 group-hover:opacity-100 focus-visible:opacity-100"
                             onClick={() => deleteScreenshot(ss)}
                           >
                             <X className="h-3 w-3" />
@@ -773,7 +926,7 @@ export function EditGame() {
                       <Button
                         variant="destructive"
                         size="icon"
-                        className="absolute -right-2 -top-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
+                        className="absolute -right-2 -top-2 h-6 w-6 rounded-full opacity-70 transition-opacity hover:opacity-100 group-hover:opacity-100 focus-visible:opacity-100"
                         onClick={() => deleteVideo(vid)}
                       >
                         <X className="h-3 w-3" />
@@ -797,7 +950,7 @@ export function EditGame() {
               <div className="space-y-4">
                 {execKeys.map((key) => (
                   <div key={key}>
-                    <Label htmlFor={key}>{key}</Label>
+                    <Label htmlFor={key}>{fieldLabel(key)}</Label>
                     <Input
                       id={key}
                       value={formData[key] || ''}
@@ -810,6 +963,121 @@ export function EditGame() {
               <Button onClick={saveExec} className="mt-6">
                 <Save className="mr-1 h-4 w-4" /> {t('save')}
               </Button>
+            </div>
+          )}
+
+          {selectedProvider === 'linking' && (
+            <div>
+              <h2 className="mb-1 flex items-center gap-2 text-xl font-semibold">
+                <Link2 className="h-5 w-5" />{' '}
+                {t('store-linking') || 'Store Linking'}
+              </h2>
+              <p className="mb-5 max-w-xl text-sm text-muted-foreground">
+                Link this game to its Steam, GOG or Epic entry to unlock
+                achievements, playtime sync and install/uninstall - the same
+                as a game imported directly from that store.
+              </p>
+
+              {game && ['steam', 'gog', 'epic'].includes(game.importer_id) && (
+                <div className="mb-5 max-w-md rounded-lg border border-border bg-accent/30 p-3 text-sm">
+                  Currently linked to{' '}
+                  <span className="font-medium capitalize">
+                    {game.importer_id === 'gog'
+                      ? 'GOG'
+                      : game.importer_id}
+                  </span>{' '}
+                  (id: {game.game_importer_id})
+                  {game.metadata_source && (
+                    <span className="mt-1 block text-xs text-muted-foreground">
+                      Name/description still come from{' '}
+                      {game.metadata_source}.
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div className="max-w-md space-y-4">
+                <div>
+                  <Label>Store</Label>
+                  <Select
+                    value={linkTarget}
+                    onValueChange={(v) => {
+                      setLinkTarget(v as 'steam' | 'gog' | 'epic');
+                      setNativeIdInput('');
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="steam">Steam</SelectItem>
+                      <SelectItem value="gog">GOG</SelectItem>
+                      <SelectItem value="epic">Epic Games</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {linkTarget !== 'epic' ? (
+                  <div>
+                    <Label htmlFor="native-id">
+                      {linkTarget === 'steam'
+                        ? 'Steam AppID'
+                        : 'GOG Product ID'}
+                    </Label>
+                    <Input
+                      id="native-id"
+                      value={nativeIdInput}
+                      onChange={(e) => setNativeIdInput(e.target.value)}
+                      placeholder={
+                        linkTarget === 'steam' ? 'e.g. 730' : 'e.g. 1207658691'
+                      }
+                      className="mt-1"
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {linkTarget === 'steam'
+                        ? 'Found in the store URL: store.steampowered.com/app/<AppID>'
+                        : "Found in the game's GOG store URL or GOG Galaxy game details"}
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <Label>Epic Library Game</Label>
+                    <Select
+                      value={nativeIdInput}
+                      onValueChange={setNativeIdInput}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select from your Epic library" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {epicLibrary.map((g) => (
+                          <SelectItem key={g.app_name} value={g.app_name}>
+                            {g.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {epicLibrary.length === 0 && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        No games found - log in via the Epic Games panel in
+                        Settings to load your library.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleLinkToNative}
+                  disabled={!nativeIdInput || linking}
+                >
+                  {linking ? (
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Link2 className="mr-1 h-4 w-4" />
+                  )}{' '}
+                  {t('link-0') || 'Link'}
+                </Button>
+              </div>
             </div>
           )}
         </div>

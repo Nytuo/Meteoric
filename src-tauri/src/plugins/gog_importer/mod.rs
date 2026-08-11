@@ -10,8 +10,12 @@ use gog::Gog;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
-use crate::database::{establish_connection, update_achievements, update_game_nodup};
-use crate::{send_message_to_frontend, IGame, ITrophy};
+use crate::database::{
+    apply_incoming_metadata_if_preferred, establish_connection, update_achievements,
+    update_game_nodup,
+};
+use crate::file_operations::{create_extra_dirs, get_extra_dirs, save_image_optimized_sync, strip_html};
+use crate::{send_import_progress, send_message_to_frontend, IGame, ITrophy};
 
 pub mod achievements;
 pub mod cloud_saves;
@@ -232,7 +236,13 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
         let games = gog.get_games().unwrap();
         let conn = establish_connection().unwrap();
 
+        let total_games = games.len();
+        let mut processed = 0usize;
+
         for game_id in games {
+            processed += 1;
+            send_import_progress("gog", processed, total_games, &game_id.to_string());
+
             let games_detailled = gog.get_game_details(game_id);
             match games_detailled {
                 Ok(game) => {
@@ -248,17 +258,54 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     igame.tags = tags.join(",");
                     igame.platforms = "GOG".to_string();
+                    igame.description = strip_html(&game.text_information);
 
                     igame.exec_args = format!("gog:{}", game_id);
-                    let new_id = update_game_nodup(&conn, igame)
-                        .expect("[GOG IMPORTER] Failed to update game");
-
-                    let _ = crate::database::first_time_stat(
-                        &conn,
-                        new_id,
-                        "0".to_string(),
-                        chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
-                    );
+                    let incoming_name = igame.name.clone();
+                    let incoming_description = igame.description.clone();
+                    let incoming_release_date = igame.release_date.clone();
+                    match update_game_nodup(&conn, igame) {
+                        Ok(new_id) => {
+                            if let Err(e) = apply_incoming_metadata_if_preferred(
+                                &conn,
+                                &new_id,
+                                &incoming_name,
+                                &incoming_description,
+                                &incoming_release_date,
+                            ) {
+                                println!(
+                                    "[GOG IMPORTER] Failed to apply merge-preferred metadata: {}",
+                                    e
+                                );
+                            }
+                            if !game.background_image.is_empty()
+                                && create_extra_dirs(&new_id).is_ok()
+                            {
+                                if let Ok(game_dir) = get_extra_dirs(&new_id) {
+                                    match reqwest::blocking::get(&game.background_image)
+                                        .and_then(|r| r.bytes())
+                                    {
+                                        Ok(bytes) => {
+                                            if let Err(e) = save_image_optimized_sync(
+                                                &game_dir.join("background"),
+                                                &bytes,
+                                            ) {
+                                                println!(
+                                                    "[GOG IMPORTER] Failed to save background image for {}: {}",
+                                                    game_id, e
+                                                );
+                                            }
+                                        }
+                                        Err(e) => println!(
+                                            "[GOG IMPORTER] Failed to download background image for {}: {}",
+                                            game_id, e
+                                        ),
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => println!("[GOG IMPORTER] Failed to update game: {}", e),
+                    }
                 }
                 Err(_) => println!("[GOG IMPORTER] Failed to get game details"),
             }
@@ -291,6 +338,7 @@ pub async fn get_games() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     send_message_to_frontend("[GOG-INFO] Library import complete");
+    send_message_to_frontend("[IMPORT-DONE]gog");
     Ok(())
 }
 
