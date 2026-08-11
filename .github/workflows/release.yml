@@ -15,9 +15,6 @@ on:
           - ubuntu
           - ubuntu-arm
           - windows
-  push:
-    branches:
-      - master
 
 jobs:
   setup:
