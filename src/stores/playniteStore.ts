@@ -19,11 +19,13 @@ interface PlayniteStore {
   progress: PlayniteImportProgress | null;
   summary: PlayniteImportSummary | null;
   warnings: string[];
+  igdbStatus: string | null;
 
   setImporting: (importing: boolean) => void;
   setProgress: (progress: PlayniteImportProgress | null) => void;
   setSummary: (summary: PlayniteImportSummary | null) => void;
   addWarning: (warning: string) => void;
+  setIgdbStatus: (status: string | null) => void;
   reset: () => void;
 }
 
@@ -32,11 +34,14 @@ export const usePlayniteStore = create<PlayniteStore>((set) => ({
   progress: null,
   summary: null,
   warnings: [],
+  igdbStatus: null,
 
   setImporting: (importing) => set({ importing }),
   setProgress: (progress) => set({ progress }),
   setSummary: (summary) => set({ summary }),
   addWarning: (warning) =>
     set((state) => ({ warnings: [...state.warnings, warning].slice(-50) })),
-  reset: () => set({ progress: null, summary: null, warnings: [] }),
+  setIgdbStatus: (igdbStatus) => set({ igdbStatus }),
+  reset: () =>
+    set({ progress: null, summary: null, warnings: [], igdbStatus: null }),
 }));

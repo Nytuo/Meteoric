@@ -10,6 +10,7 @@ import {
   useImportProgressStore,
   type ImporterId,
 } from '@/stores/importProgressStore';
+import { useIgdbLookupStore } from '@/stores/igdbLookupStore';
 
 interface TauriEventStore {
   gameLaunchMessage: IGameLaunchedMessage;
@@ -142,6 +143,19 @@ export function useTauriListener() {
       }
 
       if (payload.startsWith('[PLAYNITE-IMPORT-INFO]')) {
+        usePlayniteStore
+          .getState()
+          .setIgdbStatus(payload.slice('[PLAYNITE-IMPORT-INFO]'.length));
+        return;
+      }
+
+      if (payload.startsWith('[IGDB-LOOKUP-PROGRESS]')) {
+        const raw = payload.slice('[IGDB-LOOKUP-PROGRESS]'.length);
+        const [current, total] = raw.split('|');
+        useIgdbLookupStore.getState().setProgress({
+          current: parseInt(current, 10) || 0,
+          total: parseInt(total, 10) || 0,
+        });
         return;
       }
 

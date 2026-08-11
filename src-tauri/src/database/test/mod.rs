@@ -124,6 +124,9 @@ mod tests {
 
         let game = IGame {
             id: "-1".to_string(),
+            game_importer_id: "".to_string(),
+            importer_id: "".to_string(),
+            igdb_id: "".to_string(),
             name: "New Game".to_string(),
             sort_name: "New Game".to_string(),
             rating: "4".to_string(),
@@ -140,10 +143,10 @@ mod tests {
             exec_args: "".to_string(),
             tags: "action,fps".to_string(),
             status: "NOT PLAYED".to_string(),
-            time_played: "0".to_string(),
             trophies: "".to_string(),
             trophies_unlocked: "0".to_string(),
-            last_time_played: "".to_string(),
+            hidden: "false".to_string(),
+            metadata_source: "".to_string(),
         };
 
         let id = update_game(&conn, game).unwrap();

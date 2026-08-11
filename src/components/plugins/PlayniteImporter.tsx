@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner';
 import { useGameStore } from '@/stores/gameStore';
 import { usePlayniteStore } from '@/stores/playniteStore';
+import { useIgdbLookupStore } from '@/stores/igdbLookupStore';
 import { GAME_STATUSES, GAME_STATUS_I18N_KEYS } from '@/types';
 
 const UNMAPPED = '__unmapped__';
@@ -37,8 +38,17 @@ interface CompletionStatusEntry {
 export function PlayniteImporter() {
   const { t } = useTranslation();
   const { fetchGames } = useGameStore();
-  const { importing, progress, summary, warnings, setImporting, reset } =
-    usePlayniteStore();
+  const {
+    importing,
+    progress,
+    summary,
+    warnings,
+    igdbStatus,
+    setImporting,
+    reset,
+  } = usePlayniteStore();
+  const { progress: igdbProgress, setProgress: setIgdbProgress } =
+    useIgdbLookupStore();
 
   const [selectedPath, setSelectedPath] = useState('');
   const [selectedLabel, setSelectedLabel] = useState('');
@@ -105,6 +115,7 @@ export function PlayniteImporter() {
   const startImport = async () => {
     if (!selectedPath) return;
     reset();
+    setIgdbProgress(null);
     setImporting(true);
     try {
       await invoke('import_library', {
@@ -268,6 +279,32 @@ export function PlayniteImporter() {
               </p>
             </div>
           </div>
+
+          {igdbStatus && (
+            <div className="space-y-1.5">
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2
+                  className={`h-3.5 w-3.5 ${
+                    igdbStatus.startsWith('Matched') ? 'hidden' : 'animate-spin'
+                  }`}
+                />
+                {igdbStatus}
+              </p>
+              {!igdbStatus.startsWith('Matched') &&
+                igdbProgress &&
+                igdbProgress.total > 0 && (
+                  <>
+                    <Progress
+                      value={(igdbProgress.current / igdbProgress.total) * 100}
+                      className="h-1.5"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      {igdbProgress.current}/{igdbProgress.total}
+                    </p>
+                  </>
+                )}
+            </div>
+          )}
 
           {warnings.length > 0 && (
             <div>

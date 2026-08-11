@@ -34,25 +34,33 @@ struct LoginRequest {
     password: String,
 }
 
+#[derive(Serialize)]
+struct DeviceLoginRequest {
+    device_token: String,
+}
+
 #[derive(Deserialize)]
 struct LoginResponse {
     token: String,
 }
 
-async fn get_token(client: &Client, base_url: &str) -> Result<String, String> {
-    {
-        let cache = TOKEN_CACHE.lock().unwrap();
-        if cache.is_valid() {
-            return Ok(cache.token.clone().unwrap());
-        }
-    }
+fn keyring_entry() -> Result<keyring::Entry, String> {
+    keyring::Entry::new("Meteoric", "confero_device_token")
+        .map_err(|e| format!("Failed to access OS credential store: {}", e))
+}
 
-    let email = std::env::var("CONFERO_EMAIL").map_err(|_| "CONFERO_EMAIL not set".to_string())?;
-    let password =
-        std::env::var("CONFERO_PASSWORD").map_err(|_| "CONFERO_PASSWORD not set".to_string())?;
+pub fn is_linked() -> bool {
+    keyring_entry()
+        .and_then(|e| e.get_password().map_err(|e| e.to_string()))
+        .is_ok()
+}
+
+pub async fn link_account(email: String, password: String) -> Result<(), String> {
+    let client = build_client()?;
+    let url = base_url()?;
 
     let resp = client
-        .post(format!("{}/api/auth/login", base_url))
+        .post(format!("{}/api/auth/login", url))
         .json(&LoginRequest { email, password })
         .send()
         .await
@@ -64,10 +72,89 @@ async fn get_token(client: &Client, base_url: &str) -> Result<String, String> {
         return Err(format!("Login failed ({}): {}", status, body));
     }
 
-    let login_resp: LoginResponse = resp
+    let session: LoginResponse = resp
         .json()
         .await
         .map_err(|e| format!("Failed to parse login response: {}", e))?;
+
+    let device_resp = client
+        .post(format!("{}/api/auth/device-token", url))
+        .bearer_auth(&session.token)
+        .send()
+        .await
+        .map_err(|e| format!("Device token request failed: {}", e))?;
+
+    if !device_resp.status().is_success() {
+        let status = device_resp.status();
+        let body = device_resp.text().await.unwrap_or_default();
+        return Err(format!("Device token request failed ({}): {}", status, body));
+    }
+
+    let device: LoginResponse = device_resp
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse device token response: {}", e))?;
+
+    keyring_entry()?
+        .set_password(&device.token)
+        .map_err(|e| format!("Failed to store device token: {}", e))?;
+
+    let mut cache = TOKEN_CACHE.lock().unwrap();
+    *cache = TokenCache::new();
+
+    Ok(())
+}
+
+pub async fn unlink_account() -> Result<(), String> {
+    if let Ok(token) = get_token(&build_client()?, &base_url()?).await {
+        let client = build_client()?;
+        let url = base_url()?;
+        let _ = client
+            .post(format!("{}/api/auth/device-token/revoke", url))
+            .bearer_auth(&token)
+            .send()
+            .await;
+    }
+
+    if let Ok(entry) = keyring_entry() {
+        let _ = entry.delete_credential();
+    }
+
+    let mut cache = TOKEN_CACHE.lock().unwrap();
+    *cache = TokenCache::new();
+
+    Ok(())
+}
+
+async fn get_token(client: &Client, base_url: &str) -> Result<String, String> {
+    {
+        let cache = TOKEN_CACHE.lock().unwrap();
+        if cache.is_valid() {
+            return Ok(cache.token.clone().unwrap());
+        }
+    }
+
+    let device_token = keyring_entry()?
+        .get_password()
+        .map_err(|_| "Not linked to Confero. Please link your account first.".to_string())?;
+
+    let resp = client
+        .post(format!("{}/api/auth/device-login", base_url))
+        .json(&DeviceLoginRequest { device_token })
+        .send()
+        .await
+        .map_err(|e| format!("Device login request failed: {}", e))?;
+
+    if !resp.status().is_success() {
+        let status = resp.status();
+        let body = resp.text().await.unwrap_or_default();
+        return Err(format!("Device login failed ({}): {}", status, body));
+    }
+
+    let login_resp: LoginResponse = resp
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse device login response: {}", e))?;
 
     let token = login_resp.token.clone();
 
@@ -79,7 +166,10 @@ async fn get_token(client: &Client, base_url: &str) -> Result<String, String> {
 }
 
 fn base_url() -> Result<String, String> {
-    Ok("https://confero.nytuo.fr".to_string())
+    Ok(std::env::var("CONFERO_URL")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .unwrap_or_else(|| "https://confero.nytuo.fr".to_string()))
 }
 
 fn build_client() -> Result<Client, String> {
@@ -92,7 +182,7 @@ fn build_client() -> Result<Client, String> {
         }
     }
     Client::builder()
-        .timeout(Duration::from_secs(30))
+        .timeout(Duration::from_secs(600))
         .default_headers(headers)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))
@@ -446,5 +536,165 @@ pub async fn test_connection() -> Result<String, String> {
         Ok("OK".to_string())
     } else {
         Err(format!("Server returned {}", resp.status()))
+    }
+}
+
+fn is_recognized_store(importer_id: &str) -> bool {
+    matches!(
+        importer_id.trim().to_lowercase().as_str(),
+        "steam" | "epic" | "gog" | "heroic" | "itch"
+    )
+}
+
+pub fn has_resolvable_identity(igdb_id: &str, game_importer_id: &str, importer_id: &str) -> bool {
+    !igdb_id.trim().is_empty() || (!game_importer_id.trim().is_empty() && is_recognized_store(importer_id))
+}
+
+pub fn should_push_local(updated_at: &str, confero_updated_at: Option<&str>) -> bool {
+    let updated = chrono::DateTime::parse_from_rfc3339(updated_at).ok();
+    match confero_updated_at.filter(|ts| !ts.is_empty()) {
+        Some(ts) => {
+            let confero = chrono::DateTime::parse_from_rfc3339(ts).ok();
+            match (updated, confero) {
+                (Some(u), Some(c)) => u > c,
+                (Some(_), None) => true,
+                _ => false,
+            }
+        }
+        None => true,
+    }
+}
+
+pub fn should_apply_remote(remote_updated_at: &str, local_confero_updated_at: Option<&str>) -> bool {
+    let remote = chrono::DateTime::parse_from_rfc3339(remote_updated_at).ok();
+    let local = local_confero_updated_at.and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok());
+    match (remote, local) {
+        (Some(r), Some(l)) => r > l,
+        (Some(_), None) => true,
+        _ => false,
+    }
+}
+
+pub fn is_conflict(
+    updated_at: &str,
+    confero_updated_at: Option<&str>,
+    remote_updated_at: &str,
+) -> bool {
+    should_push_local(updated_at, confero_updated_at)
+        && should_apply_remote(remote_updated_at, confero_updated_at)
+}
+
+#[cfg(test)]
+mod merge_tests {
+    use super::*;
+
+    #[test]
+    fn should_push_local_when_never_synced() {
+        assert!(should_push_local("2024-01-02T00:00:00Z", None));
+        assert!(should_push_local("2024-01-02T00:00:00Z", Some("")));
+    }
+
+    #[test]
+    fn should_push_local_when_edited_after_last_sync() {
+        assert!(should_push_local(
+            "2024-01-02T00:00:00Z",
+            Some("2024-01-01T00:00:00Z")
+        ));
+    }
+
+    #[test]
+    fn should_not_push_local_when_not_edited_since_last_sync() {
+        assert!(!should_push_local(
+            "2024-01-01T00:00:00Z",
+            Some("2024-01-02T00:00:00Z")
+        ));
+        assert!(!should_push_local(
+            "2024-01-01T00:00:00Z",
+            Some("2024-01-01T00:00:00Z")
+        ));
+    }
+
+    #[test]
+    fn should_not_push_local_on_unparsable_timestamps() {
+        assert!(!should_push_local("not-a-date", Some("2024-01-01T00:00:00Z")));
+    }
+
+    #[test]
+    fn should_apply_remote_when_never_synced() {
+        assert!(should_apply_remote("2024-01-02T00:00:00Z", None));
+    }
+
+    #[test]
+    fn should_apply_remote_when_newer_than_last_sync() {
+        assert!(should_apply_remote(
+            "2024-01-02T00:00:00Z",
+            Some("2024-01-01T00:00:00Z")
+        ));
+    }
+
+    #[test]
+    fn should_not_apply_remote_when_not_newer() {
+        assert!(!should_apply_remote(
+            "2024-01-01T00:00:00Z",
+            Some("2024-01-02T00:00:00Z")
+        ));
+        assert!(!should_apply_remote(
+            "2024-01-01T00:00:00Z",
+            Some("2024-01-01T00:00:00Z")
+        ));
+    }
+
+    #[test]
+    fn conflict_when_both_sides_changed_since_last_sync() {
+        assert!(is_conflict(
+            "2024-01-05T00:00:00Z",
+            Some("2024-01-01T00:00:00Z"),
+            "2024-01-06T00:00:00Z"
+        ));
+    }
+
+    #[test]
+    fn no_conflict_when_only_local_changed() {
+        assert!(!is_conflict(
+            "2024-01-05T00:00:00Z",
+            Some("2024-01-01T00:00:00Z"),
+            "2024-01-01T00:00:00Z"
+        ));
+    }
+
+    #[test]
+    fn no_conflict_when_only_remote_changed() {
+        assert!(!is_conflict(
+            "2024-01-01T00:00:00Z",
+            Some("2024-01-01T00:00:00Z"),
+            "2024-01-05T00:00:00Z"
+        ));
+    }
+
+    #[test]
+    fn no_conflict_on_first_sync_is_still_a_conflict_if_both_have_data() {
+        assert!(is_conflict("2024-01-01T00:00:00Z", None, "2024-01-01T00:00:00Z"));
+    }
+
+    #[test]
+    fn resolvable_with_igdb_id_only() {
+        assert!(has_resolvable_identity("12345", "", ""));
+    }
+
+    #[test]
+    fn resolvable_with_recognized_store_id() {
+        assert!(has_resolvable_identity("", "76561200000000", "steam"));
+        assert!(has_resolvable_identity("", "abc123", "Epic"));
+    }
+
+    #[test]
+    fn not_resolvable_with_neither() {
+        assert!(!has_resolvable_identity("", "", ""));
+        assert!(!has_resolvable_identity("", "", "playnite"));
+    }
+
+    #[test]
+    fn not_resolvable_with_unrecognized_store_and_no_igdb_id() {
+        assert!(!has_resolvable_identity("", "some-id", "playnite"));
     }
 }

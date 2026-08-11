@@ -8,6 +8,7 @@ use chrono::{DateTime, Utc};
 use once_cell::sync::Lazy;
 
 use crate::database::{establish_connection, first_time_stat, update_game_nodup};
+use crate::plugins::igdb;
 use crate::file_operations::{
     create_extra_dirs, get_extra_dirs, save_image_optimized, strip_html,
 };
@@ -134,6 +135,7 @@ pub async fn import(
     let mut imported = 0usize;
     let mut already_present = 0usize;
     let mut needs_relink = 0usize;
+    let mut newly_imported: Vec<(String, String)> = Vec::new();
 
     for (i, doc) in games_docs.iter().enumerate() {
         let name = doc
@@ -187,6 +189,9 @@ pub async fn import(
             continue;
         }
         imported += 1;
+        if mapped.game.igdb_id.trim().is_empty() {
+            newly_imported.push((id.clone(), name.clone()));
+        }
 
         let extra_dirs_ready = create_extra_dirs(&id).is_ok();
         let game_dir: Option<PathBuf> = if extra_dirs_ready {
@@ -221,7 +226,48 @@ pub async fn import(
         imported, already_present, needs_relink, total
     ));
 
+    enrich_with_igdb(newly_imported).await;
+
     Ok(())
+}
+
+async fn enrich_with_igdb(games: Vec<(String, String)>) {
+    if games.is_empty() {
+        return;
+    }
+
+    let client_id = std::env::var("IGDB_CLIENT_ID");
+    let client_secret = std::env::var("IGDB_CLIENT_SECRET");
+    let (client_id, client_secret) = match (client_id, client_secret) {
+        (Ok(id), Ok(secret)) if !id.is_empty() && !secret.is_empty() => (id, secret),
+        _ => {
+            send_message_to_frontend(
+                "[PLAYNITE-IMPORT-WARN]Skipped IGDB lookup: no IGDB API key configured \
+                 in Settings > API Keys. Games were imported, but won't have an igdb_id \
+                 until one is set and you sync/import again.",
+            );
+            return;
+        }
+    };
+    igdb::set_credentials(vec![client_id, client_secret]);
+
+    send_message_to_frontend(&format!(
+        "[PLAYNITE-IMPORT-INFO]Looking up IGDB data for {} games...",
+        games.len()
+    ));
+
+    let total = games.len();
+    let (matched, _attempted, error) = igdb::bulk_enrich_missing_igdb_ids(games).await;
+
+    if let Some(error) = error {
+        send_message_to_frontend(&format!("[PLAYNITE-IMPORT-WARN]IGDB lookup failed: {}", error));
+        return;
+    }
+
+    send_message_to_frontend(&format!(
+        "[PLAYNITE-IMPORT-INFO]Matched {}/{} games to IGDB",
+        matched, total
+    ));
 }
 
 fn find_existing(conn: &rusqlite::Connection, game: &IGame) -> bool {

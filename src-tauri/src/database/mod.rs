@@ -312,6 +312,24 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
         ("unlocked", "TEXT NOT NULL"),
     ];
 
+    let required_columns_sync_conflicts = vec![
+        ("id", "INTEGER PRIMARY KEY"),
+        ("game_id", "TEXT NOT NULL"),
+        ("game_name", "TEXT NOT NULL"),
+        ("local_status", "TEXT NOT NULL"),
+        ("local_rating", "TEXT NOT NULL"),
+        ("local_hidden", "TEXT NOT NULL"),
+        ("local_updated_at", "TEXT NOT NULL"),
+        ("remote_status", "TEXT NOT NULL"),
+        ("remote_rating", "TEXT NOT NULL"),
+        ("remote_hidden", "TEXT NOT NULL"),
+        ("remote_updated_at", "TEXT NOT NULL"),
+        (
+            "created_at",
+            "TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now'))",
+        ),
+    ];
+
     create_table(&conn, "games", required_columns_games.clone())?;
     modify_table_add_missing_columns(&conn, "games", required_columns_games.clone())?;
     create_table(&conn, "category", required_columns_category.clone())?;
@@ -322,8 +340,23 @@ pub(crate) fn establish_connection() -> rusqlite::Result<Connection> {
     modify_table_add_missing_columns(&conn, "stats", required_columns_stats.clone())?;
     create_table(&conn, "achievements", required_columns_achievements.clone())?;
     modify_table_add_missing_columns(&conn, "achievements", required_columns_achievements.clone())?;
+    create_table(&conn, "sync_conflicts", required_columns_sync_conflicts.clone())?;
+    modify_table_add_missing_columns(&conn, "sync_conflicts", required_columns_sync_conflicts.clone())?;
     create_favorites_category(&conn)?;
+    migrate_confero_updated_at_defaults(&conn);
     Ok(conn)
+}
+
+fn migrate_confero_updated_at_defaults(conn: &Connection) {
+    const FLAG: &str = "confero_updated_at_migration_v1_done";
+    if get_setting_db(conn, FLAG).is_some() {
+        return;
+    }
+    let _ = conn.execute(
+        "UPDATE games SET confero_updated_at = '' WHERE confero_updated_at = updated_at AND confero_updated_at != ''",
+        [],
+    );
+    let _ = set_settings_db(conn, FLAG, "true");
 }
 
 fn create_favorites_category(conn: &Connection) -> Result<(), rusqlite::Error> {
@@ -434,7 +467,7 @@ pub fn update_game(conn: &Connection, game: IGame) -> Result<String, String> {
             .map(|field| field.to_string())
             .collect::<Vec<String>>()
             .join("', '");
-        let sql_insert = format!("INSERT INTO games (name, game_importer_id, importer_id, igdb_id, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden, metadata_source) VALUES ('{}')", all_fields);
+        let sql_insert = format!("INSERT INTO games (name, game_importer_id, importer_id, igdb_id, sort_name, rating, platforms, description, critic_score, genres, styles, release_date, developers, editors, game_dir, exec_file, exec_args, tags, status, trophies_unlocked, hidden, metadata_source, confero_updated_at) VALUES ('{}', '')", all_fields);
         match conn.execute(&sql_insert, []).map_err(|e| e.to_string()) {
             Ok(_) => {
                 println!("Game inserted");
@@ -617,6 +650,15 @@ pub fn apply_confero_update(
     Ok(rows > 0)
 }
 
+pub fn set_igdb_id(conn: &Connection, game_id: &str, igdb_id: &str) -> Result<(), String> {
+    conn.execute(
+        "UPDATE games SET igdb_id = ?1 WHERE id = ?2",
+        params![igdb_id, game_id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub fn set_confero_updated_at(
     conn: &Connection,
     game_id: &str,
@@ -629,6 +671,52 @@ pub fn set_confero_updated_at(
             game_id.replace('\'', "''"),
         ),
         [],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn add_sync_conflict(
+    conn: &Connection,
+    game_id: &str,
+    game_name: &str,
+    local_status: &str,
+    local_rating: &str,
+    local_hidden: &str,
+    local_updated_at: &str,
+    remote_status: &str,
+    remote_rating: &str,
+    remote_hidden: &str,
+    remote_updated_at: &str,
+) -> Result<(), String> {
+    conn.execute(
+        "INSERT INTO sync_conflicts (game_id, game_name, local_status, local_rating, local_hidden, local_updated_at, remote_status, remote_rating, remote_hidden, remote_updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+        params![
+            game_id,
+            game_name,
+            local_status,
+            local_rating,
+            local_hidden,
+            local_updated_at,
+            remote_status,
+            remote_rating,
+            remote_hidden,
+            remote_updated_at,
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn list_sync_conflicts(conn: &Connection) -> Result<Vec<HashMap<String, String>>, String> {
+    query_all_data(conn, "sync_conflicts").map_err(|e| e.to_string())
+}
+
+pub fn delete_sync_conflict(conn: &Connection, id: &str) -> Result<(), String> {
+    conn.execute(
+        "DELETE FROM sync_conflicts WHERE id = ?1",
+        params![id],
     )
     .map_err(|e| e.to_string())?;
     Ok(())

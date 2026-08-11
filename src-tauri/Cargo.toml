@@ -57,6 +57,7 @@ webp = "0.3"
 # git/crates.io dependency before this can build on any machine other than one
 # with both repos checked out side by side (e.g. CI, release builds).
 howlongtobeat-scraper = { path = "../../howLongToBeat-Scraper" }
+keyring = { version = "3", features = ["apple-native", "windows-native", "linux-native-sync-persistent"] }
 
 [dev-dependencies]
 tempfile = "3.5.0"

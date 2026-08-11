@@ -22,8 +22,10 @@ use crate::plugins::steam_grid::{
 };
 use crate::tauri_commander::{
     add_game_to_category, check_ytdlp_updates, confero_delete_game, confero_full_sync,
-    confero_pull_games, confero_pull_stats, confero_pull_trophies, confero_push_games,
-    confero_push_stats, confero_push_trophies, confero_test_connection, create_category,
+    confero_is_linked, confero_link_account, confero_list_conflicts, confero_pull_games,
+    confero_pull_stats, confero_pull_trophies, confero_push_games, confero_push_stats,
+    confero_push_trophies, confero_resolve_all_conflicts, confero_resolve_conflict,
+    confero_test_connection, confero_unlink_account, create_category,
     delete_element, delete_game, download_yt_audio, epic_cloud_save_status, epic_debug_cache_info,
     epic_delete_cloud_saves, epic_download_game, epic_download_saves, epic_get_display_name,
     epic_get_downloadable_games, epic_get_installed_games, epic_is_logged_in, epic_launch_game,
@@ -512,7 +514,7 @@ fn create_basic_env_file() {
     if !env_file.exists() {
         std::fs::write(
             env_file,
-            "STEAM_API_KEY=\nEGS_CLIENT_ID=\nIGDB_CLIENT_SECRET=\nEGS_CLIENT_SECRET=\nIGDB_CLIENT_ID=\nSTEAMGRIDDB_API_KEY=\nSTEAM_USER_ID=\nCONFERO_EMAIL=\nCONFERO_PASSWORD=\n",
+            "STEAM_API_KEY=\nEGS_CLIENT_ID=\nIGDB_CLIENT_SECRET=\nEGS_CLIENT_SECRET=\nIGDB_CLIENT_ID=\nSTEAMGRIDDB_API_KEY=\nSTEAM_USER_ID=\nCONFERO_EMAIL=\nCONFERO_URL=\n",
         )
         .expect("Failed to create env file");
     }
@@ -627,6 +629,9 @@ async fn main() {
             gog_get_display_name,
             steam_sync_achievements,
             confero_test_connection,
+            confero_link_account,
+            confero_unlink_account,
+            confero_is_linked,
             confero_push_games,
             confero_pull_games,
             confero_push_stats,
@@ -635,6 +640,9 @@ async fn main() {
             confero_pull_trophies,
             confero_delete_game,
             confero_full_sync,
+            confero_list_conflicts,
+            confero_resolve_conflict,
+            confero_resolve_all_conflicts,
             check_for_update,
             install_update,
             open_releases_page,
