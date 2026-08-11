@@ -2637,6 +2637,7 @@ dependencies = [
 [[package]]
 name = "howlongtobeat-scraper"
 version = "0.1.0"
+source = "git+https://github.com/Nytuo/howLongToBeat-Scraper.git?rev=b8b8a79db947811b1914804eb2d41960a954a38e#b8b8a79db947811b1914804eb2d41960a954a38e"
 dependencies = [
  "headless_chrome",
  "reqwest 0.12.28",

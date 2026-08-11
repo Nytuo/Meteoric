@@ -39,6 +39,11 @@ struct DeviceLoginRequest {
     device_token: String,
 }
 
+#[derive(Serialize)]
+struct CreateDeviceTokenRequest {
+    label: String,
+}
+
 #[derive(Deserialize)]
 struct LoginResponse {
     token: String,
@@ -78,8 +83,11 @@ pub async fn link_account(email: String, password: String) -> Result<(), String>
         .map_err(|e| format!("Failed to parse login response: {}", e))?;
 
     let device_resp = client
-        .post(format!("{}/api/auth/device-token", url))
+        .post(format!("{}/api/auth/device-tokens", url))
         .bearer_auth(&session.token)
+        .json(&CreateDeviceTokenRequest {
+            label: "Meteoric".to_string(),
+        })
         .send()
         .await
         .map_err(|e| format!("Device token request failed: {}", e))?;
@@ -110,7 +118,7 @@ pub async fn unlink_account() -> Result<(), String> {
         let client = build_client()?;
         let url = base_url()?;
         let _ = client
-            .post(format!("{}/api/auth/device-token/revoke", url))
+            .post(format!("{}/api/auth/device-tokens/revoke-all", url))
             .bearer_auth(&token)
             .send()
             .await;
@@ -173,17 +181,8 @@ fn base_url() -> Result<String, String> {
 }
 
 fn build_client() -> Result<Client, String> {
-    let mut headers = reqwest::header::HeaderMap::new();
-    if let Ok(secret) = std::env::var("CONFERO_APP_SECRET") {
-        if !secret.is_empty() {
-            if let Ok(val) = reqwest::header::HeaderValue::from_str(&secret) {
-                headers.insert("x-app-secret", val);
-            }
-        }
-    }
     Client::builder()
         .timeout(Duration::from_secs(600))
-        .default_headers(headers)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))
 }
