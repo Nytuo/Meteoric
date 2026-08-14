@@ -15,7 +15,9 @@ export function FilterOverlay({ onClose }: FilterOverlayProps) {
   const view = settings.view || 'card';
   const zoom = parseInt(settings.zoom?.toString() ?? '10');
   const gap = parseInt(settings.gap?.toString() ?? '10');
-  const displayInfo = settings.displayInfo || '';
+  const displayInfo = (settings.displayInfo || 'name')
+    .split(',')
+    .filter(Boolean);
 
   const setView = (v: 'list' | 'card') => {
     applySettings({ ...settings, view: v });
@@ -35,8 +37,11 @@ export function FilterOverlay({ onClose }: FilterOverlayProps) {
     applySettings({ ...settings, gap: v[0].toString() });
   };
 
-  const setDisplayInfo = (value: string) => {
-    applySettings({ ...settings, displayInfo: value });
+  const toggleDisplayInfo = (value: string) => {
+    const next = displayInfo.includes(value)
+      ? displayInfo.filter((v) => v !== value)
+      : [...displayInfo, value];
+    applySettings({ ...settings, displayInfo: next.join(',') });
   };
 
   const clearDisplayInfo = () => {
@@ -102,9 +107,9 @@ export function FilterOverlay({ onClose }: FilterOverlayProps) {
           {displayOptions.map((opt) => (
             <button
               key={opt}
-              onClick={() => setDisplayInfo(opt)}
+              onClick={() => toggleDisplayInfo(opt)}
               className={`rounded-md border px-2 py-1 text-xs transition-colors ${
-                displayInfo === opt
+                displayInfo.includes(opt)
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border hover:bg-accent'
               }`}

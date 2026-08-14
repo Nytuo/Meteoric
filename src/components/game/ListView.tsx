@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Gamepad2, SearchX, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { GameContextMenu } from '@/components/game/GameContextMenu';
 import type { IGame } from '@/types';
 import { useGameStore } from '@/stores/gameStore';
 
@@ -63,54 +64,55 @@ export function ListView({ games }: ListViewProps) {
         </thead>
         <tbody>
           {visibleGames.map((game) => (
-            <tr
-              key={game.id}
-              onClick={() => navigate(`/game/${game.id}`)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  navigate(`/game/${game.id}`);
-                }
-              }}
-              tabIndex={0}
-              aria-label={game.name}
-              className="cursor-pointer border-b border-border/30 transition-colors hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
-            >
-              <td className="py-2">
-                <img
-                  src={game.icon || game.jaquette || '/assets/logo.gif'}
-                  alt=""
-                  className="h-8 w-8 rounded object-cover"
-                />
-              </td>
-              <td className="py-2 pl-3 text-sm font-medium">{game.name}</td>
-              <td className="py-2 text-xs text-muted-foreground">
-                {game.platforms}
-              </td>
-              <td className="py-2 text-xs text-muted-foreground">
-                {game.genres}
-              </td>
-              <td className="py-2">
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      className={`h-3 w-3 ${parseInt(game.rating || '0') >= star ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`}
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                  ))}
-                </div>
-              </td>
-              <td className="py-2">
-                {game.status && (
-                  <Badge variant="outline" className="text-[10px]">
-                    {game.status}
-                  </Badge>
-                )}
-              </td>
-            </tr>
+            <GameContextMenu key={game.id} game={game}>
+              <tr
+                onClick={() => navigate(`/game/${game.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(`/game/${game.id}`);
+                  }
+                }}
+                tabIndex={0}
+                aria-label={game.name}
+                className="cursor-pointer border-b border-border/30 transition-colors hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
+              >
+                <td className="py-2">
+                  <img
+                    src={game.icon || game.jaquette || '/assets/logo.gif'}
+                    alt=""
+                    className="h-8 w-8 rounded object-cover"
+                  />
+                </td>
+                <td className="py-2 pl-3 text-sm font-medium">{game.name}</td>
+                <td className="py-2 text-xs text-muted-foreground">
+                  {game.platforms}
+                </td>
+                <td className="py-2 text-xs text-muted-foreground">
+                  {game.genres}
+                </td>
+                <td className="py-2">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <svg
+                        key={star}
+                        className={`h-3 w-3 ${parseInt(game.rating || '0') >= star ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`}
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                    ))}
+                  </div>
+                </td>
+                <td className="py-2">
+                  {game.status && (
+                    <Badge variant="outline" className="text-[10px]">
+                      {game.status}
+                    </Badge>
+                  )}
+                </td>
+              </tr>
+            </GameContextMenu>
           ))}
         </tbody>
       </table>
