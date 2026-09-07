@@ -1,6 +1,6 @@
 [package]
 name = "Meteoric"
-version = "2.0.0"
+version = "2.1.0"
 description = "Collects all your games in one place"
 authors = ["Nytuo"]
 edition = "2021"
