@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Gamepad2, SearchX, Loader2 } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { GameContextMenu } from '@/components/game/GameContextMenu';
 import type { IGame } from '@/types';
 import { useGameStore } from '@/stores/gameStore';
+import { useLibraryViewStore } from '@/stores/libraryViewStore';
 
 interface ListViewProps {
   games: IGame[];
@@ -16,22 +17,26 @@ const BATCH_SIZE = 60;
 export function ListView({ games }: ListViewProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const storedVisibleCount = useLibraryViewStore((s) => s.visibleCount);
+  const setStoredVisibleCount = useLibraryViewStore((s) => s.setVisibleCount);
+  const visibleCount = storedVisibleCount || BATCH_SIZE;
   const sentinelRef = useRef<HTMLDivElement>(null);
   const hasAnyGames = useGameStore((s) => s.games.length > 0);
   const loading = useGameStore((s) => s.loading);
 
-  useEffect(() => {
-    setVisibleCount(BATCH_SIZE);
-  }, [games]);
-
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       if (entries[0]?.isIntersecting) {
-        setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, games.length));
+        setStoredVisibleCount(
+          Math.min(
+            (useLibraryViewStore.getState().visibleCount || BATCH_SIZE) +
+              BATCH_SIZE,
+            games.length
+          )
+        );
       }
     },
-    [games.length]
+    [games.length, setStoredVisibleCount]
   );
 
   useEffect(() => {
@@ -66,6 +71,7 @@ export function ListView({ games }: ListViewProps) {
           {visibleGames.map((game) => (
             <GameContextMenu key={game.id} game={game}>
               <tr
+                data-game-id={game.id}
                 onClick={() => navigate(`/game/${game.id}`)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {

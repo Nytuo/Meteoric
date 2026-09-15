@@ -57,12 +57,20 @@ export function EditGame() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { getGame, setGame, fetchGames, searchAPI, loadGameExtras, linkGameToNative } =
-    useGameStore();
+  const {
+    getGame,
+    setGame,
+    removeGame,
+    fetchGames,
+    searchAPI,
+    loadGameExtras,
+    linkGameToNative,
+  } = useGameStore();
   const { changeSidebarOpen, stopAllAudio, changeBlockUI, downloadYTAudio } =
     useAppStore();
   const { confirm } = useConfirmStore();
-  const { downloadableGames: epicLibrary, fetchDownloadableGames } = useEpicStore();
+  const { downloadableGames: epicLibrary, fetchDownloadableGames } =
+    useEpicStore();
 
   const [selectedProvider, setSelectedProvider] = useState('general');
   const [searchQuery, setSearchQuery] = useState('');
@@ -203,7 +211,6 @@ export function EditGame() {
     }
     await db.postGame(updated);
     setGame(id, updated);
-    await fetchGames();
     toast.success(t('the-change-has-been-saved'));
     changeBlockUI(false);
   };
@@ -217,7 +224,7 @@ export function EditGame() {
     updated.stats = formData.stats || game.stats;
     const newId = await db.postGame(updated);
     setGame(id, updated);
-    await fetchGames();
+    if (newId !== id) await fetchGames();
     toast.success(t('the-change-has-been-saved'));
     navigate(`/game/${newId}`);
   };
@@ -230,7 +237,6 @@ export function EditGame() {
     }
     await db.postGame(updated);
     setGame(id, updated);
-    await fetchGames();
     toast.success(t('the-change-has-been-saved'));
   };
 
@@ -266,7 +272,7 @@ export function EditGame() {
     });
     if (!ok) return;
     await db.deleteGame(id);
-    await fetchGames();
+    removeGame(id);
     navigate('/games');
   };
 
@@ -399,13 +405,11 @@ export function EditGame() {
       const refreshed = await refreshGameLinks(game!);
       setFormData({ ...refreshed });
       setGame(id, refreshed);
-      await fetchGames();
       changeBlockUI(false);
       return;
     }
     setFormData({ ...item });
     await db.postGame(item);
-    await fetchGames();
     await db.saveMediaToExternalStorage(item);
     const refreshed = await refreshGameLinks(item);
     setFormData({ ...refreshed });
@@ -974,23 +978,20 @@ export function EditGame() {
               </h2>
               <p className="mb-5 max-w-xl text-sm text-muted-foreground">
                 Link this game to its Steam, GOG or Epic entry to unlock
-                achievements, playtime sync and install/uninstall - the same
-                as a game imported directly from that store.
+                achievements, playtime sync and install/uninstall - the same as
+                a game imported directly from that store.
               </p>
 
               {game && ['steam', 'gog', 'epic'].includes(game.importer_id) && (
                 <div className="mb-5 max-w-md rounded-lg border border-border bg-accent/30 p-3 text-sm">
                   Currently linked to{' '}
                   <span className="font-medium capitalize">
-                    {game.importer_id === 'gog'
-                      ? 'GOG'
-                      : game.importer_id}
+                    {game.importer_id === 'gog' ? 'GOG' : game.importer_id}
                   </span>{' '}
                   (id: {game.game_importer_id})
                   {game.metadata_source && (
                     <span className="mt-1 block text-xs text-muted-foreground">
-                      Name/description still come from{' '}
-                      {game.metadata_source}.
+                      Name/description still come from {game.metadata_source}.
                     </span>
                   )}
                 </div>

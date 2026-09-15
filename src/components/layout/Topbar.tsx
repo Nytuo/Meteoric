@@ -55,12 +55,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useGameStore } from '@/stores/gameStore';
-import { useCategoryStore, STATUS_CATEGORY_PREFIX } from '@/stores/categoryStore';
+import {
+  useCategoryStore,
+  STATUS_CATEGORY_PREFIX,
+} from '@/stores/categoryStore';
 import { useAppStore } from '@/stores/appStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTauriEventStore } from '@/stores/tauriEvents';
 import { db } from '@/lib/db';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { AddGameOverlay } from '@/components/overlays/AddGameOverlay';
 import { FilterOverlay } from '@/components/overlays/FilterOverlay';
 import {
@@ -499,7 +501,7 @@ export function Topbar() {
                 <p className="mb-2 px-1 text-xs font-semibold text-muted-foreground">
                   {t('filterBy')}
                 </p>
-                <ScrollArea className="max-h-72">
+                <div className="max-h-80 overflow-y-auto pr-1">
                   {filters.map((group) => (
                     <div key={group.name} className="mb-2">
                       <p className="mb-1 px-1 text-xs font-medium text-muted-foreground">
@@ -516,7 +518,7 @@ export function Topbar() {
                       ))}
                     </div>
                   ))}
-                </ScrollArea>
+                </div>
               </PopoverContent>
             </Popover>
           )}

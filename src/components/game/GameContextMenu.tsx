@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -34,8 +34,9 @@ interface GameContextMenuProps {
 export function GameContextMenu({ game, children }: GameContextMenuProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { launchGame, setGame, fetchGames } = useGameStore();
+  const { launchGame, setGame, removeGame } = useGameStore();
   const { confirm } = useConfirmStore();
+  const afterClose = useRef<(() => void) | null>(null);
 
   const statuses = [
     t('not-started'),
@@ -81,13 +82,22 @@ export function GameContextMenu({ game, children }: GameContextMenuProps) {
     });
     if (!ok) return;
     await db.deleteGame(game.id);
-    await fetchGames();
+    removeGame(game.id);
   };
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
+      <ContextMenuContent
+        className="w-48"
+        onCloseAutoFocus={(e) => {
+          const action = afterClose.current;
+          if (!action) return;
+          afterClose.current = null;
+          e.preventDefault();
+          action();
+        }}
+      >
         <ContextMenuItem onSelect={handlePlay}>
           <Play className="mr-2 h-4 w-4" />
           {t('play') || 'Play'}
@@ -122,7 +132,9 @@ export function GameContextMenu({ game, children }: GameContextMenuProps) {
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem
-          onSelect={handleDelete}
+          onSelect={() => {
+            afterClose.current = handleDelete;
+          }}
           className="text-destructive focus:bg-destructive/10 focus:text-destructive"
         >
           <Trash2 className="mr-2 h-4 w-4" />

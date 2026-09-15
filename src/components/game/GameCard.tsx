@@ -30,6 +30,7 @@ export function GameCard({ game }: GameCardProps) {
   return (
     <GameContextMenu game={game}>
       <div
+        data-game-id={game.id}
         onClick={() => navigate(`/game/${game.id}`)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

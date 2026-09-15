@@ -13,11 +13,13 @@ interface GameStore {
   currentGame: IGame | null;
   achievements: ITrophy[];
   loading: boolean;
+  listToken: number;
 
   fetchGames: () => Promise<void>;
   getGame: (id: string) => IGame | undefined;
   setCurrentGame: (game: IGame | undefined) => void;
   setGame: (id: string, game: IGame) => void;
+  removeGame: (id: string) => void;
   searchGame: (query: string) => void;
   sortGames: (option?: string) => void;
   filterGames: (on?: string, value?: string, or_?: string) => void;
@@ -56,9 +58,9 @@ export interface FilterGroup {
 
 function sortByName(games: IGame[]): IGame[] {
   return [...games].sort((a, b) =>
-    (a.sort_name || a.name || '').toLowerCase().localeCompare(
-      (b.sort_name || b.name || '').toLowerCase()
-    )
+    (a.sort_name || a.name || '')
+      .toLowerCase()
+      .localeCompare((b.sort_name || b.name || '').toLowerCase())
   );
 }
 
@@ -108,6 +110,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   currentGame: null,
   achievements: [],
   loading: true,
+  listToken: 0,
 
   async fetchGames() {
     set({ loading: true });
@@ -120,7 +123,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const visible = games.filter((g) => g.hidden === 'false' || !g.hidden);
       console.log('[PERF] fetchGames - Visible:', visible.length);
       console.timeEnd('[PERF] fetchGames');
-      set({ filteredGames: visible });
+      set({ filteredGames: visible, listToken: get().listToken + 1 });
     } catch (e) {
       console.error('[ERROR] fetchGames:', e);
       toast.error('Failed to load games');
@@ -147,12 +150,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ games, filteredGames: filtered, currentGame: game });
   },
 
+  removeGame(id) {
+    set({
+      games: get().games.filter((g) => g.id !== id),
+      filteredGames: get().filteredGames.filter((g) => g.id !== id),
+      currentGame: get().currentGame?.id === id ? null : get().currentGame,
+    });
+  },
+
   searchGame(query) {
     if (!query) {
       set({
         filteredGames: get().games.filter(
           (g) => g.hidden === 'false' || !g.hidden
         ),
+        listToken: get().listToken + 1,
       });
       return;
     }
@@ -160,6 +172,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       filteredGames: get().games.filter((g) =>
         g.name.toLowerCase().includes(query.toLowerCase())
       ),
+      listToken: get().listToken + 1,
     });
   },
 
@@ -175,7 +188,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (a[option] > b[option]) return 1;
       return 0;
     });
-    set({ filteredGames: games });
+    set({ filteredGames: games, listToken: get().listToken + 1 });
   },
 
   filterGames(on = 'name', value = '', or_ = '') {
@@ -183,12 +196,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!value) {
       set({
         filteredGames: games.filter((g) => g.hidden === 'false' || !g.hidden),
+        listToken: get().listToken + 1,
       });
       return;
     }
     if (['Not Set', 'Not Rated', 'No Tags', 'Unknown'].includes(value)) {
       set({
         filteredGames: games.filter((g) => !g[on] || g[on] === ''),
+        listToken: get().listToken + 1,
       });
       return;
     }
@@ -198,6 +213,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           g[on]?.toLowerCase().includes(value.toLowerCase()) ||
           (or_ && g[on]?.toLowerCase().includes(or_.toLowerCase()))
       ),
+      listToken: get().listToken + 1,
     });
   },
 
@@ -205,7 +221,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ loading: true });
     try {
       const games = sortByName(await db.getGamesByCategory(category));
-      set({ games, filteredGames: games });
+      set({ games, filteredGames: games, listToken: get().listToken + 1 });
     } catch {
       toast.error('Failed to load category');
     } finally {
@@ -218,7 +234,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     try {
       const allGames = sortByName(await db.getGames());
       const filtered = allGames.filter((g) => g.platforms?.includes(platform));
-      set({ games: allGames, filteredGames: filtered });
+      set({
+        games: allGames,
+        filteredGames: filtered,
+        listToken: get().listToken + 1,
+      });
     } catch {
       toast.error('Failed to load games');
     } finally {
@@ -231,7 +251,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     try {
       const allGames = sortByName(await db.getGames());
       const filtered = allGames.filter((g) => g.status === status);
-      set({ games: allGames, filteredGames: filtered });
+      set({
+        games: allGames,
+        filteredGames: filtered,
+        listToken: get().listToken + 1,
+      });
     } catch {
       toast.error('Failed to load games');
     } finally {
@@ -266,7 +290,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       });
 
       console.timeEnd('[PERF] loadRecentPlayed');
-      set({ games: allGames, filteredGames: played });
+      set({
+        games: allGames,
+        filteredGames: played,
+        listToken: get().listToken + 1,
+      });
     } catch (e) {
       console.error('[ERROR] loadRecentPlayed:', e);
       toast.error('Failed to load recent games');
@@ -325,7 +353,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
         gogInstalledGameIds.size
       );
       console.timeEnd('[PERF] loadInstalled');
-      set({ games: allGames, filteredGames: installed });
+      set({
+        games: allGames,
+        filteredGames: installed,
+        listToken: get().listToken + 1,
+      });
     } catch (e) {
       console.error('[ERROR] loadInstalled:', e);
       toast.error('Failed to load installed games');
@@ -380,31 +412,50 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   getAllFilters(): FilterGroup[] {
     const { games } = get();
-    const unique = (arr: string[]) => [...new Set(arr)];
-    const extract = (field: string, fallback: string) =>
-      unique(games.map((g) => g[field] || fallback)).map((v) => ({
-        cname: v,
-        value: v,
-        code: field,
-      }));
+    const byName = (a: string, b: string) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' });
+
+    const group = (
+      name: string,
+      field: string,
+      fallback: string,
+      split = true
+    ): FilterGroup => {
+      const values = new Set<string>();
+      let missing = false;
+      for (const g of games) {
+        const raw = (g[field] ?? '').toString();
+        const parts = split
+          ? raw
+              .split(',')
+              .map((v: string) => v.trim())
+              .filter(Boolean)
+          : raw
+            ? [raw]
+            : [];
+        if (parts.length === 0) missing = true;
+        parts.forEach((v: string) => values.add(v));
+      }
+      const list = [...values].sort(byName);
+      if (missing) list.push(fallback);
+      return {
+        name,
+        values: list.map((v) => ({ cname: v, value: v, code: field })),
+      };
+    };
+
+    const genres = group('Genres', 'genres', 'Unknown');
+    const styles = group('Styles', 'styles', 'Unknown');
 
     return [
-      {
-        name: 'Genres',
-        values: unique(
-          games.flatMap((g) =>
-            (g.genres + (g.styles ? ',' + g.styles : ''))
-              .split(',')
-              .filter(Boolean)
-          )
-        ).map((v) => ({ cname: v, value: v, code: 'genres' })),
-      },
-      { name: 'Platforms', values: extract('platforms', 'Unknown') },
-      { name: 'Tags', values: extract('tags', 'No Tags') },
-      { name: 'Developers', values: extract('developers', 'Unknown') },
-      { name: 'Editors', values: extract('editors', 'Unknown') },
-      { name: 'Status', values: extract('status', 'Not Yet') },
-      { name: 'Rating', values: extract('rating', 'Not Rated') },
+      genres,
+      ...(styles.values.some((v) => v.value !== 'Unknown') ? [styles] : []),
+      group('Platforms', 'platforms', 'Unknown'),
+      group('Tags', 'tags', 'No Tags'),
+      group('Developers', 'developers', 'Unknown'),
+      group('Editors', 'editors', 'Unknown'),
+      group('Status', 'status', 'Not Set', false),
+      group('Rating', 'rating', 'Not Rated', false),
       {
         name: 'Hidden',
         values: [
@@ -412,7 +463,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           { cname: 'No', value: 'false', code: 'hidden' },
         ],
       },
-    ];
+    ].filter((g) => g.values.length > 0);
   },
 
   async fetchAchievements(gameId) {
@@ -551,14 +602,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  /// Some importers (Steam, Epic) don't provide a description or cover art of
-  /// their own - this backfills those specific games from IGDB, one at a
-  /// time, without touching anything the importer itself is the source of
-  /// truth
   async enrichMissingMetadataFromIGDB(importerId) {
-    const { useImportProgressStore } = await import(
-      '@/stores/importProgressStore'
-    );
+    const { useImportProgressStore } =
+      await import('@/stores/importProgressStore');
     const progressStore = useImportProgressStore.getState();
 
     const all = await db.getGames();
@@ -583,9 +629,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           `IGDB metadata lookup failed for "${target.name}": ${result}`
         );
         if (i === 0) {
-          toast.error(
-            'Could not fetch metadata from IGDB: ' + result
-          );
+          toast.error('Could not fetch metadata from IGDB: ' + result);
           break;
         }
         continue;

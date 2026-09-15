@@ -1,10 +1,11 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Gamepad2, SearchX, Loader2 } from 'lucide-react';
 import { GameCard } from '@/components/game/GameCard';
 import type { IGame } from '@/types';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useGameStore } from '@/stores/gameStore';
+import { useLibraryViewStore } from '@/stores/libraryViewStore';
 
 interface CardViewProps {
   games: IGame[];
@@ -14,24 +15,28 @@ const BATCH_SIZE = 40;
 
 export function CardView({ games }: CardViewProps) {
   const { t } = useTranslation();
-  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const storedVisibleCount = useLibraryViewStore((s) => s.visibleCount);
+  const setStoredVisibleCount = useLibraryViewStore((s) => s.setVisibleCount);
+  const visibleCount = storedVisibleCount || BATCH_SIZE;
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { settings } = useSettingsStore();
   const gap = parseInt(settings.gap?.toString() ?? '10');
   const hasAnyGames = useGameStore((s) => s.games.length > 0);
   const loading = useGameStore((s) => s.loading);
 
-  useEffect(() => {
-    setVisibleCount(BATCH_SIZE);
-  }, [games]);
-
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       if (entries[0]?.isIntersecting) {
-        setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, games.length));
+        setStoredVisibleCount(
+          Math.min(
+            (useLibraryViewStore.getState().visibleCount || BATCH_SIZE) +
+              BATCH_SIZE,
+            games.length
+          )
+        );
       }
     },
-    [games.length]
+    [games.length, setStoredVisibleCount]
   );
 
   useEffect(() => {
